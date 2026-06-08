@@ -1,0 +1,33 @@
+//! rs-ai — Unified LLM API with automatic model discovery, streaming,
+//! tool calling, and multi-provider support.
+//!
+//! A Rust port of [@earendil-works/pi-ai](https://www.npmjs.com/package/@earendil-works/pi-ai).
+//!
+//! # Quick start
+//!
+//! ```no_run
+//! use rs_ai::{registry, provider_id};
+//!
+//! #[tokio::main]
+//! async fn main() {
+//!     registry::register_builtin_models();
+//!     let model = registry::get_model(provider_id::OPENAI, "gpt-4o-mini").unwrap();
+//!     // ... stream or complete
+//! }
+//! ```
+
+pub mod types;
+pub mod events;
+pub mod registry;
+pub mod env;
+pub mod compat;
+pub mod provider;
+pub mod transports;
+pub mod images;
+pub mod models_generated;
+
+// Re-exports for convenience
+pub use types::*;
+pub use types::provider_id;
+pub use events::*;
+pub use registry::{stream, complete};
