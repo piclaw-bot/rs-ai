@@ -31,6 +31,8 @@ pub mod retry;
 pub mod logger;
 pub mod jsonparse;
 pub mod harness;
+pub mod utils;
+pub mod context;
 
 // Re-exports for convenience
 pub use types::*;
