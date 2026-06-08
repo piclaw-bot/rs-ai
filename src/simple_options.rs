@@ -123,3 +123,38 @@ pub fn calculate_cost(model: &Model, usage: &crate::types::Usage) -> crate::type
         total: input + output + cache_read + cache_write,
     }
 }
+
+/// Clamp xhigh to high for legacy callers.
+pub fn clamp_reasoning(level: &ThinkingLevel) -> ThinkingLevel {
+    match level {
+        ThinkingLevel::XHigh => ThinkingLevel::High,
+        other => other.clone(),
+    }
+}
+
+/// Check if a model supports xhigh thinking.
+pub fn supports_xhigh(model: &Model) -> bool {
+    get_supported_thinking_levels(model)
+        .contains(&ModelThinkingLevel::XHigh)
+}
+
+/// Adjust max tokens for thinking budget.
+pub fn adjust_max_tokens_for_thinking(
+    base_max_tokens: u32,
+    model_max_tokens: u32,
+    level: &ThinkingLevel,
+    budgets: &std::collections::HashMap<ThinkingLevel, u32>,
+) -> (u32, u32) {
+    let clamped = clamp_reasoning(level);
+    let thinking_budget = budgets.get(&clamped).copied()
+        .unwrap_or_else(|| default_thinking_budgets().get(&clamped).copied().unwrap_or(8192));
+    
+    let mut max_tokens = base_max_tokens + thinking_budget;
+    if model_max_tokens > 0 && max_tokens > model_max_tokens {
+        max_tokens = model_max_tokens;
+    }
+    let min_output = 1024u32;
+    let available = max_tokens.saturating_sub(min_output);
+    let final_budget = thinking_budget.min(available);
+    (max_tokens, final_budget)
+}

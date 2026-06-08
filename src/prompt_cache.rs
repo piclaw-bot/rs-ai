@@ -71,3 +71,12 @@ mod tests {
         assert!(id.contains("deadbeef"));
     }
 }
+
+/// Clamp/format an OpenAI prompt cache key.
+pub fn clamp_openai_prompt_cache_key(session_id: &str) -> String {
+    if session_id.len() > 64 {
+        session_id[..64].to_string()
+    } else {
+        session_id.to_string()
+    }
+}

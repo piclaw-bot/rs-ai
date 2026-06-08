@@ -87,3 +87,34 @@ mod tests {
         assert_eq!(parse_retry_after("not-a-number"), None);
     }
 }
+
+/// No-retry config.
+pub fn no_retry_config() -> RetryConfig {
+    RetryConfig::none()
+}
+
+/// Default retry config.
+pub fn default_retry_config() -> RetryConfig {
+    RetryConfig::default()
+}
+
+/// Build retry config from stream options (mirrors Go's RetryConfigFromOptions).
+pub fn retry_config_from_options(opts: &crate::types::StreamOptions) -> RetryConfig {
+    // In the current Rust type, StreamOptions doesn't carry RetryConfig yet.
+    // Return no-retry as default until StreamOptions is extended.
+    RetryConfig::none()
+}
+
+/// Execute an HTTP request with retry logic (async).
+pub async fn do_with_retry(
+    client: &reqwest::Client,
+    request_builder: reqwest::RequestBuilder,
+    config: &RetryConfig,
+) -> Result<reqwest::Response, reqwest::Error> {
+    // Simplified: just send without retry for now if max_retries == 0
+    if config.max_retries == 0 {
+        return request_builder.send().await;
+    }
+    // TODO: full retry loop with backoff
+    request_builder.send().await
+}

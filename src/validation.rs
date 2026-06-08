@@ -106,3 +106,46 @@ mod tests {
         assert!(errs[0].message.contains("name"));
     }
 }
+
+/// Validate a tool call's arguments against a schema (basic type check).
+pub fn validate_tool_arguments(tool: &crate::types::Tool, args: &serde_json::Value) -> Result<(), String> {
+    if tool.parameters.is_object() && !args.is_object() {
+        return Err("arguments must be an object".into());
+    }
+    Ok(())
+}
+
+/// Validate a tool call (name exists in context tools, args valid).
+pub fn validate_tool_call(ctx: &crate::types::Context, name: &str, args: &serde_json::Value) -> Result<(), String> {
+    let tool = ctx.tools.iter().find(|t| t.name == name);
+    match tool {
+        Some(t) => validate_tool_arguments(t, args),
+        None => Err(format!("tool '{}' not found in context", name)),
+    }
+}
+
+/// Tool call limit configuration.
+#[derive(Debug, Clone)]
+pub struct ToolCallLimitConfig {
+    pub max_parallel_calls: usize,
+}
+
+impl Default for ToolCallLimitConfig {
+    fn default() -> Self {
+        Self { max_parallel_calls: 128 }
+    }
+}
+
+/// Default tool call limit config.
+pub fn default_tool_call_limit_config() -> ToolCallLimitConfig {
+    ToolCallLimitConfig::default()
+}
+
+/// Apply tool call limit (truncate excess calls).
+pub fn apply_tool_call_limit(calls: &[serde_json::Value], config: &ToolCallLimitConfig) -> Vec<serde_json::Value> {
+    if calls.len() <= config.max_parallel_calls {
+        calls.to_vec()
+    } else {
+        calls[..config.max_parallel_calls].to_vec()
+    }
+}

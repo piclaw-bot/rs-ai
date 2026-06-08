@@ -43,3 +43,33 @@ pub fn transport_failure_diagnostic(error_msg: &str) -> AssistantMessageDiagnost
         details: None,
     }
 }
+
+/// Create an assistant message diagnostic record.
+pub fn create_assistant_message_diagnostic(diagnostic_type: &str, error_msg: &str) -> AssistantMessageDiagnostic {
+    AssistantMessageDiagnostic {
+        diagnostic_type: diagnostic_type.into(),
+        timestamp: std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_millis() as i64,
+        error: DiagnosticError {
+            name: None,
+            message: error_msg.into(),
+            stack: None,
+            code: None,
+        },
+        details: None,
+    }
+}
+
+/// Extract the error message from a diagnostic.
+pub fn extract_diagnostic_error(diag: &AssistantMessageDiagnostic) -> &str {
+    &diag.error.message
+}
+
+/// Append a diagnostic to a message's diagnostic list.
+/// (In Rust, Message doesn't have diagnostics field yet — this is a placeholder
+/// that returns the diagnostic for the caller to attach.)
+pub fn append_assistant_message_diagnostic(diagnostic_type: &str, error_msg: &str) -> AssistantMessageDiagnostic {
+    create_assistant_message_diagnostic(diagnostic_type, error_msg)
+}

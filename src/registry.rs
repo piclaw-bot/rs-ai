@@ -148,3 +148,18 @@ pub async fn complete(
         result.ok_or_else(|| Arc::from(Box::<dyn std::error::Error + Send + Sync>::from("stream ended without done or error event")))
     }
 }
+
+/// Unregister a provider by API name.
+pub fn unregister_api(api: &str) {
+    API_PROVIDERS.write().unwrap().remove(api);
+}
+
+/// Clear all registered providers.
+pub fn clear_api_providers() {
+    API_PROVIDERS.write().unwrap().clear();
+}
+
+/// Clear all registered models.
+pub fn clear_models() {
+    MODELS.write().unwrap().clear();
+}

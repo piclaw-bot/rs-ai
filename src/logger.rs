@@ -68,3 +68,13 @@ pub fn log_debug(msg: &str, fields: &[(&str, &str)]) { get_logger().log(LogLevel
 pub fn log_info(msg: &str, fields: &[(&str, &str)]) { get_logger().log(LogLevel::Info, msg, fields); }
 pub fn log_warn(msg: &str, fields: &[(&str, &str)]) { get_logger().log(LogLevel::Warn, msg, fields); }
 pub fn log_error(msg: &str, fields: &[(&str, &str)]) { get_logger().log(LogLevel::Error, msg, fields); }
+
+/// Create a new stderr logger (alias for convenience).
+pub fn new_stderr_logger(min_level: LogLevel) -> StderrLogger {
+    StderrLogger::new(min_level)
+}
+
+/// Simple logger alias (same as StderrLogger).
+pub fn new_simple_logger(min_level: LogLevel) -> StderrLogger {
+    StderrLogger::new(min_level)
+}

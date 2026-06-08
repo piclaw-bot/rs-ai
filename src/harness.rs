@@ -117,3 +117,63 @@ mod tests {
         assert!(!msg.is_error);
     }
 }
+
+/// Append a tool result to a context.
+pub fn append_tool_result(mut ctx: Context, tool_call_id: &str, tool_name: &str, result: &str, is_error: bool) -> Context {
+    ctx.messages.push(tool_result_message(tool_call_id, tool_name, result, is_error));
+    ctx
+}
+
+/// Check if a message has tool calls.
+pub fn has_tool_calls(msg: &Message) -> bool {
+    msg.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { .. }))
+}
+
+/// Check if a message needs tool execution (tool_use stop + has tool calls).
+pub fn needs_tool_execution(msg: &Message) -> bool {
+    is_tool_use(msg) && has_tool_calls(msg)
+}
+
+/// Check if context fits in a model's context window (rough estimate).
+pub fn fits_in_context_window(ctx: &Context, model: &crate::types::Model) -> bool {
+    let est = crate::compaction::estimate_tokens(ctx);
+    est < model.context_window
+}
+
+/// Save context to JSON string.
+pub fn save_context(ctx: &Context) -> Result<String, serde_json::Error> {
+    serde_json::to_string(ctx)
+}
+
+/// Load context from JSON string.
+pub fn load_context(json: &str) -> Result<Context, serde_json::Error> {
+    serde_json::from_str(json)
+}
+
+/// Check if two models are the same (by provider + id).
+pub fn models_are_equal(a: &crate::types::Model, b: &crate::types::Model) -> bool {
+    a.provider == b.provider && a.id == b.id
+}
+
+/// Invoke an on-payload hook (placeholder for hook infrastructure).
+/// In Go this mutates the payload before sending; in Rust we return the modified value.
+pub fn invoke_on_payload(
+    payload: serde_json::Value,
+    on_payload: Option<&dyn Fn(serde_json::Value) -> serde_json::Value>,
+) -> serde_json::Value {
+    match on_payload {
+        Some(f) => f(payload),
+        None => payload,
+    }
+}
+
+/// Invoke an on-response hook (placeholder for hook infrastructure).
+pub fn invoke_on_response(
+    status: u16,
+    headers: &std::collections::HashMap<String, String>,
+    on_response: Option<&dyn Fn(u16, &std::collections::HashMap<String, String>)>,
+) {
+    if let Some(f) = on_response {
+        f(status, headers);
+    }
+}

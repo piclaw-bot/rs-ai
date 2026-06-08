@@ -75,3 +75,13 @@ mod tests {
         assert_eq!(sr.list().len(), 0);
     }
 }
+
+/// Cleanup all session resources (convenience alias).
+pub fn cleanup_session_resources(sr: &SessionResources) -> usize {
+    sr.cleanup_all()
+}
+
+/// Register a session resource for cleanup.
+pub fn register_session_resource_cleanup(sr: &SessionResources, session_id: &str, provider: &str) {
+    sr.register(session_id, provider);
+}

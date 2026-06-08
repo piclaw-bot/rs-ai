@@ -65,3 +65,23 @@ mod tests {
         assert_eq!(h.get("openai-intent").unwrap(), "chat");
     }
 }
+
+/// Short hash (first 8 hex chars of FNV hash).
+pub fn short_hash(s: &str) -> String {
+    format!("{:08x}", hash_string(s) & 0xFFFFFFFF)
+}
+
+/// Check if a provider is a Cloudflare provider.
+pub fn is_cloudflare_provider(provider: &str) -> bool {
+    provider == "cloudflare-workers-ai" || provider == "cloudflare-ai-gateway"
+}
+
+/// Resolve Cloudflare base URL (pass-through; Cloudflare uses standard paths).
+pub fn resolve_cloudflare_base_url(base_url: &str) -> String {
+    base_url.to_string()
+}
+
+/// Format a thrown/panic value as a string (Rust equivalent: just Display).
+pub fn format_thrown_value(err: &dyn std::fmt::Display) -> String {
+    err.to_string()
+}
