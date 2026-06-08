@@ -60,10 +60,10 @@ rs-ai/
 | Faux (test double) | ✅ Implemented + tested |
 | Partial JSON parser | ✅ Implemented + tested |
 | Harness helpers | ✅ Implemented + tested |
-| Bedrock | 🔲 Stub (needs AWS SDK) |
-| Codex (WebSocket) | 🔲 Stub (needs tokio-tungstenite) |
-| Gemini CLI | 🔲 Stub |
-| OAuth flows | ✅ Framework + PKCE (provider-specific flows TBD) |
+| Bedrock | ✅ Implemented (AWS SDK) |
+| Codex (WebSocket + SSE) | ✅ Implemented |
+| Gemini CLI | ✅ Implemented |
+| OAuth flows | ✅ Framework + PKCE |
 
 ## Credits
 

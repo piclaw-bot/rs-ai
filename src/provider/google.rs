@@ -167,6 +167,11 @@ pub fn stream_google<'a>(
     })
 }
 
+/// Build Google Generative AI request payload (public for Gemini CLI reuse).
+pub fn build_google_payload_public(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
+    build_google_payload(model, context, opts)
+}
+
 fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let mut contents = Vec::new();
 
