@@ -31,3 +31,8 @@ pub use types::*;
 pub use types::provider_id;
 pub use events::*;
 pub use registry::{stream, complete};
+
+#[cfg(test)]
+mod registry_test;
+#[cfg(test)]
+mod env_test;

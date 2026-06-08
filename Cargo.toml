@@ -27,3 +27,6 @@ members = ["."]
 
 [dependencies.url]
 version = "2"
+
+[dependencies.async-stream]
+version = "0.3"

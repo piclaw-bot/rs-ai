@@ -240,7 +240,7 @@ pub struct Model {
     #[serde(default)]
     pub reasoning: bool,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub thinking_level_map: Option<HashMap<ModelThinkingLevel, Option<String>>>,
+    pub thinking_level_map: Option<HashMap<String, Option<String>>>,
     #[serde(default)]
     pub input: Vec<String>,
     pub cost: ModelCost,
