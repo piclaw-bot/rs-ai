@@ -29,6 +29,7 @@ pub mod transform;
 pub mod simple_options;
 pub mod retry;
 pub mod logger;
+pub mod jsonparse;
 
 // Re-exports for convenience
 pub use types::*;
