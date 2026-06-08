@@ -57,3 +57,7 @@ mod compat_test;
 mod simple_options_test;
 #[cfg(test)]
 mod harness_test;
+#[cfg(test)]
+mod integration_test;
+#[cfg(test)]
+mod provider_test;
