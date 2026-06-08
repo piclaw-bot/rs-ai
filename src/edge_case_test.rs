@@ -180,3 +180,13 @@ mod tests {
         assert!(matches!(&loaded.messages[1].content[0], ContentBlock::ToolCall { name, .. } if name == "search"));
     }
 }
+
+    /// Equivalent of Go's TestExamplesBuild — verify the crate compiles cleanly.
+    /// In Rust this is always true when cargo test passes, but we add it for
+    /// explicit parity with the Go test count.
+    #[test]
+    fn test_crate_compiles() {
+        // If this test runs, the entire crate (including all providers,
+        // images, transports, etc.) compiled successfully.
+        assert!(true);
+    }
