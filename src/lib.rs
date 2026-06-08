@@ -63,3 +63,7 @@ mod integration_test;
 mod provider_test;
 #[cfg(test)]
 mod coverage_test;
+#[cfg(test)]
+mod provider_retry_test;
+#[cfg(test)]
+mod extra_coverage_test;
