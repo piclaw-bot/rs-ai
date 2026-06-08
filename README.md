@@ -45,7 +45,13 @@ rs-ai/
 | Simple options / thinking | ✅ Implemented |
 | Retry logic | ✅ Implemented + tested |
 | Logger | ✅ Implemented |
-| Model generator | ✅ 968 models / 35 providers |
+| Diagnostics | ✅ Implemented |
+| Azure normalization | ✅ Implemented + tested |
+| Session resources | ✅ Implemented + tested |
+| Prompt cache helpers | ✅ Implemented + tested |
+| Input validation | ✅ Implemented + tested |
+| Context overflow | ✅ Implemented + tested |
+| OpenRouter image gen | ✅ Implemented |
 | OpenAI provider | ✅ Streaming implemented |
 | OpenAI Responses | ✅ Streaming implemented |
 | Anthropic provider | ✅ Streaming implemented |
@@ -57,7 +63,7 @@ rs-ai/
 | Bedrock | 🔲 Stub (needs AWS SDK) |
 | Codex (WebSocket) | 🔲 Stub (needs tokio-tungstenite) |
 | Gemini CLI | 🔲 Stub |
-| OAuth flows | 🔲 Not started |
+| OAuth flows | ✅ Framework + PKCE (provider-specific flows TBD) |
 
 ## Credits
 
