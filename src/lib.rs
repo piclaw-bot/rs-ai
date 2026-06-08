@@ -61,3 +61,5 @@ mod harness_test;
 mod integration_test;
 #[cfg(test)]
 mod provider_test;
+#[cfg(test)]
+mod coverage_test;
