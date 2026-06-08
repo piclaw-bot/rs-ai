@@ -67,3 +67,5 @@ mod coverage_test;
 mod provider_retry_test;
 #[cfg(test)]
 mod extra_coverage_test;
+#[cfg(test)]
+mod final_coverage_test;
