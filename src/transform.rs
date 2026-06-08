@@ -1,0 +1,114 @@
+//! Message transformation for cross-provider compatibility.
+//!
+//! Mirrors the Go `transform.go` which normalizes messages before sending
+//! to different providers (image downgrade, thinking-to-text, etc.)
+
+use crate::types::{ContentBlock, Message, Model};
+
+/// Transform messages for a target model, handling cross-provider differences.
+pub fn transform_messages(messages: &[Message], model: &Model) -> Vec<Message> {
+    let (transformed, _) = downgrade_unsupported_images(messages, model);
+    transformed
+}
+
+/// Replace image content with text placeholders for non-vision models.
+fn downgrade_unsupported_images(messages: &[Message], model: &Model) -> (Vec<Message>, usize) {
+    let supports_images = model.input.iter().any(|i| i == "image");
+    if supports_images {
+        return (messages.to_vec(), 0);
+    }
+
+    let mut downgrades = 0;
+    let transformed: Vec<Message> = messages
+        .iter()
+        .map(|msg| {
+            let new_content: Vec<ContentBlock> = msg
+                .content
+                .iter()
+                .map(|block| match block {
+                    ContentBlock::Image { .. } => {
+                        downgrades += 1;
+                        ContentBlock::Text {
+                            text: "(image omitted: model does not support images)".to_string(),
+                            text_signature: None,
+                        }
+                    }
+                    other => other.clone(),
+                })
+                .collect();
+            Message {
+                content: new_content,
+                ..msg.clone()
+            }
+        })
+        .collect();
+
+    (transformed, downgrades)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::{ModelCost, Role};
+
+    fn vision_model() -> Model {
+        Model {
+            id: "gpt-4o".into(),
+            name: "GPT-4o".into(),
+            api: "openai-completions".into(),
+            provider: "openai".into(),
+            base_url: "https://api.openai.com/v1".into(),
+            reasoning: false,
+            thinking_level_map: None,
+            input: vec!["text".into(), "image".into()],
+            cost: ModelCost::default(),
+            context_window: 128000,
+            max_tokens: 4096,
+            headers: None,
+            api_key: None,
+        }
+    }
+
+    fn text_only_model() -> Model {
+        Model {
+            input: vec!["text".into()],
+            ..vision_model()
+        }
+    }
+
+    #[test]
+    fn test_preserves_images_for_vision_model() {
+        let messages = vec![Message {
+            role: Role::User,
+            content: vec![
+                ContentBlock::Text { text: "Look".into(), text_signature: None },
+                ContentBlock::Image { data: "base64".into(), mime_type: "image/png".into() },
+            ],
+            timestamp: 0,
+            api: None, provider: None, model: None, response_id: None,
+            usage: None, stop_reason: None, error_message: None,
+            tool_call_id: None, tool_name: None, is_error: false,
+        }];
+        let result = transform_messages(&messages, &vision_model());
+        assert_eq!(result[0].content.len(), 2);
+        assert!(matches!(&result[0].content[1], ContentBlock::Image { .. }));
+    }
+
+    #[test]
+    fn test_downgrades_images_for_text_model() {
+        let messages = vec![Message {
+            role: Role::User,
+            content: vec![
+                ContentBlock::Text { text: "Look".into(), text_signature: None },
+                ContentBlock::Image { data: "base64".into(), mime_type: "image/png".into() },
+            ],
+            timestamp: 0,
+            api: None, provider: None, model: None, response_id: None,
+            usage: None, stop_reason: None, error_message: None,
+            tool_call_id: None, tool_name: None, is_error: false,
+        }];
+        let result = transform_messages(&messages, &text_only_model());
+        assert_eq!(result[0].content.len(), 2);
+        assert!(matches!(&result[0].content[1], ContentBlock::Text { text, .. } if text.contains("omitted")));
+    }
+}

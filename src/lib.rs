@@ -25,6 +25,10 @@ pub mod provider;
 pub mod transports;
 pub mod images;
 pub mod models_generated;
+pub mod transform;
+pub mod simple_options;
+pub mod retry;
+pub mod logger;
 
 // Re-exports for convenience
 pub use types::*;

@@ -41,8 +41,12 @@ rs-ai/
 | Compat detection | ✅ Implemented |
 | SSE transport | ✅ Implemented + tested |
 | Image types | ✅ Implemented |
-| Model generator | 🔲 Placeholder |
-| OpenAI provider | 🔲 Placeholder |
+| Message transform | ✅ Implemented + tested |
+| Simple options / thinking | ✅ Implemented |
+| Retry logic | ✅ Implemented + tested |
+| Logger | ✅ Implemented |
+| Model generator | ✅ 968 models / 35 providers |
+| OpenAI provider | ✅ Streaming implemented |
 | Other providers | 🔲 Not started |
 
 ## Credits
