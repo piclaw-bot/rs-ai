@@ -159,6 +159,24 @@ pub fn stream_openai<'a>(
                         }
                     }
 
+                    // Tool calls
+                    if let Some(tool_calls) = delta.get("tool_calls").and_then(|v| v.as_array()) {
+                        for tc in tool_calls {
+                            if let Some(func) = tc.get("function") {
+                                let tc_id = tc.get("id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                                let tc_name = func.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                                let tc_args = func.get("arguments").and_then(|v| v.as_str()).unwrap_or("").to_string();
+
+                                if !tc_name.is_empty() {
+                                    yield Event::ToolCallStart { id: tc_id.clone(), name: tc_name.clone() };
+                                }
+                                if !tc_args.is_empty() {
+                                    yield Event::ToolCallDelta { delta: tc_args.clone() };
+                                }
+                            }
+                        }
+                    }
+
                     // Finish reason
                     if let Some(reason) = choice.get("finish_reason").and_then(|v| v.as_str()) {
                         if text_started {
@@ -258,6 +276,32 @@ fn build_payload(
     if let Some(temp) = opts.temperature {
         if compat.supports_temperature != Some(false) {
             payload["temperature"] = json!(temp);
+        }
+    }
+
+    // Reasoning/thinking
+    if let Some(ref level) = opts.reasoning {
+        match compat.thinking_format.as_deref() {
+            Some("openrouter") => {
+                payload["reasoning"] = json!({"effort": format!("{:?}", level).to_lowercase()});
+            }
+            Some("deepseek") => {
+                payload["reasoning_effort"] = json!(format!("{:?}", level).to_lowercase());
+            }
+            Some("zai") => {
+                payload["enable_thinking"] = json!(true);
+            }
+            Some("qwen") => {
+                payload["enable_thinking"] = json!(true);
+            }
+            Some("ant-ling") => {
+                payload["reasoning"] = json!({"effort": format!("{:?}", level).to_lowercase()});
+            }
+            _ => {
+                if compat.supports_reasoning_effort == Some(true) {
+                    payload["reasoning_effort"] = json!(format!("{:?}", level).to_lowercase());
+                }
+            }
         }
     }
 

@@ -24,6 +24,26 @@ pub fn detect_compat(model: &Model) -> OpenAICompletionsCompat {
     detect_compat_inner(&model.provider, &model.id, &model.base_url)
 }
 
+/// Detect and merge model-specific compat overrides (mirrors Go's DetectCompatForModel).
+pub fn detect_compat_for_model(model: &Model, overrides: Option<&OpenAICompletionsCompat>) -> OpenAICompletionsCompat {
+    let mut c = detect_compat_inner(&model.provider, &model.id, &model.base_url);
+    if let Some(o) = overrides {
+        if o.supports_store.is_some() { c.supports_store = o.supports_store; }
+        if o.supports_developer_role.is_some() { c.supports_developer_role = o.supports_developer_role; }
+        if o.supports_reasoning_effort.is_some() { c.supports_reasoning_effort = o.supports_reasoning_effort; }
+        if o.supports_usage_in_streaming.is_some() { c.supports_usage_in_streaming = o.supports_usage_in_streaming; }
+        if o.supports_temperature.is_some() { c.supports_temperature = o.supports_temperature; }
+        if o.max_tokens_field.is_some() { c.max_tokens_field = o.max_tokens_field.clone(); }
+        if o.requires_tool_result_name.is_some() { c.requires_tool_result_name = o.requires_tool_result_name; }
+        if o.requires_thinking_as_text.is_some() { c.requires_thinking_as_text = o.requires_thinking_as_text; }
+        if o.requires_reasoning_content_on_assistant_messages.is_some() { c.requires_reasoning_content_on_assistant_messages = o.requires_reasoning_content_on_assistant_messages; }
+        if o.thinking_format.is_some() { c.thinking_format = o.thinking_format.clone(); }
+        if o.supports_strict_mode.is_some() { c.supports_strict_mode = o.supports_strict_mode; }
+        if o.supports_long_cache_retention.is_some() { c.supports_long_cache_retention = o.supports_long_cache_retention; }
+    }
+    c
+}
+
 fn detect_compat_inner(provider: &str, model_id: &str, base_url: &str) -> OpenAICompletionsCompat {
     let mut c = OpenAICompletionsCompat {
         supports_store: Some(true),

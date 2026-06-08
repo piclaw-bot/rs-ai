@@ -39,6 +39,7 @@ pub mod session_resources;
 pub mod prompt_cache;
 pub mod validation;
 pub mod oauth;
+pub mod compaction;
 
 // Re-exports for convenience
 pub use types::*;

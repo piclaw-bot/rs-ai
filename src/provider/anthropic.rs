@@ -140,6 +140,11 @@ pub fn stream_anthropic<'a>(
                         "thinking" => {
                             yield Event::ThinkingStart;
                         }
+                        "tool_use" => {
+                            let tc_id = data.pointer("/content_block/id").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            let tc_name = data.pointer("/content_block/name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                            yield Event::ToolCallStart { id: tc_id, name: tc_name };
+                        }
                         _ => {}
                     }
                 }
@@ -155,6 +160,11 @@ pub fn stream_anthropic<'a>(
                         "thinking_delta" => {
                             if let Some(thinking) = data.pointer("/delta/thinking").and_then(|v| v.as_str()) {
                                 yield Event::ThinkingDelta { delta: thinking.to_string() };
+                            }
+                        }
+                        "input_json_delta" => {
+                            if let Some(partial_json) = data.pointer("/delta/partial_json").and_then(|v| v.as_str()) {
+                                yield Event::ToolCallDelta { delta: partial_json.to_string() };
                             }
                         }
                         _ => {}
@@ -237,6 +247,11 @@ fn build_anthropic_payload(model: &Model, context: &Context, opts: &StreamOption
 
     if let Some(temp) = opts.temperature {
         payload["temperature"] = json!(temp);
+    }
+
+    // Thinking/reasoning support
+    if opts.reasoning.is_some() {
+        payload["thinking"] = json!({"type": "enabled", "budget_tokens": 8192});
     }
 
     if !context.tools.is_empty() {
