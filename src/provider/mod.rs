@@ -8,3 +8,6 @@ pub mod google;
 pub mod mistral;
 pub mod responses;
 pub mod faux;
+pub mod bedrock;
+pub mod codex;
+pub mod geminicli;

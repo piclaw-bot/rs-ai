@@ -47,7 +47,17 @@ rs-ai/
 | Logger | ✅ Implemented |
 | Model generator | ✅ 968 models / 35 providers |
 | OpenAI provider | ✅ Streaming implemented |
-| Other providers | 🔲 Not started |
+| OpenAI Responses | ✅ Streaming implemented |
+| Anthropic provider | ✅ Streaming implemented |
+| Google Gemini | ✅ Streaming implemented |
+| Mistral | ✅ Streaming implemented |
+| Faux (test double) | ✅ Implemented + tested |
+| Partial JSON parser | ✅ Implemented + tested |
+| Harness helpers | ✅ Implemented + tested |
+| Bedrock | 🔲 Stub (needs AWS SDK) |
+| Codex (WebSocket) | 🔲 Stub (needs tokio-tungstenite) |
+| Gemini CLI | 🔲 Stub |
+| OAuth flows | 🔲 Not started |
 
 ## Credits
 

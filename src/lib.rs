@@ -30,6 +30,7 @@ pub mod simple_options;
 pub mod retry;
 pub mod logger;
 pub mod jsonparse;
+pub mod harness;
 
 // Re-exports for convenience
 pub use types::*;
