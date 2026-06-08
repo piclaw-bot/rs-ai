@@ -51,3 +51,9 @@ pub use registry::{stream, complete};
 mod registry_test;
 #[cfg(test)]
 mod env_test;
+#[cfg(test)]
+mod compat_test;
+#[cfg(test)]
+mod simple_options_test;
+#[cfg(test)]
+mod harness_test;
