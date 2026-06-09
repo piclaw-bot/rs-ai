@@ -302,6 +302,7 @@ pub struct StreamOptions {
     pub transport: Option<Transport>,
     pub cache_retention: Option<CacheRetention>,
     pub session_id: Option<String>,
+    pub previous_response_id: Option<String>,
     pub headers: Option<HashMap<String, String>>,
     pub max_retry_delay_ms: Option<u64>,
     pub retry_config: Option<crate::retry::RetryConfig>,
@@ -309,6 +310,7 @@ pub struct StreamOptions {
     pub timeout_ms: Option<u64>,
     pub max_retries: Option<u32>,
     pub reasoning: Option<ThinkingLevel>,
+    pub reasoning_summary: Option<String>,
     pub thinking_budgets: Option<ThinkingBudgets>,
     pub on_payload: Option<PayloadHook>,
     pub on_response: Option<ResponseHook>,
@@ -323,6 +325,7 @@ impl std::fmt::Debug for StreamOptions {
             .field("transport", &self.transport)
             .field("cache_retention", &self.cache_retention)
             .field("session_id", &self.session_id)
+            .field("previous_response_id", &self.previous_response_id)
             .field("headers", &self.headers)
             .field("max_retry_delay_ms", &self.max_retry_delay_ms)
             .field("retry_config", &self.retry_config)
@@ -330,6 +333,7 @@ impl std::fmt::Debug for StreamOptions {
             .field("timeout_ms", &self.timeout_ms)
             .field("max_retries", &self.max_retries)
             .field("reasoning", &self.reasoning)
+            .field("reasoning_summary", &self.reasoning_summary)
             .field("thinking_budgets", &self.thinking_budgets.as_ref().map(|_| "..."))
             .finish()
     }

@@ -469,6 +469,9 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
     if let Some(ref session_id) = opts.session_id {
         payload["session_id"] = json!(session_id);
     }
+    if let Some(ref previous_response_id) = opts.previous_response_id {
+        payload["previous_response_id"] = json!(previous_response_id);
+    }
     if let Some(ref metadata) = opts.metadata {
         payload["metadata"] = json!(metadata);
     }
@@ -498,6 +501,14 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
     }
     if let Some(temp) = opts.temperature {
         payload["temperature"] = json!(temp);
+    }
+
+    if let Some(ref level) = opts.reasoning {
+        payload["reasoning"] = json!({
+            "effort": format!("{:?}", level).to_lowercase(),
+            "summary": opts.reasoning_summary.clone().unwrap_or_else(|| "auto".to_string()),
+        });
+        payload["include"] = json!(["reasoning.encrypted_content"]);
     }
 
     if !context.tools.is_empty() {
