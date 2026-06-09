@@ -7,34 +7,35 @@ use std::sync::Arc;
 use crate::events::Event;
 use crate::types::{Api, Context, Model, StreamOptions, StopReason, Message};
 
-use async_trait::async_trait;
 use tokio_stream::Stream;
 
 /// Trait that provider implementations must satisfy.
-#[async_trait]
 pub trait ApiProvider: Send + Sync {
     /// The wire protocol this provider handles.
     fn api(&self) -> &str;
 
     /// Start a streaming request; returns a boxed async Stream of events.
-    fn stream(
+    ///
+    /// The returned stream may borrow the request inputs, but not the provider
+    /// instance itself. Provider adapters in rs-ai are stateless.
+    fn stream<'a>(
         &self,
-        model: &Model,
-        context: &Context,
-        opts: &StreamOptions,
-    ) -> std::pin::Pin<Box<dyn Stream<Item = Event> + Send + '_>>;
+        model: &'a Model,
+        context: &'a Context,
+        opts: &'a StreamOptions,
+    ) -> std::pin::Pin<Box<dyn Stream<Item = Event> + Send + 'a>>;
 }
 
 // --- Global registries ---
 
-static API_PROVIDERS: std::sync::LazyLock<RwLock<HashMap<Api, Box<dyn ApiProvider>>>> =
+static API_PROVIDERS: std::sync::LazyLock<RwLock<HashMap<Api, Arc<dyn ApiProvider>>>> =
     std::sync::LazyLock::new(|| RwLock::new(HashMap::new()));
 
 static MODELS: std::sync::LazyLock<RwLock<HashMap<String, Model>>> =
     std::sync::LazyLock::new(|| RwLock::new(HashMap::new()));
 
 /// Register a provider implementation.
-pub fn register_api(provider: Box<dyn ApiProvider>) {
+pub fn register_api(provider: Arc<dyn ApiProvider>) {
     let api = provider.api().to_string();
     API_PROVIDERS.write().unwrap().insert(api, provider);
 }
@@ -93,26 +94,23 @@ pub fn stream<'a>(
     context: &'a Context,
     opts: &'a StreamOptions,
 ) -> std::pin::Pin<Box<dyn Stream<Item = Event> + Send + 'a>> {
-    let has_provider = API_PROVIDERS.read().unwrap().contains_key(&model.api);
-    if !has_provider {
-        let err = Event::Error {
-            reason: StopReason::Error,
-            error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
-                format!("no provider registered for API {:?}", model.api),
-            )),
-            message: None,
-        };
-        return Box::pin(tokio_stream::once(err));
-    }
-    // TODO: call actual provider stream once providers are implemented
-    let placeholder = Event::Error {
-        reason: StopReason::Error,
-        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
-            "provider stream not yet implemented".to_string(),
-        )),
-        message: None,
+    let provider = {
+        let providers = API_PROVIDERS.read().unwrap();
+        providers.get(&model.api).cloned()
     };
-    Box::pin(tokio_stream::once(placeholder))
+    match provider {
+        Some(provider) => provider.stream(model, context, opts),
+        None => {
+            let err = Event::Error {
+                reason: StopReason::Error,
+                error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
+                    format!("no provider registered for API {:?}", model.api),
+                )),
+                message: None,
+            };
+            Box::pin(tokio_stream::once(err))
+        }
+    }
 }
 
 /// Non-streaming completion (collects stream to final message).
