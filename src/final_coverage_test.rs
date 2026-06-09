@@ -96,12 +96,15 @@ mod tests {
                     provider: Some("openai".into()),
                     model: Some("gpt-4o".into()),
                     response_id: Some("resp-1".into()),
+                    response_model: None,
+                    diagnostics: Vec::new(),
                     usage: Some(Usage { input: 5, output: 3, total_tokens: 8, ..Default::default() }),
                     stop_reason: Some(StopReason::Stop),
                     error_message: None,
                     tool_call_id: None,
                     tool_name: None,
                     is_error: false,
+                    details: None,
                 },
             ],
             tools: vec![],
@@ -144,10 +147,13 @@ mod tests {
             content: vec![ContentBlock::Text { text: "response".into(), text_signature: None }],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: Some(Usage { input: 100, output: 50, total_tokens: 150, ..Default::default() }),
             stop_reason: Some(StopReason::Stop),
             error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         };
         assert!(!is_context_overflow(&msg, &model));
     }
@@ -160,10 +166,13 @@ mod tests {
             content: vec![],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None,
             stop_reason: Some(StopReason::Length),
             error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         };
         assert!(is_context_overflow(&msg, &model));
     }
@@ -176,10 +185,13 @@ mod tests {
             content: vec![],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None,
             stop_reason: Some(StopReason::Error),
             error_message: Some("This model's maximum context length is 4096 tokens".into()),
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         };
         assert!(is_context_overflow(&msg, &model));
     }

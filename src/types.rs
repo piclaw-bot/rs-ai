@@ -4,6 +4,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// Wire protocol identifier.
 pub type Api = String;
@@ -165,6 +166,29 @@ pub struct Usage {
     pub cost: CostBreakdown,
 }
 
+/// Error captured as a diagnostic without failing the overall request.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DiagnosticError {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub stack: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub code: Option<serde_json::Value>,
+}
+
+/// A diagnostic record attached to an assistant message.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssistantMessageDiagnostic {
+    #[serde(rename = "type")]
+    pub diagnostic_type: String,
+    pub timestamp: i64,
+    pub error: DiagnosticError,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub details: Option<HashMap<String, serde_json::Value>>,
+}
+
 /// Per-million-token costs for a model.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -194,6 +218,10 @@ pub struct Message {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub response_id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub response_model: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub diagnostics: Vec<AssistantMessageDiagnostic>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub usage: Option<Usage>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub stop_reason: Option<StopReason>,
@@ -207,6 +235,8 @@ pub struct Message {
     pub tool_name: Option<String>,
     #[serde(default)]
     pub is_error: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub details: Option<serde_json::Value>,
 }
 
 /// Tool definition with JSON Schema parameters.
@@ -253,14 +283,56 @@ pub struct Model {
 }
 
 /// Stream options for a single request.
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Default)]
+pub struct ThinkingBudgets {
+    pub minimal: Option<u32>,
+    pub low: Option<u32>,
+    pub medium: Option<u32>,
+    pub high: Option<u32>,
+}
+
+pub type PayloadHook = Arc<dyn Fn(serde_json::Value, &Model) -> Result<serde_json::Value, Box<dyn std::error::Error + Send + Sync>> + Send + Sync>;
+pub type ResponseHook = Arc<dyn Fn(u16, &HashMap<String, String>, &Model) + Send + Sync>;
+
+#[derive(Clone, Default)]
 pub struct StreamOptions {
     pub temperature: Option<f64>,
     pub max_tokens: Option<u32>,
     pub api_key: Option<String>,
     pub transport: Option<Transport>,
     pub cache_retention: Option<CacheRetention>,
+    pub session_id: Option<String>,
+    pub headers: Option<HashMap<String, String>>,
+    pub max_retry_delay_ms: Option<u64>,
+    pub retry_config: Option<crate::retry::RetryConfig>,
+    pub metadata: Option<HashMap<String, serde_json::Value>>,
+    pub timeout_ms: Option<u64>,
+    pub max_retries: Option<u32>,
     pub reasoning: Option<ThinkingLevel>,
+    pub thinking_budgets: Option<ThinkingBudgets>,
+    pub on_payload: Option<PayloadHook>,
+    pub on_response: Option<ResponseHook>,
+}
+
+impl std::fmt::Debug for StreamOptions {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StreamOptions")
+            .field("temperature", &self.temperature)
+            .field("max_tokens", &self.max_tokens)
+            .field("api_key", &self.api_key.as_ref().map(|_| "***"))
+            .field("transport", &self.transport)
+            .field("cache_retention", &self.cache_retention)
+            .field("session_id", &self.session_id)
+            .field("headers", &self.headers)
+            .field("max_retry_delay_ms", &self.max_retry_delay_ms)
+            .field("retry_config", &self.retry_config)
+            .field("metadata", &self.metadata)
+            .field("timeout_ms", &self.timeout_ms)
+            .field("max_retries", &self.max_retries)
+            .field("reasoning", &self.reasoning)
+            .field("thinking_budgets", &self.thinking_budgets.as_ref().map(|_| "..."))
+            .finish()
+    }
 }
 
 /// Helper to create a user message.
@@ -276,11 +348,14 @@ pub fn user_message(text: &str) -> Message {
         provider: None,
         model: None,
         response_id: None,
+        response_model: None,
+        diagnostics: Vec::new(),
         usage: None,
         stop_reason: None,
         error_message: None,
         tool_call_id: None,
         tool_name: None,
         is_error: false,
+        details: None,
     }
 }

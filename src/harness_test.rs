@@ -14,8 +14,9 @@ mod tests {
                     content: vec![ContentBlock::Text { text: "Hi there!".into(), text_signature: None }],
                     timestamp: 0,
                     api: None, provider: None, model: None, response_id: None,
+                    response_model: None, diagnostics: Vec::new(),
                     usage: None, stop_reason: Some(StopReason::Stop), error_message: None,
-                    tool_call_id: None, tool_name: None, is_error: false,
+                    tool_call_id: None, tool_name: None, is_error: false, details: None,
                 },
             ],
             tools: vec![],
@@ -43,8 +44,11 @@ mod tests {
             ],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None, stop_reason: None, error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         };
         assert_eq!(get_text_content(&msg), "Answer: 42");
     }
@@ -73,8 +77,11 @@ mod tests {
             }],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None, stop_reason: Some(StopReason::ToolUse), error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         };
         assert!(is_tool_use(&msg));
         assert!(has_tool_calls(&msg));

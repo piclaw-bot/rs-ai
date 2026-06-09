@@ -72,8 +72,11 @@ mod tests {
             ],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None, stop_reason: None, error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         }];
         let result = transform_messages(&messages, &model);
         assert_eq!(result[0].content.len(), 2);
@@ -92,8 +95,11 @@ mod tests {
             ],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None, stop_reason: None, error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         }];
         let result = transform_messages(&messages, &text_model);
         assert_eq!(result[0].content.len(), 3);
@@ -132,12 +138,15 @@ mod tests {
                     provider: Some("openai".into()),
                     model: Some("gpt-4o".into()),
                     response_id: Some("r1".into()),
+                    response_model: None,
+                    diagnostics: Vec::new(),
                     usage: Some(Usage { input: 5, output: 3, total_tokens: 8, ..Default::default() }),
                     stop_reason: Some(StopReason::Stop),
                     error_message: None,
                     tool_call_id: None,
                     tool_name: None,
                     is_error: false,
+                    details: None,
                 },
             ],
             tools: vec![Tool { name: "t".into(), description: "d".into(), parameters: serde_json::json!({"type": "object"}) }],
@@ -168,8 +177,11 @@ mod tests {
                     }],
                     timestamp: 0,
                     api: None, provider: None, model: None, response_id: None,
+                    response_model: None,
+                    diagnostics: Vec::new(),
                     usage: None, stop_reason: Some(StopReason::ToolUse), error_message: None,
                     tool_call_id: None, tool_name: None, is_error: false,
+                    details: None,
                 },
             ],
             tools: vec![Tool { name: "search".into(), description: "search".into(), parameters: serde_json::json!({}) }],

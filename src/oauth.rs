@@ -15,20 +15,11 @@ pub struct PkceChallenge {
 
 /// Generate a PKCE challenge pair.
 pub fn generate_pkce() -> PkceChallenge {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher};
+    use rand::RngCore;
 
-    // Simple implementation — production should use proper crypto random
-    let verifier: String = (0..64)
-        .map(|i| {
-            let mut h = DefaultHasher::new();
-            i.hash(&mut h);
-            std::time::SystemTime::now().hash(&mut h);
-            let b = (h.finish() % 26) as u8 + b'a';
-            b as char
-        })
-        .collect();
-
+    let mut verifier_bytes = [0u8; 32];
+    rand::rngs::OsRng.fill_bytes(&mut verifier_bytes);
+    let verifier = base64url_encode(&verifier_bytes);
     let challenge = base64url_encode(&sha256_bytes(verifier.as_bytes()));
     PkceChallenge { verifier, challenge }
 }
@@ -52,23 +43,14 @@ pub struct OAuthToken {
     pub refresh_token: Option<String>,
 }
 
-// Placeholder crypto helpers — replace with ring/sha2 in production
 fn sha256_bytes(input: &[u8]) -> Vec<u8> {
-    // Minimal placeholder hash (NOT cryptographically secure)
-    let mut hash = vec![0u8; 32];
-    for (i, &b) in input.iter().enumerate() {
-        hash[i % 32] ^= b;
-    }
-    hash
+    use sha2::{Digest, Sha256};
+    Sha256::digest(input).to_vec()
 }
 
 fn base64url_encode(input: &[u8]) -> String {
-    use std::fmt::Write;
-    let mut out = String::new();
-    for b in input {
-        write!(&mut out, "{:02x}", b).unwrap();
-    }
-    out
+    use base64::Engine;
+    base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(input)
 }
 
 #[cfg(test)]
@@ -78,7 +60,10 @@ mod tests {
     #[test]
     fn test_generate_pkce() {
         let pkce = generate_pkce();
-        assert_eq!(pkce.verifier.len(), 64);
+        assert!(!pkce.verifier.is_empty());
         assert!(!pkce.challenge.is_empty());
+        assert_ne!(pkce.verifier, pkce.challenge);
+        assert!(pkce.verifier.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'));
+        assert!(pkce.challenge.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_'));
     }
 }

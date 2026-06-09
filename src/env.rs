@@ -48,13 +48,15 @@ pub fn get_env_api_key(provider: &str) -> Option<String> {
 /// Resolve API key: explicit option > model-level > environment.
 pub fn resolve_api_key(model: &Model, opts: &StreamOptions) -> Option<String> {
     if let Some(ref key) = opts.api_key {
-        if !key.is_empty() {
-            return Some(key.clone());
+        let trimmed = key.trim();
+        if !trimmed.is_empty() {
+            return Some(trimmed.to_string());
         }
     }
     if let Some(ref key) = model.api_key {
-        if !key.is_empty() {
-            return Some(key.clone());
+        let trimmed = key.trim();
+        if !trimmed.is_empty() {
+            return Some(trimmed.to_string());
         }
     }
     get_env_api_key(&model.provider)

@@ -1,7 +1,7 @@
 //! Image generation API surface.
 
 use std::collections::HashMap;
-use std::sync::{Arc, LazyLock, RwLock};
+use std::sync::{Arc, LazyLock, Once, RwLock};
 
 pub mod types;
 pub mod openrouter;
@@ -24,6 +24,14 @@ static IMAGE_API_PROVIDERS: LazyLock<RwLock<HashMap<String, Arc<dyn ImagesApiPro
     LazyLock::new(|| RwLock::new(HashMap::new()));
 static IMAGE_MODELS: LazyLock<RwLock<HashMap<String, ImagesModel>>> =
     LazyLock::new(|| RwLock::new(HashMap::new()));
+static REGISTER_IMAGE_BUILTINS: Once = Once::new();
+
+fn ensure_image_builtins_registered() {
+    REGISTER_IMAGE_BUILTINS.call_once(|| {
+        register_builtin_image_providers();
+        register_builtin_image_models();
+    });
+}
 
 /// Register an image API provider.
 pub fn register_images_api_provider(provider: Arc<dyn ImagesApiProvider>) {
@@ -61,12 +69,14 @@ pub fn clear_image_models() {
 
 /// Get an image model by provider and ID.
 pub fn get_image_model(provider: &str, id: &str) -> Option<ImagesModel> {
+    ensure_image_builtins_registered();
     let key = format!("{}/{}", provider, id);
     IMAGE_MODELS.read().unwrap().get(&key).cloned()
 }
 
 /// List image models, optionally filtered by provider.
 pub fn list_image_models(provider: Option<&str>) -> Vec<ImagesModel> {
+    ensure_image_builtins_registered();
     IMAGE_MODELS.read().unwrap().values()
         .filter(|m| provider.is_none_or(|p| m.provider == p))
         .cloned()
@@ -75,6 +85,7 @@ pub fn list_image_models(provider: Option<&str>) -> Vec<ImagesModel> {
 
 /// List image providers.
 pub fn list_image_providers() -> Vec<String> {
+    ensure_image_builtins_registered();
     let models = IMAGE_MODELS.read().unwrap();
     let mut seen: Vec<String> = models.values().map(|m| m.provider.clone()).collect::<std::collections::HashSet<_>>().into_iter().collect();
     seen.sort();
@@ -87,6 +98,7 @@ pub async fn generate_images(
     context: &ImagesContext,
     opts: &openrouter::ImagesOptions,
 ) -> AssistantImages {
+    ensure_image_builtins_registered();
     let provider = {
         let providers = IMAGE_API_PROVIDERS.read().unwrap();
         providers.get(&model.api).cloned()

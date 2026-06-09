@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 use std::sync::RwLock;
 
-use std::sync::Arc;
+use std::sync::{Arc, Once};
 use crate::events::Event;
 use crate::types::{Api, Context, Model, StreamOptions, StopReason, Message};
 
@@ -33,6 +33,14 @@ static API_PROVIDERS: std::sync::LazyLock<RwLock<HashMap<Api, Arc<dyn ApiProvide
 
 static MODELS: std::sync::LazyLock<RwLock<HashMap<String, Model>>> =
     std::sync::LazyLock::new(|| RwLock::new(HashMap::new()));
+static REGISTER_BUILTINS: Once = Once::new();
+
+fn ensure_builtins_registered() {
+    REGISTER_BUILTINS.call_once(|| {
+        crate::provider::register_builtin_providers();
+        register_builtin_models();
+    });
+}
 
 /// Register a provider implementation.
 pub fn register_api(provider: Arc<dyn ApiProvider>) {
@@ -42,6 +50,7 @@ pub fn register_api(provider: Arc<dyn ApiProvider>) {
 
 /// Retrieve a registered provider by API name.
 pub fn get_api_provider(api: &str) -> bool {
+    ensure_builtins_registered();
     API_PROVIDERS.read().unwrap().contains_key(api)
 }
 
@@ -53,12 +62,14 @@ pub fn register_model(model: Model) {
 
 /// Look up a model by provider and ID.
 pub fn get_model(provider: &str, id: &str) -> Option<Model> {
+    ensure_builtins_registered();
     let key = format!("{}/{}", provider, id);
     MODELS.read().unwrap().get(&key).cloned()
 }
 
 /// List all models, optionally filtered by provider.
 pub fn list_models(provider: Option<&str>) -> Vec<Model> {
+    ensure_builtins_registered();
     MODELS
         .read()
         .unwrap()
@@ -70,6 +81,7 @@ pub fn list_models(provider: Option<&str>) -> Vec<Model> {
 
 /// List all registered provider names.
 pub fn list_providers() -> Vec<String> {
+    ensure_builtins_registered();
     let models = MODELS.read().unwrap();
     let mut seen: Vec<String> = models
         .values()
@@ -94,6 +106,7 @@ pub fn stream<'a>(
     context: &'a Context,
     opts: &'a StreamOptions,
 ) -> std::pin::Pin<Box<dyn Stream<Item = Event> + Send + 'a>> {
+    ensure_builtins_registered();
     let provider = {
         let providers = API_PROVIDERS.read().unwrap();
         providers.get(&model.api).cloned()

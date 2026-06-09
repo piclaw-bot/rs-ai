@@ -26,12 +26,15 @@ pub fn compact_context(ctx: &Context, keep_recent: usize, summary: Option<&str>)
             provider: None,
             model: None,
             response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None,
             stop_reason: None,
             error_message: None,
             tool_call_id: None,
             tool_name: None,
             is_error: false,
+            details: None,
         });
     }
 

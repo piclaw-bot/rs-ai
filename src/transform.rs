@@ -86,8 +86,11 @@ mod tests {
             ],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None, stop_reason: None, error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         }];
         let result = transform_messages(&messages, &vision_model());
         assert_eq!(result[0].content.len(), 2);
@@ -104,8 +107,11 @@ mod tests {
             ],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None, stop_reason: None, error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         }];
         let result = transform_messages(&messages, &text_only_model());
         assert_eq!(result[0].content.len(), 2);

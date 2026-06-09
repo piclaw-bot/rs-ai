@@ -21,6 +21,8 @@ pub fn stream_faux_text<'a>(
             provider: Some(model_clone.provider.clone()),
             model: Some(model_clone.id.clone()),
             response_id: Some("faux-response".into()),
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: Some(Usage {
                 input: 10,
                 output: text.len() as u32 / 4,
@@ -32,6 +34,7 @@ pub fn stream_faux_text<'a>(
             tool_call_id: None,
             tool_name: None,
             is_error: false,
+            details: None,
         };
         yield Event::Start { partial: partial.clone() };
         yield Event::TextStart;

@@ -18,13 +18,8 @@ pub const EVENT_ERROR: &str = "__error__";
 /// Yields events as they are dispatched (on empty lines).
 /// Implements sticky `id` and `retry` fields per the SSE spec.
 pub fn parse<R: BufRead>(reader: R) -> Vec<SseEvent> {
+    let mut parser = SseParser::default();
     let mut events = Vec::new();
-    let mut event_type = String::new();
-    let mut data_lines: Vec<String> = Vec::new();
-    let mut last_id = String::new();
-    let mut last_retry: Option<u32> = None;
-    let mut current_id: Option<String> = None;
-    let mut current_retry: Option<u32> = None;
 
     for line_result in reader.lines() {
         let line = match line_result {
@@ -35,34 +30,64 @@ pub fn parse<R: BufRead>(reader: R) -> Vec<SseEvent> {
                     data: e.to_string(),
                     ..Default::default()
                 });
-                break;
+                return events;
             }
         };
+        events.extend(parser.process_line(&line));
+    }
 
-        if line.is_empty() {
-            if !data_lines.is_empty() {
-                let ev = SseEvent {
-                    event: if event_type.is_empty() {
-                        "message".to_string()
-                    } else {
-                        event_type.clone()
-                    },
-                    data: data_lines.join("\n"),
-                    id: current_id.clone().unwrap_or_else(|| last_id.clone()),
-                    retry: current_retry.or(last_retry),
-                };
-                events.push(ev);
+    if let Some(ev) = parser.finish() {
+        events.push(ev);
+    }
+
+    events
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct SseParser {
+    line_buffer: String,
+    event_type: String,
+    data_lines: Vec<String>,
+    last_id: String,
+    last_retry: Option<u32>,
+    current_id: Option<String>,
+    current_retry: Option<u32>,
+}
+
+impl SseParser {
+    pub fn feed(&mut self, chunk: &str) -> Vec<SseEvent> {
+        self.line_buffer.push_str(chunk);
+        let mut events = Vec::new();
+
+        while let Some(pos) = self.line_buffer.find('\n') {
+            let mut line = self.line_buffer[..pos].to_string();
+            self.line_buffer.drain(..=pos);
+            if line.ends_with('\r') {
+                line.pop();
             }
-            // Reset per-event state; sticky id/retry persist
-            event_type.clear();
-            data_lines.clear();
-            current_id = None;
-            current_retry = None;
-            continue;
+            events.extend(self.process_line(&line));
+        }
+
+        events
+    }
+
+    pub fn finish(&mut self) -> Option<SseEvent> {
+        if !self.line_buffer.is_empty() {
+            let line = std::mem::take(&mut self.line_buffer);
+            for ev in self.process_line(line.trim_end_matches('\r')) {
+                return Some(ev);
+            }
+        }
+        self.dispatch_event()
+    }
+
+    fn process_line(&mut self, line: &str) -> Vec<SseEvent> {
+        if line.is_empty() {
+            return self.dispatch_event().into_iter().collect();
         }
 
         if line.starts_with(':') {
-            continue; // comment
+            return Vec::new();
         }
 
         let (field, value) = match line.find(':') {
@@ -71,41 +96,53 @@ pub fn parse<R: BufRead>(reader: R) -> Vec<SseEvent> {
                 let v = line[pos + 1..].strip_prefix(' ').unwrap_or(&line[pos + 1..]);
                 (f, v.to_string())
             }
-            None => (line.as_str(), String::new()),
+            None => (line, String::new()),
         };
 
         match field {
-            "event" => event_type = value,
-            "data" => data_lines.push(value),
+            "event" => self.event_type = value,
+            "data" => self.data_lines.push(value),
             "id" => {
-                current_id = Some(value.clone());
-                last_id = value;
+                self.current_id = Some(value.clone());
+                self.last_id = value;
             }
             "retry" => {
                 if let Ok(n) = value.parse::<u32>() {
-                    current_retry = Some(n);
-                    last_retry = Some(n);
+                    self.current_retry = Some(n);
+                    self.last_retry = Some(n);
                 }
             }
             _ => {}
         }
+
+        Vec::new()
     }
 
-    // Flush last event if no trailing blank line
-    if !data_lines.is_empty() {
-        events.push(SseEvent {
-            event: if event_type.is_empty() {
+    fn dispatch_event(&mut self) -> Option<SseEvent> {
+        if self.data_lines.is_empty() {
+            self.event_type.clear();
+            self.current_id = None;
+            self.current_retry = None;
+            return None;
+        }
+
+        let ev = SseEvent {
+            event: if self.event_type.is_empty() {
                 "message".to_string()
             } else {
-                event_type
+                self.event_type.clone()
             },
-            data: data_lines.join("\n"),
-            id: current_id.unwrap_or(last_id),
-            retry: current_retry.or(last_retry),
-        });
-    }
+            data: self.data_lines.join("\n"),
+            id: self.current_id.clone().unwrap_or_else(|| self.last_id.clone()),
+            retry: self.current_retry.or(self.last_retry),
+        };
 
-    events
+        self.event_type.clear();
+        self.data_lines.clear();
+        self.current_id = None;
+        self.current_retry = None;
+        Some(ev)
+    }
 }
 
 #[cfg(test)]
@@ -137,5 +174,16 @@ mod tests {
         let events = parse(input.as_bytes());
         assert_eq!(events.len(), 1);
         assert_eq!(events[0].data, "line1\nline2");
+    }
+
+    #[test]
+    fn test_incremental_feed() {
+        let mut parser = SseParser::default();
+        let mut events = Vec::new();
+        events.extend(parser.feed("data: hel"));
+        assert!(events.is_empty());
+        events.extend(parser.feed("lo\n\n"));
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].data, "hello");
     }
 }

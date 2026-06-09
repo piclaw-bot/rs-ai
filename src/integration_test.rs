@@ -48,12 +48,15 @@ mod tests {
             provider: Some("faux".into()),
             model: Some("faux-model".into()),
             response_id: Some("resp-1".into()),
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: Some(Usage { input: 10, output: 5, total_tokens: 15, ..Default::default() }),
             stop_reason: Some(StopReason::ToolUse),
             error_message: None,
             tool_call_id: None,
             tool_name: None,
             is_error: false,
+            details: None,
         };
 
         assert!(is_tool_use(&msg1));

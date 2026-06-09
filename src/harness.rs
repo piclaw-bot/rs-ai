@@ -61,12 +61,15 @@ pub fn tool_result_message(tool_call_id: &str, tool_name: &str, result: &str, is
         provider: None,
         model: None,
         response_id: None,
+        response_model: None,
+        diagnostics: Vec::new(),
         usage: None,
         stop_reason: None,
         error_message: None,
         tool_call_id: Some(tool_call_id.to_string()),
         tool_name: Some(tool_name.to_string()),
         is_error,
+        details: None,
     }
 }
 
@@ -85,8 +88,11 @@ mod tests {
             ],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None, stop_reason: None, error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         };
         assert_eq!(get_text_content(&msg), "Hello world");
     }
@@ -103,8 +109,11 @@ mod tests {
             }],
             timestamp: 0,
             api: None, provider: None, model: None, response_id: None,
+            response_model: None,
+            diagnostics: Vec::new(),
             usage: None, stop_reason: Some(StopReason::ToolUse), error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,
+            details: None,
         };
         assert!(is_tool_use(&msg));
     }
