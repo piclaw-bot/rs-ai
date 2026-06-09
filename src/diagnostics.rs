@@ -67,9 +67,10 @@ pub fn extract_diagnostic_error(diag: &AssistantMessageDiagnostic) -> &str {
     &diag.error.message
 }
 
-/// Append a diagnostic to a message's diagnostic list.
-/// (In Rust, Message doesn't have diagnostics field yet — this is a placeholder
-/// that returns the diagnostic for the caller to attach.)
+/// Create a diagnostic suitable for appending to `Message.diagnostics`.
+///
+/// This helper returns the record so callers can push it into the target
+/// assistant message's `diagnostics` vector at the right point in their flow.
 pub fn append_assistant_message_diagnostic(diagnostic_type: &str, error_msg: &str) -> AssistantMessageDiagnostic {
     create_assistant_message_diagnostic(diagnostic_type, error_msg)
 }

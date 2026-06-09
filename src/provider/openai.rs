@@ -486,7 +486,7 @@ fn format_content_blocks(blocks: &[ContentBlock]) -> Vec<Value> {
             "image_url": {"url": format!("data:{};base64,{}", mime_type, data)}
         }),
         ContentBlock::Thinking { thinking, .. } => json!({"type": "text", "text": thinking}),
-        ContentBlock::ToolCall { id, name, arguments, .. } => json!({
+        ContentBlock::ToolCall { id: _, name, arguments, .. } => json!({
             "type": "text",
             "text": format!("[tool_call: {} {}]", name, serde_json::to_string(arguments).unwrap_or_default())
         }),

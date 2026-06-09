@@ -314,6 +314,7 @@ pub(crate) fn build_codex_payload(model: &Model, context: &Context, opts: &Strea
     responses::build_responses_payload(model, context, opts)
 }
 
+#[cfg(test)]
 pub(crate) fn replay_codex_ws_events(model: &Model, events: &[Value]) -> Vec<Event> {
     let mut state = CodexWsState::new(model);
     for event in events {
