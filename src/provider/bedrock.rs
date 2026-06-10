@@ -27,7 +27,6 @@ pub fn stream_bedrock<'a>(
             let role = match msg.role {
                 Role::User | Role::ToolResult => ConversationRole::User,
                 Role::Assistant => ConversationRole::Assistant,
-                _ => continue,
             };
             let content: Vec<BedrockContent> = msg.content.iter().filter_map(|b| match b {
                 ContentBlock::Text { text, .. } => {
@@ -57,7 +56,7 @@ pub fn stream_bedrock<'a>(
 
         let result = req.send().await;
 
-        let mut output = match result {
+        let output = match result {
             Ok(o) => o,
             Err(e) => {
                 yield Event::Error {

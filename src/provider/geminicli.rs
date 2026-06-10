@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use futures::stream;
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use serde_json::{json, Value};
+use serde_json::Value;
 
 use crate::env::resolve_api_key;
 use crate::events::Event;

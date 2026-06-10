@@ -1,6 +1,5 @@
 //! OpenRouter image generation provider.
 
-use std::sync::Arc;
 use std::time::Duration;
 use std::collections::HashMap;
 
@@ -9,7 +8,7 @@ use serde_json::{json, Value};
 
 use super::types::*;
 use crate::env::get_env_api_key;
-use crate::types::{ModelCost, StopReason, Usage, CostBreakdown};
+use crate::types::{StopReason, Usage, CostBreakdown};
 
 /// Options for image generation.
 #[derive(Debug, Clone, Default)]

@@ -9,7 +9,6 @@ mod tests {
     use crate::context::*;
     use crate::compaction::*;
     use tokio_stream::StreamExt;
-    use std::collections::HashMap;
 
     fn faux_model() -> Model {
         Model {
