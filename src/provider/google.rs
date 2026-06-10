@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use futures::stream;
+use futures::{stream, StreamExt};
 use reqwest::header::{HeaderMap, HeaderValue, CONTENT_TYPE};
 use serde_json::{json, Value};
 
@@ -91,13 +91,113 @@ pub fn stream_google<'a>(
 
         yield Event::Start { partial: partial.clone() };
 
-        let bytes = resp.bytes().await.unwrap_or_default();
-        let events = sse::parse(bytes.as_ref());
+        let mut parser = sse::SseParser::default();
+        let mut byte_stream = resp.bytes_stream();
 
         let mut current_text = String::new();
         let mut text_started = false;
+        let mut thinking_started = false;
+        let mut current_thinking = String::new();
+        let mut tool_calls: Vec<(String, String, serde_json::Value)> = Vec::new();
 
-        for evt in events {
+        while let Some(chunk_result) = byte_stream.next().await {
+            let chunk_bytes = match chunk_result {
+                Ok(c) => c,
+                Err(e) => {
+                    yield Event::Error {
+                        reason: StopReason::Error,
+                        error: Arc::from(Box::new(e) as Box<dyn std::error::Error + Send + Sync>),
+                        message: Some(partial.clone()),
+                    };
+                    return;
+                }
+            };
+
+            let chunk_text = String::from_utf8_lossy(&chunk_bytes);
+            for evt in parser.feed(&chunk_text) {
+                if evt.event == sse::EVENT_ERROR {
+                    yield Event::Error {
+                        reason: StopReason::Error,
+                        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
+                            format!("SSE error: {}", evt.data),
+                        )),
+                        message: Some(partial.clone()),
+                    };
+                    return;
+                }
+
+                let chunk: Value = match serde_json::from_str(&evt.data) {
+                    Ok(v) => v,
+                    Err(_) => continue,
+                };
+
+                if let Some(candidates) = chunk.get("candidates").and_then(|v| v.as_array()) {
+                    for candidate in candidates {
+                        if let Some(parts) = candidate.pointer("/content/parts").and_then(|v| v.as_array()) {
+                            for part in parts {
+                                let is_thought = part.get("thought").and_then(|v| v.as_bool()).unwrap_or(false);
+                                if let Some(text) = part.get("text").and_then(|v| v.as_str()) {
+                                    if !text.is_empty() {
+                                        if is_thought {
+                                            if !thinking_started {
+                                                thinking_started = true;
+                                                yield Event::ThinkingStart;
+                                            }
+                                            current_thinking.push_str(text);
+                                            yield Event::ThinkingDelta { delta: text.to_string() };
+                                        } else {
+                                            if !text_started {
+                                                text_started = true;
+                                                yield Event::TextStart;
+                                            }
+                                            current_text.push_str(text);
+                                            yield Event::TextDelta { delta: text.to_string() };
+                                        }
+                                    }
+                                }
+                                if let Some(fc) = part.get("functionCall") {
+                                    let name = fc.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                                    let args = fc.get("args").cloned().unwrap_or_else(|| serde_json::json!({}));
+                                    let id = format!("call_{}", tool_calls.len());
+                                    yield Event::ToolCallStart { id: id.clone(), name: name.clone() };
+                                    yield Event::ToolCallDelta { delta: serde_json::to_string(&args).unwrap_or_default() };
+                                    yield Event::ToolCallEnd { id: id.clone(), name: name.clone(), arguments: args.clone() };
+                                    tool_calls.push((id, name, args));
+                                }
+                            }
+                        }
+                        if let Some(reason) = candidate.get("finishReason").and_then(|v| v.as_str()) {
+                            if text_started {
+                                yield Event::TextEnd;
+                                text_started = false;
+                            }
+                            if thinking_started {
+                                yield Event::ThinkingEnd;
+                                thinking_started = false;
+                            }
+                            partial.stop_reason = Some(match reason {
+                                "STOP" if !tool_calls.is_empty() => StopReason::ToolUse,
+                                "STOP" => StopReason::Stop,
+                                "MAX_TOKENS" => StopReason::Length,
+                                _ => StopReason::Stop,
+                            });
+                        }
+                    }
+                }
+
+                if let Some(usage) = chunk.get("usageMetadata") {
+                    partial.usage = Some(Usage {
+                        input: usage.get("promptTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+                        output: usage.get("candidatesTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+                        cache_read: usage.get("cachedContentTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+                        total_tokens: usage.get("totalTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+                        ..Default::default()
+                    });
+                }
+            }
+        }
+
+        if let Some(evt) = parser.finish() {
             if evt.event == sse::EVENT_ERROR {
                 yield Event::Error {
                     reason: StopReason::Error,
@@ -108,61 +208,31 @@ pub fn stream_google<'a>(
                 };
                 return;
             }
-
-            let chunk: Value = match serde_json::from_str(&evt.data) {
-                Ok(v) => v,
-                Err(_) => continue,
-            };
-
-            if let Some(candidates) = chunk.get("candidates").and_then(|v| v.as_array()) {
-                for candidate in candidates {
-                    if let Some(parts) = candidate.pointer("/content/parts").and_then(|v| v.as_array()) {
-                        for part in parts {
-                            if let Some(text) = part.get("text").and_then(|v| v.as_str()) {
-                                if !text.is_empty() {
-                                    if !text_started {
-                                        text_started = true;
-                                        yield Event::TextStart;
-                                    }
-                                    current_text.push_str(text);
-                                    yield Event::TextDelta { delta: text.to_string() };
-                                }
-                            }
-                            if let Some(thought) = part.get("thought").and_then(|v| v.as_str()) {
-                                if !thought.is_empty() {
-                                    yield Event::ThinkingDelta { delta: thought.to_string() };
-                                }
-                            }
-                        }
-                    }
-                    if let Some(reason) = candidate.get("finishReason").and_then(|v| v.as_str()) {
-                        if text_started {
-                            yield Event::TextEnd;
-                        }
-                        partial.stop_reason = Some(match reason {
-                            "STOP" => StopReason::Stop,
-                            "MAX_TOKENS" => StopReason::Length,
-                            _ => StopReason::Stop,
-                        });
-                    }
-                }
-            }
-
-            if let Some(usage) = chunk.get("usageMetadata") {
-                partial.usage = Some(Usage {
-                    input: usage.get("promptTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                    output: usage.get("candidatesTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                    cache_read: usage.get("cachedContentTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                    total_tokens: usage.get("totalTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                    ..Default::default()
-                });
-            }
         }
 
+        if !current_thinking.is_empty() {
+            partial.content.push(ContentBlock::Thinking {
+                thinking: current_thinking,
+                thinking_signature: None,
+                redacted: false,
+            });
+        }
         if !current_text.is_empty() {
             partial.content.push(ContentBlock::Text {
                 text: current_text,
                 text_signature: None,
+            });
+        }
+        for (id, name, args) in tool_calls {
+            let arguments = match args {
+                serde_json::Value::Object(map) => map.into_iter().collect(),
+                _ => std::collections::HashMap::new(),
+            };
+            partial.content.push(ContentBlock::ToolCall {
+                id,
+                name,
+                arguments,
+                thought_signature: None,
             });
         }
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);

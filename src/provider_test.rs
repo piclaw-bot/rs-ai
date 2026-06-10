@@ -567,6 +567,7 @@ mod tests {
         let mut saw_tool_start = false;
         let mut tool_json = String::new();
         let mut stop_reason = None;
+        let mut done_msg: Option<Message> = None;
 
         while let Some(evt) = stream.next().await {
             match evt {
@@ -576,7 +577,7 @@ mod tests {
                     saw_tool_start = true;
                 }
                 Event::ToolCallDelta { delta } => tool_json.push_str(&delta),
-                Event::Done { reason, .. } => stop_reason = Some(reason),
+                Event::Done { reason, message } => { stop_reason = Some(reason); done_msg = Some(message); }
                 _ => {}
             }
         }
@@ -584,6 +585,33 @@ mod tests {
         assert!(saw_tool_start);
         assert_eq!(tool_json, "{\"q\":\"rust\"}");
         assert_eq!(stop_reason, Some(StopReason::ToolUse));
+        let msg = done_msg.expect("done message");
+        assert!(msg.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { id, name, arguments, .. } if id == "tc1" && name == "search" && arguments["q"] == "rust")));
+    }
+
+    #[test]
+    fn test_anthropic_tool_result_payload_shape() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let model = test_model("anthropic-messages", "anthropic", "https://example.com");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::ToolResult,
+                content: vec![ContentBlock::Text { text: "42".into(), text_signature: None }],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: None, error_message: None,
+                tool_call_id: Some("tc1".into()), tool_name: Some("calc".into()),
+                is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = build_anthropic_payload(&model, &ctx, &StreamOptions::default());
+        let block = &payload["messages"][0]["content"][0];
+        assert_eq!(block["type"], "tool_result");
+        assert_eq!(block["tool_use_id"], "tc1");
+        assert_eq!(block["content"][0]["text"], "42");
     }
 
     // --- Mistral Tests ---
@@ -614,5 +642,72 @@ mod tests {
             }
         }
         assert_eq!(text, "Bonjour");
+    }
+
+    #[tokio::test]
+    async fn test_mistral_stream_tool_calls() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"id":"cmpl-2","choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc1","function":{"name":"search","arguments":"{\"q\":"}}]},"index":0}]}"#,
+                    r#"{"id":"cmpl-2","choices":[{"delta":{"tool_calls":[{"index":0,"function":{"arguments":"\"rust\"}"}}]},"index":0}]}"#,
+                    r#"{"id":"cmpl-2","choices":[{"delta":{},"finish_reason":"tool_calls","index":0}]}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+
+        let model = test_model("mistral-conversations", "mistral", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_mistral(&model, &ctx, &opts);
+
+        let mut done: Option<Message> = None;
+        let mut reason = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { reason: r, message } = evt { reason = Some(r); done = Some(message); }
+        }
+        let msg = done.expect("done");
+        assert_eq!(reason, Some(StopReason::ToolUse));
+        assert!(msg.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { id, name, arguments, .. } if id == "tc1" && name == "search" && arguments["q"] == "rust")));
+    }
+
+    #[tokio::test]
+    async fn test_google_stream_function_call() {
+        use crate::provider::google::stream_google;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"candidates\":[{\"content\":{\"parts\":[{\"functionCall\":{\"name\":\"search\",\"args\":{\"q\":\"rust\"}}}]},\"finishReason\":\"STOP\"}],\"usageMetadata\":{\"promptTokenCount\":5,\"candidatesTokenCount\":3,\"totalTokenCount\":8}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+
+        let model = test_model("google-generative-ai", "google", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_google(&model, &ctx, &opts);
+
+        let mut saw_tool_end = false;
+        let mut done: Option<Message> = None;
+        let mut reason = None;
+        while let Some(evt) = stream.next().await {
+            match evt {
+                Event::ToolCallEnd { name, arguments, .. } => {
+                    assert_eq!(name, "search");
+                    assert_eq!(arguments["q"], "rust");
+                    saw_tool_end = true;
+                }
+                Event::Done { reason: r, message } => { reason = Some(r); done = Some(message); }
+                _ => {}
+            }
+        }
+        let msg = done.expect("done");
+        assert!(saw_tool_end);
+        assert_eq!(reason, Some(StopReason::ToolUse));
+        assert!(msg.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { name, .. } if name == "search")));
     }
 }
