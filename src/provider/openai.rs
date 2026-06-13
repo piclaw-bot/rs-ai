@@ -508,6 +508,14 @@ pub(crate) fn build_payload(
             Some("qwen") => {
                 payload["enable_thinking"] = json!(clamped_effort.is_some());
             }
+            Some("together") => {
+                payload["reasoning"] = json!({"enabled": clamped_effort.is_some()});
+                if let Some(ref level) = clamped_effort {
+                    if compat.supports_reasoning_effort == Some(true) {
+                        payload["reasoning_effort"] = json!(map_effort(level));
+                    }
+                }
+            }
             Some("deepseek") => {
                 payload["thinking"] = json!({"type": if clamped_effort.is_some() { "enabled" } else { "disabled" }});
                 if let Some(ref level) = clamped_effort {

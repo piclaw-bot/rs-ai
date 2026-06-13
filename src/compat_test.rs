@@ -85,6 +85,27 @@ mod tests {
         let c = detect_compat(&m);
         assert_eq!(c.supports_store, Some(false));
         assert_eq!(c.max_tokens_field.as_deref(), Some("max_tokens"));
+        assert_eq!(c.supports_reasoning_effort, Some(false));
+        assert_eq!(c.supports_strict_mode, Some(false));
+        assert_eq!(c.supports_long_cache_retention, Some(false));
+    }
+
+    #[test]
+    fn test_grok_no_reasoning_effort() {
+        let m = model_with("xai", "https://api.x.ai/v1", "grok-2");
+        let c = detect_compat(&m);
+        assert_eq!(c.supports_reasoning_effort, Some(false));
+    }
+
+    #[test]
+    fn test_together_detection() {
+        let m = model_with("together", "https://api.together.ai/v1", "deepseek-ai/DeepSeek-R1");
+        let c = detect_compat(&m);
+        assert_eq!(c.thinking_format.as_deref(), Some("together"));
+        assert_eq!(c.supports_reasoning_effort, Some(false));
+        assert_eq!(c.supports_strict_mode, Some(false));
+        assert_eq!(c.supports_long_cache_retention, Some(false));
+        assert_eq!(c.max_tokens_field.as_deref(), Some("max_tokens"));
     }
 
     #[test]

@@ -72,18 +72,28 @@ fn detect_compat_inner(provider: &str, model_id: &str, base_url: &str) -> OpenAI
     let is_cloudflare_aigw = provider == "cloudflare-ai-gateway"
         || base_url.contains("gateway.ai.cloudflare.com");
     let is_fireworks = provider == "fireworks" || base_url.contains("fireworks.ai");
+    let is_together = provider == "together"
+        || base_url.contains("api.together.ai") || base_url.contains("api.together.xyz");
+    let is_grok = provider == "xai" || base_url.contains("api.x.ai");
+    let is_cloudflare_workers = provider == "cloudflare-workers-ai" || base_url.contains("api.cloudflare.com");
     if is_fireworks || is_cloudflare_aigw {
         c.supports_session_affinity_headers = Some(true);
     }
 
+    // supportsReasoningEffort is disabled for several non-standard providers.
+    if is_grok || is_zai || is_moonshot || is_together || is_cloudflare_aigw || is_nvidia || is_ant_ling {
+        c.supports_reasoning_effort = Some(false);
+    }
+
     let is_non_standard = provider == "cerebras" || provider == "xai"
-        || base_url.contains("chutes.ai") || is_deepseek || is_zai || is_moonshot
+        || base_url.contains("cerebras.ai") || base_url.contains("api.x.ai")
+        || base_url.contains("chutes.ai") || is_deepseek || is_zai || is_moonshot || is_together
         || provider == "opencode" || base_url.contains("opencode.ai")
-        || provider == "cloudflare-workers-ai" || base_url.contains("api.cloudflare.com")
+        || is_cloudflare_workers
         || is_cloudflare_aigw || is_ollama || is_nvidia || is_ant_ling;
 
     let use_max_tokens = base_url.contains("chutes.ai") || is_moonshot
-        || is_cloudflare_aigw || is_ollama || is_nvidia || is_ant_ling;
+        || is_cloudflare_aigw || is_ollama || is_nvidia || is_ant_ling || is_together;
 
     if is_non_standard {
         c.supports_store = Some(false);
@@ -105,6 +115,9 @@ fn detect_compat_inner(provider: &str, model_id: &str, base_url: &str) -> OpenAI
     if is_zai {
         c.thinking_format = Some("zai".to_string());
     }
+    if is_together {
+        c.thinking_format = Some("together".to_string());
+    }
     if is_deepseek {
         c.thinking_format = Some("deepseek".to_string());
         c.requires_reasoning_content_on_assistant_messages = Some(true);
@@ -112,10 +125,10 @@ fn detect_compat_inner(provider: &str, model_id: &str, base_url: &str) -> OpenAI
     if is_ant_ling {
         c.thinking_format = Some("ant-ling".to_string());
     }
-    if is_moonshot || is_cloudflare_aigw {
+    if is_moonshot || is_cloudflare_aigw || is_together || is_nvidia {
         c.supports_strict_mode = Some(false);
     }
-    if provider == "cloudflare-workers-ai" || is_cloudflare_aigw {
+    if is_cloudflare_workers || is_cloudflare_aigw || is_together || is_nvidia || is_ant_ling {
         c.supports_long_cache_retention = Some(false);
     }
 
