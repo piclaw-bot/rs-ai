@@ -793,6 +793,39 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_merges_consecutive_tool_results() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let model = test_model("anthropic-messages", "anthropic", "https://example.com");
+        let tr = |id: &str, txt: &str| Message {
+            role: Role::ToolResult,
+            content: vec![ContentBlock::Text { text: txt.into(), text_signature: None }],
+            timestamp: 0,
+            api: None, provider: None, model: None, response_id: None,
+            response_model: None, diagnostics: Vec::new(), usage: None,
+            stop_reason: None, error_message: None,
+            tool_call_id: Some(id.into()), tool_name: Some("t".into()),
+            is_error: false, details: None,
+        };
+        let ctx = Context {
+            system_prompt: Some("sys".into()),
+            messages: vec![tr("a", "1"), tr("b", "2")],
+            tools: vec![],
+        };
+        let opts = StreamOptions { cache_retention: Some(CacheRetention::Long), ..Default::default() };
+        let payload = build_anthropic_payload(&model, &ctx, &opts);
+        // Two consecutive tool results must collapse into ONE user message with two blocks.
+        assert_eq!(payload["messages"].as_array().unwrap().len(), 1);
+        let blocks = payload["messages"][0]["content"].as_array().unwrap();
+        assert_eq!(blocks.len(), 2);
+        assert_eq!(blocks[0]["tool_use_id"], "a");
+        assert_eq!(blocks[1]["tool_use_id"], "b");
+        // System prompt is structured with cache_control.
+        assert_eq!(payload["system"][0]["type"], "text");
+        assert_eq!(payload["system"][0]["cache_control"]["type"], "ephemeral");
+        assert_eq!(payload["system"][0]["cache_control"]["ttl"], "1h");
+    }
+
+    #[test]
     fn test_anthropic_tool_result_payload_shape() {
         use crate::provider::anthropic::build_anthropic_payload;
         let model = test_model("anthropic-messages", "anthropic", "https://example.com");

@@ -321,38 +321,47 @@ pub fn stream_anthropic<'a>(
 }
 
 pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
-    let mut messages = Vec::new();
+    let mut messages: Vec<Value> = Vec::new();
 
     let transformed_messages = crate::transform::transform_messages(&context.messages, model);
 
-    for msg in &transformed_messages {
-        let role_str = match msg.role {
-            Role::User => "user",
-            Role::Assistant => "assistant",
-            Role::ToolResult => "user", // Anthropic tool results go in user messages
-        };
-
+    let mut i = 0usize;
+    while i < transformed_messages.len() {
+        let msg = &transformed_messages[i];
         if msg.role == Role::ToolResult {
-            let result_content: Vec<Value> = msg.content.iter().map(|b| match b {
-                ContentBlock::Text { text, .. } => json!({"type": "text", "text": text}),
-                ContentBlock::Image { data, mime_type } => json!({
-                    "type": "image",
-                    "source": {"type": "base64", "media_type": mime_type, "data": data}
-                }),
-                _ => json!({"type": "text", "text": ""}),
-            }).collect();
-            let mut tool_result = json!({
-                "type": "tool_result",
-                "tool_use_id": msg.tool_call_id.clone().unwrap_or_default(),
-                "content": result_content,
-            });
-            if msg.is_error {
-                tool_result["is_error"] = json!(true);
+            // Merge all consecutive tool-result messages into a single user message,
+            // as Anthropic requires (and parallel tool calls produce multiple results).
+            let mut tool_results: Vec<Value> = Vec::new();
+            while i < transformed_messages.len() && transformed_messages[i].role == Role::ToolResult {
+                let tr = &transformed_messages[i];
+                let result_content: Vec<Value> = tr.content.iter().map(|b| match b {
+                    ContentBlock::Text { text, .. } => json!({"type": "text", "text": text}),
+                    ContentBlock::Image { data, mime_type } => json!({
+                        "type": "image",
+                        "source": {"type": "base64", "media_type": mime_type, "data": data}
+                    }),
+                    _ => json!({"type": "text", "text": ""}),
+                }).collect();
+                let mut tool_result = json!({
+                    "type": "tool_result",
+                    "tool_use_id": tr.tool_call_id.clone().unwrap_or_default(),
+                    "content": result_content,
+                });
+                if tr.is_error {
+                    tool_result["is_error"] = json!(true);
+                }
+                tool_results.push(tool_result);
+                i += 1;
             }
-            messages.push(json!({"role": role_str, "content": [tool_result]}));
+            messages.push(json!({"role": "user", "content": tool_results}));
             continue;
         }
 
+        let role_str = match msg.role {
+            Role::User => "user",
+            Role::Assistant => "assistant",
+            Role::ToolResult => unreachable!(),
+        };
         let content: Vec<Value> = msg.content.iter().map(|b| match b {
             ContentBlock::Text { text, .. } => json!({"type": "text", "text": text}),
             ContentBlock::Image { data, mime_type } => json!({
@@ -371,6 +380,25 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
             }),
         }).collect();
         messages.push(json!({"role": role_str, "content": content}));
+        i += 1;
+    }
+
+    // Cache control (ephemeral) when prompt caching is enabled.
+    let cache_control: Option<Value> = match opts.cache_retention {
+        Some(CacheRetention::None) | None => None,
+        Some(CacheRetention::Short) => Some(json!({"type": "ephemeral"})),
+        Some(CacheRetention::Long) => Some(json!({"type": "ephemeral", "ttl": "1h"})),
+    };
+
+    // Apply cache_control to the last content block of the last message.
+    if let Some(ref cc) = cache_control {
+        if let Some(last_msg) = messages.last_mut() {
+            if let Some(blocks) = last_msg.get_mut("content").and_then(|c| c.as_array_mut()) {
+                if let Some(last_block) = blocks.last_mut() {
+                    last_block["cache_control"] = cc.clone();
+                }
+            }
+        }
     }
 
     let mut payload = json!({
@@ -381,27 +409,52 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
     });
 
     if let Some(ref prompt) = context.system_prompt {
-        payload["system"] = json!(prompt);
+        // Structured system prompt allows attaching cache_control.
+        let mut system_block = json!({"type": "text", "text": prompt});
+        if let Some(ref cc) = cache_control {
+            system_block["cache_control"] = cc.clone();
+        }
+        payload["system"] = json!([system_block]);
     }
 
+    // Temperature is incompatible with extended thinking.
+    let thinking_enabled = opts.reasoning.is_some() && model.reasoning;
     if let Some(temp) = opts.temperature {
-        payload["temperature"] = json!(temp);
+        if !thinking_enabled {
+            payload["temperature"] = json!(temp);
+        }
     }
 
     // Thinking/reasoning support
-    if opts.reasoning.is_some() {
-        payload["thinking"] = json!({"type": "enabled", "budget_tokens": 8192});
+    if thinking_enabled {
+        let budget = opts.thinking_budgets.as_ref().and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)).unwrap_or(8192);
+        payload["thinking"] = json!({"type": "enabled", "budget_tokens": budget});
     }
 
     if !context.tools.is_empty() {
-        let tools: Vec<Value> = context.tools.iter().map(|t| {
+        let mut tools: Vec<Value> = context.tools.iter().map(|t| {
             json!({
                 "name": t.name,
                 "description": t.description,
                 "input_schema": t.parameters,
             })
         }).collect();
+        // Cache control on the last tool definition.
+        if let Some(ref cc) = cache_control {
+            if let Some(last) = tools.last_mut() {
+                last["cache_control"] = cc.clone();
+            }
+        }
         payload["tools"] = json!(tools);
+    }
+
+    // Tool choice: a bare string becomes {type: string}; objects pass through.
+    if let Some(ref tc) = opts.tool_choice {
+        if let Some(s) = tc.as_str() {
+            payload["tool_choice"] = json!({"type": s});
+        } else {
+            payload["tool_choice"] = tc.clone();
+        }
     }
 
     payload
