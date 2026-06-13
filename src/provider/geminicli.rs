@@ -195,7 +195,7 @@ pub fn stream_geminicli<'a>(
                                 "STOP" if !tool_calls.is_empty() => StopReason::ToolUse,
                                 "STOP" => StopReason::Stop,
                                 "MAX_TOKENS" => StopReason::Length,
-                                _ => StopReason::Stop,
+                                _ => StopReason::Error,
                             });
                         }
                     }

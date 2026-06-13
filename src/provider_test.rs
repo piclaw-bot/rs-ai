@@ -1075,6 +1075,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_google_safety_finish_reason_is_error() {
+        use crate::provider::google::stream_google;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"hi\"}]},\"finishReason\":\"SAFETY\"}]}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("google-generative-ai", "google", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_google(&model, &ctx, &opts);
+        let mut reason = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { reason: r, .. } = evt { reason = Some(r); }
+        }
+        assert_eq!(reason, Some(StopReason::Error));
+    }
+
+    #[tokio::test]
     async fn test_google_stream_function_call() {
         use crate::provider::google::stream_google;
         let server = MockServer::start().await;

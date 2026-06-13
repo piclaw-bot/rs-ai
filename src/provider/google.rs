@@ -180,7 +180,7 @@ pub fn stream_google<'a>(
                                 "STOP" if !tool_calls.is_empty() => StopReason::ToolUse,
                                 "STOP" => StopReason::Stop,
                                 "MAX_TOKENS" => StopReason::Length,
-                                _ => StopReason::Stop,
+                                _ => StopReason::Error,
                             });
                         }
                     }
