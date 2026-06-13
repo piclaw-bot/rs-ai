@@ -357,9 +357,24 @@ fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) 
         config["temperature"] = json!(temp);
     }
     // Thinking config for reasoning models.
-    if model.reasoning && opts.reasoning.is_some() {
+    if model.reasoning && let Some(level) = opts.reasoning.as_ref() {
         let mut thinking_config = json!({"includeThoughts": true});
-        if let Some(budget) = opts.thinking_budgets.as_ref()
+        let id = model.id.to_lowercase();
+        let is_gemini3_pro = id.contains("gemini-3") && id.contains("-pro");
+        let is_gemini3_flash = id.contains("gemini-3") && id.contains("-flash");
+        let is_gemma4 = id.contains("gemma-4") || id.contains("gemma4");
+        let effort = format!("{:?}", level).to_lowercase();
+        if is_gemini3_pro || is_gemini3_flash || is_gemma4 {
+            // Gemini 3 / Gemma 4 use a thinkingLevel string instead of a token budget.
+            let tl = if is_gemini3_pro {
+                match effort.as_str() { "minimal" | "low" => "LOW", _ => "HIGH" }
+            } else if is_gemma4 {
+                match effort.as_str() { "minimal" | "low" => "MINIMAL", _ => "HIGH" }
+            } else {
+                match effort.as_str() { "minimal" => "MINIMAL", "low" => "LOW", "medium" => "MEDIUM", _ => "HIGH" }
+            };
+            thinking_config["thinkingLevel"] = json!(tl);
+        } else if let Some(budget) = opts.thinking_budgets.as_ref()
             .and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)) {
             thinking_config["thinkingBudget"] = json!(budget);
         }

@@ -1265,6 +1265,34 @@ mod tests {
     }
 
     #[test]
+    fn test_google_gemini3_uses_thinking_level() {
+        use crate::provider::google::build_google_payload_public;
+        let model = Model { id: "gemini-3-pro".into(), reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
+        let ctx = test_context();
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::Low), ..Default::default() };
+        let payload = build_google_payload_public(&model, &ctx, &opts);
+        let tc = &payload["generationConfig"]["thinkingConfig"];
+        assert_eq!(tc["thinkingLevel"], "LOW");
+        assert!(tc.get("thinkingBudget").is_none());
+    }
+
+    #[test]
+    fn test_google_older_model_uses_thinking_budget() {
+        use crate::provider::google::build_google_payload_public;
+        let model = Model { id: "gemini-2.5-pro".into(), reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
+        let ctx = test_context();
+        let opts = StreamOptions {
+            reasoning: Some(ThinkingLevel::High),
+            thinking_budgets: Some(ThinkingBudgets { high: Some(4096), ..Default::default() }),
+            ..Default::default()
+        };
+        let payload = build_google_payload_public(&model, &ctx, &opts);
+        let tc = &payload["generationConfig"]["thinkingConfig"];
+        assert_eq!(tc["thinkingBudget"], 4096);
+        assert!(tc.get("thinkingLevel").is_none());
+    }
+
+    #[test]
     fn test_google_thinking_and_tool_config() {
         use crate::provider::google::build_google_payload_public;
         let model = Model { reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
