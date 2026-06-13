@@ -80,8 +80,10 @@ pub fn stream_codex<'a>(
         );
 
         // Reuse the SSE transport for the rest of a session once its WebSocket has failed
-        // (mirrors upstream's sticky websocketSseFallbackSessions behavior).
-        let skip_ws = ws_fallback_active(opts.session_id.as_deref());
+        // (mirrors upstream's sticky websocketSseFallbackSessions behavior). Also honor an
+        // explicit `transport: "sse"` request to skip WebSocket entirely.
+        let force_sse = opts.transport == Some(Transport::Sse);
+        let skip_ws = force_sse || ws_fallback_active(opts.session_id.as_deref());
         let mut transport_diagnostic: Option<crate::types::AssistantMessageDiagnostic> = None;
         let mut do_sse = skip_ws;
         if !skip_ws {
