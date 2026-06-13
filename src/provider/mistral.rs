@@ -300,8 +300,69 @@ pub fn stream_mistral<'a>(
     })
 }
 
+const MISTRAL_TOOL_CALL_ID_LENGTH: usize = 9;
+
+/// Encode a u64 in lowercase base36.
+fn to_base36(mut n: u64) -> String {
+    const ALPHABET: &[u8] = b"0123456789abcdefghijklmnopqrstuvwxyz";
+    if n == 0 {
+        return "0".to_string();
+    }
+    let mut s = Vec::new();
+    while n > 0 {
+        s.push(ALPHABET[(n % 36) as usize]);
+        n /= 36;
+    }
+    s.reverse();
+    String::from_utf8(s).unwrap()
+}
+
+/// Derive a candidate Mistral tool-call id (mirrors deriveMistralToolCallId).
+fn derive_mistral_tool_call_id(id: &str, attempt: u32) -> String {
+    let normalized: String = id.chars().filter(|c| c.is_ascii_alphanumeric()).collect();
+    if attempt == 0 && normalized.len() == MISTRAL_TOOL_CALL_ID_LENGTH {
+        return normalized;
+    }
+    let seed_base = if normalized.is_empty() { id.to_string() } else { normalized };
+    let seed = if attempt == 0 { seed_base } else { format!("{seed_base}:{attempt}") };
+    to_base36(crate::utils::hash_string(&seed))
+        .chars()
+        .filter(|c| c.is_ascii_alphanumeric())
+        .take(MISTRAL_TOOL_CALL_ID_LENGTH)
+        .collect()
+}
+
+/// Stateful normalizer mapping arbitrary tool-call ids to unique 9-char
+/// alphanumeric Mistral ids (mirrors createMistralToolCallIdNormalizer).
+#[derive(Default)]
+struct MistralIdNormalizer {
+    id_map: std::collections::HashMap<String, String>,
+    reverse: std::collections::HashMap<String, String>,
+}
+
+impl MistralIdNormalizer {
+    fn normalize(&mut self, id: &str) -> String {
+        if let Some(existing) = self.id_map.get(id) {
+            return existing.clone();
+        }
+        let mut attempt = 0;
+        loop {
+            let candidate = derive_mistral_tool_call_id(id, attempt);
+            match self.reverse.get(&candidate) {
+                Some(owner) if owner != id => attempt += 1,
+                _ => {
+                    self.id_map.insert(id.to_string(), candidate.clone());
+                    self.reverse.insert(candidate.clone(), id.to_string());
+                    return candidate;
+                }
+            }
+        }
+    }
+}
+
 pub(crate) fn build_mistral_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let mut messages = Vec::new();
+    let mut id_normalizer = MistralIdNormalizer::default();
 
     if let Some(ref prompt) = context.system_prompt {
         messages.push(json!({"role": "system", "content": prompt}));
@@ -339,7 +400,7 @@ pub(crate) fn build_mistral_payload(model: &Model, context: &Context, opts: &Str
                 }).collect::<Vec<_>>().join("");
                 let tool_calls: Vec<Value> = msg.content.iter().filter_map(|b| match b {
                     ContentBlock::ToolCall { id, name, arguments, .. } => Some(json!({
-                        "id": id,
+                        "id": id_normalizer.normalize(id),
                         "type": "function",
                         "function": {"name": name, "arguments": serde_json::to_string(arguments).unwrap_or_else(|_| "{}".to_string())}
                     })),
@@ -367,7 +428,7 @@ pub(crate) fn build_mistral_payload(model: &Model, context: &Context, opts: &Str
                     "content": tool_text,
                 });
                 if let Some(ref id) = msg.tool_call_id {
-                    m["tool_call_id"] = json!(id);
+                    m["tool_call_id"] = json!(id_normalizer.normalize(id));
                 }
                 if let Some(ref name) = msg.tool_name {
                     m["name"] = json!(name);

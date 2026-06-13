@@ -1792,10 +1792,38 @@ mod tests {
         };
         let payload = build_mistral_payload(&model, &ctx, &StreamOptions::default());
         let msgs = payload["messages"].as_array().unwrap();
-        assert_eq!(msgs[0]["tool_calls"][0]["id"], "tc1");
+        // "tc1" is normalized to a 9-char alphanumeric id, consistent across messages.
+        let norm_id = msgs[0]["tool_calls"][0]["id"].as_str().unwrap().to_string();
+        assert_eq!(norm_id.len(), 9);
+        assert!(norm_id.chars().all(|c| c.is_ascii_alphanumeric()));
         assert_eq!(msgs[0]["tool_calls"][0]["function"]["name"], "search");
         assert_eq!(msgs[1]["role"], "tool");
-        assert_eq!(msgs[1]["tool_call_id"], "tc1");
+        assert_eq!(msgs[1]["tool_call_id"], norm_id);
         assert_eq!(msgs[1]["content"], "found");
+    }
+
+    #[test]
+    fn test_mistral_tool_id_passthrough_when_already_valid() {
+        use crate::provider::mistral::build_mistral_payload;
+        let model = test_model("mistral-conversations", "mistral", "https://example.com");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![ContentBlock::ToolCall {
+                    id: "abc123XYZ".into(), name: "t".into(),
+                    arguments: std::collections::HashMap::new(), thought_signature: None,
+                }],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::ToolUse), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = build_mistral_payload(&model, &ctx, &StreamOptions::default());
+        // A 9-char alphanumeric id is preserved as-is.
+        assert_eq!(payload["messages"][0]["tool_calls"][0]["id"], "abc123XYZ");
     }
 }
