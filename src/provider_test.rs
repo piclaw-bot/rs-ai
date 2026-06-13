@@ -2324,6 +2324,32 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_google_captures_text_thought_signature() {
+        use crate::provider::google::stream_google;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"answer\",\"thoughtSignature\":\"SIGabc\"}]},\"finishReason\":\"STOP\"}]}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("google-generative-ai", "google", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_google(&model, &ctx, &opts);
+        let mut msg = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { message, .. } = evt { msg = Some(message); }
+        }
+        let sig = msg.unwrap().content.iter().find_map(|b| match b {
+            ContentBlock::Text { text_signature, .. } => text_signature.clone(),
+            _ => None,
+        });
+        assert_eq!(sig.as_deref(), Some("SIGabc"));
+    }
+
+    #[tokio::test]
     async fn test_google_usage_cache_and_thoughts() {
         use crate::provider::google::stream_google;
         let server = MockServer::start().await;

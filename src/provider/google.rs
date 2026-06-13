@@ -109,6 +109,7 @@ pub fn stream_google<'a>(
         let mut byte_stream = resp.bytes_stream();
 
         let mut current_text = String::new();
+        let mut current_text_signature: Option<String> = None;
         let mut text_started = false;
         let mut thinking_started = false;
         let mut current_thinking = String::new();
@@ -187,6 +188,11 @@ pub fn stream_google<'a>(
                                                 yield Event::TextStart;
                                             }
                                             current_text.push_str(text);
+                                            // Retain the thought signature on text parts (textSignature).
+                                            if let Some(sig) = part.get("thoughtSignature").and_then(|v| v.as_str())
+                                                && !sig.is_empty() {
+                                                current_text_signature = Some(sig.to_string());
+                                            }
                                             yield Event::TextDelta { delta: text.to_string() };
                                         }
                                     }
@@ -285,7 +291,7 @@ pub fn stream_google<'a>(
         if !current_text.is_empty() {
             partial.content.push(ContentBlock::Text {
                 text: current_text,
-                text_signature: None,
+                text_signature: current_text_signature,
             });
         }
         for (id, name, args, sig) in tool_calls {
