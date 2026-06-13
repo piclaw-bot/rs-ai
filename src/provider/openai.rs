@@ -110,12 +110,12 @@ pub fn stream_openai<'a>(
 
     Box::pin(async_stream::stream! {
         let client = reqwest::Client::new();
-        let resp = client
+        let request = client
             .post(&url)
             .headers(headers)
-            .json(&payload)
-            .send()
-            .await;
+            .json(&payload);
+        let retry_cfg = crate::retry::retry_config_from_options(opts);
+        let resp = crate::retry::do_with_retry(&client, request, &retry_cfg).await;
 
         let resp = match resp {
             Ok(r) => r,

@@ -122,7 +122,9 @@ fn stream_responses_inner<'a>(
 
     Box::pin(async_stream::stream! {
         let client = reqwest::Client::new();
-        let resp = client.post(&url).headers(headers).json(&payload).send().await;
+        let request = client.post(&url).headers(headers).json(&payload);
+        let retry_cfg = crate::retry::retry_config_from_options(opts);
+        let resp = crate::retry::do_with_retry(&client, request, &retry_cfg).await;
 
         let resp = match resp {
             Ok(r) => r,

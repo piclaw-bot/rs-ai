@@ -689,6 +689,38 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_openai_retries_on_503_then_succeeds() {
+        let server = MockServer::start().await;
+        // First attempt: 503. Second: 200.
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(ResponseTemplate::new(503).set_body_string("busy"))
+            .up_to_n_times(1)
+            .mount(&server)
+            .await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"id":"r1","choices":[{"delta":{"content":"ok"},"index":0}]}"#,
+                    r#"{"id":"r1","choices":[{"delta":{},"finish_reason":"stop","index":0}]}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+
+        let model = test_model("openai-completions", "openai", &server.uri());
+        let opts = StreamOptions { max_retries: Some(2), max_retry_delay_ms: Some(5), ..Default::default() };
+        let ctx = test_context();
+        let mut stream = stream_openai(&model, &ctx, &opts);
+        let mut text = String::new();
+        while let Some(evt) = stream.next().await {
+            if let Event::TextDelta { delta } = evt { text.push_str(&delta); }
+        }
+        assert_eq!(text, "ok");
+    }
+
+    #[tokio::test]
     async fn test_openai_missing_api_key() {
         let model = Model {
             api_key: None,
