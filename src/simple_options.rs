@@ -177,10 +177,9 @@ pub fn parse_responses_usage(raw: &serde_json::Value, model: &Model) -> crate::t
     usage
 }
 
-/// Recompute total tokens and cost for a usage record (for providers that build
-/// usage incrementally across events).
+/// Recompute cost for a usage record (for providers that build usage incrementally
+/// across events). The provider-supplied `total_tokens` is preserved.
 pub fn finalize_usage(model: &Model, usage: &mut crate::types::Usage) {
-    usage.total_tokens = usage.input + usage.output + usage.cache_read + usage.cache_write;
     usage.cost = calculate_cost(model, usage);
 }
 

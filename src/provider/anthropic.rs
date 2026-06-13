@@ -292,7 +292,7 @@ pub fn stream_anthropic<'a>(
                             && let Some(output) = usage.get("output_tokens").and_then(|v| v.as_u64())
                                 && let Some(ref mut u) = partial.usage {
                                     u.output = output as u32;
-                                    u.total_tokens = u.input + u.output;
+                                    u.total_tokens = u.input + u.output + u.cache_read + u.cache_write;
                                 }
                     }
                     "message_stop" => {}
