@@ -1175,6 +1175,28 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_google_in_band_error_emits_error() {
+        use crate::provider::google::stream_google;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"error\":{\"code\":429,\"message\":\"quota exceeded\",\"status\":\"RESOURCE_EXHAUSTED\"}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("google-generative-ai", "google", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_google(&model, &ctx, &opts);
+        let mut err = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Error { error, .. } = evt { err = Some(error.to_string()); }
+        }
+        assert!(err.unwrap().contains("quota exceeded"));
+    }
+
+    #[tokio::test]
     async fn test_google_safety_finish_reason_is_error() {
         use crate::provider::google::stream_google;
         let server = MockServer::start().await;

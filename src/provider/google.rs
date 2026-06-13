@@ -133,6 +133,20 @@ pub fn stream_google<'a>(
                     Err(_) => continue,
                 };
 
+                if let Some(err) = chunk.get("error") {
+                    let msg = err.get("message").and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| err.to_string());
+                    partial.stop_reason = Some(StopReason::Error);
+                    partial.error_message = Some(msg.clone());
+                    yield Event::Error {
+                        reason: StopReason::Error,
+                        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                        message: Some(partial.clone()),
+                    };
+                    return;
+                }
+
                 if let Some(candidates) = chunk.get("candidates").and_then(|v| v.as_array()) {
                     for candidate in candidates {
                         if let Some(parts) = candidate.pointer("/content/parts").and_then(|v| v.as_array()) {
