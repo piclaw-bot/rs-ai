@@ -92,9 +92,11 @@ fn stream_responses_inner<'a>(
         }
     } else {
         headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
-        // Session affinity request id header (non-Azure).
+        // Session headers (non-Azure): upstream sends both `session_id`
+        // (gated on compat.sendSessionIdHeader, default true) and `x-client-request-id`.
         if let Some(ref session_id) = opts.session_id
             && let Ok(val) = HeaderValue::from_str(session_id) {
+                headers.insert("session_id", val.clone());
                 headers.insert("x-client-request-id", val);
             }
     }
