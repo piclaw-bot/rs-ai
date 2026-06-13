@@ -235,6 +235,33 @@ mod tests {
         assert_eq!(resolve_azure_deployment_from_map(Some("gpt-4o=other"), "gpt-5"), "gpt-5");
     }
 
+    #[test]
+    fn test_normalize_azure_base_url() {
+        use crate::provider::responses::normalize_azure_base_url;
+        // Azure host with no path -> /openai/v1 inserted.
+        assert_eq!(
+            normalize_azure_base_url("https://my-rg.openai.azure.com"),
+            "https://my-rg.openai.azure.com/openai/v1"
+        );
+        // Trailing slash / bare /openai also normalized.
+        assert_eq!(
+            normalize_azure_base_url("https://my-rg.openai.azure.com/openai/"),
+            "https://my-rg.openai.azure.com/openai/v1"
+        );
+        // Cognitive Services host normalized too.
+        assert_eq!(
+            normalize_azure_base_url("https://x.cognitiveservices.azure.com"),
+            "https://x.cognitiveservices.azure.com/openai/v1"
+        );
+        // Already-complete Azure path left as-is.
+        assert_eq!(
+            normalize_azure_base_url("https://my-rg.openai.azure.com/openai/v1"),
+            "https://my-rg.openai.azure.com/openai/v1"
+        );
+        // Non-Azure host untouched.
+        assert_eq!(normalize_azure_base_url("https://example.com/v1"), "https://example.com/v1");
+    }
+
     #[tokio::test]
     async fn test_responses_failed_event_extracts_error_code_message() {
         use crate::provider::responses::stream_responses;

@@ -31,6 +31,28 @@ pub fn stream_azure_responses<'a>(
     stream_responses_inner(model, context, opts, true)
 }
 
+/// Normalize an Azure OpenAI base URL: ensure Azure hosts use the `/openai/v1` base
+/// path so `/responses?api-version=...` resolves correctly (mirrors normalizeAzureBaseUrl).
+pub(crate) fn normalize_azure_base_url(base: &str) -> String {
+    let trimmed = base.trim().trim_end_matches('/');
+    let (scheme, rest) = match trimmed.split_once("://") {
+        Some((s, r)) => (s, r),
+        None => return trimmed.to_string(),
+    };
+    let (host, path) = match rest.split_once('/') {
+        Some((h, p)) => (h, format!("/{p}")),
+        None => (rest, String::new()),
+    };
+    let host_only = host.split('?').next().unwrap_or(host);
+    let is_azure_host = host_only.ends_with(".openai.azure.com")
+        || host_only.ends_with(".cognitiveservices.azure.com");
+    let path_norm = path.split('?').next().unwrap_or(&path).trim_end_matches('/');
+    if is_azure_host && (path_norm.is_empty() || path_norm == "/openai") {
+        return format!("{scheme}://{host_only}/openai/v1");
+    }
+    trimmed.to_string()
+}
+
 /// Resolve the Azure deployment name from AZURE_OPENAI_DEPLOYMENT_NAME_MAP
 /// ("modelId=deployment,..."), defaulting to the model id (mirrors resolveDeploymentName).
 fn resolve_azure_deployment(model_id: &str) -> String {
@@ -87,11 +109,12 @@ fn stream_responses_inner<'a>(
             }
         }
     }
-    let base = model.base_url.trim_end_matches('/');
     let url = if is_azure {
+        let base = normalize_azure_base_url(&model.base_url);
         let api_version = std::env::var("AZURE_OPENAI_API_VERSION").unwrap_or_else(|_| "v1".to_string());
         format!("{}/responses?api-version={}", base, api_version)
     } else {
+        let base = model.base_url.trim_end_matches('/');
         format!("{}/responses", base)
     };
 
