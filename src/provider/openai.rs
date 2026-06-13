@@ -218,9 +218,15 @@ pub fn stream_openai<'a>(
                 };
 
                 if let Some(err) = chunk.get("error") {
-                    let msg = err.get("message").and_then(|v| v.as_str())
+                    let mut msg = err.get("message").and_then(|v| v.as_str())
                         .map(|s| s.to_string())
                         .unwrap_or_else(|| err.to_string());
+                    // OpenRouter surfaces the upstream provider's raw error under metadata.raw.
+                    if let Some(raw) = err.pointer("/metadata/raw").and_then(|v| v.as_str())
+                        && !raw.is_empty() {
+                        msg.push('\n');
+                        msg.push_str(raw);
+                    }
                     partial.stop_reason = Some(StopReason::Error);
                     partial.error_message = Some(msg.clone());
                     yield Event::Error {

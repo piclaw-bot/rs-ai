@@ -1301,6 +1301,31 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_openai_error_chunk_appends_openrouter_raw_metadata() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"error":{"message":"upstream error","metadata":{"raw":"provider said: quota exceeded"}}}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("openai-completions", "openrouter", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_openai(&model, &ctx, &opts);
+        let mut err_msg = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Error { error, .. } = evt { err_msg = Some(error.to_string()); }
+        }
+        let m = err_msg.unwrap();
+        assert!(m.contains("upstream error"));
+        assert!(m.contains("quota exceeded"));
+    }
+
+    #[tokio::test]
     async fn test_openai_stream_without_finish_reason_is_error() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
