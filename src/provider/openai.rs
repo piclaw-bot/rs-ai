@@ -180,6 +180,8 @@ pub fn stream_openai<'a>(
         let mut current_thinking = String::new();
         let mut current_thinking_signature: Option<String> = None;
         let mut tool_calls: std::collections::BTreeMap<usize, (String, String, String)> = std::collections::BTreeMap::new();
+        // Captured encrypted reasoning details keyed by tool-call id (OpenRouter).
+        let mut tool_call_signatures: std::collections::HashMap<String, String> = std::collections::HashMap::new();
 
         let mut got_done = false;
         while let Some(chunk_result) = stream.next().await {
@@ -261,7 +263,13 @@ pub fn stream_openai<'a>(
                                 && !reasoning.is_empty() {
                                     if !thinking_started {
                                         thinking_started = true;
-                                        current_thinking_signature = Some(field.to_string());
+                                        // opencode-go reports the `reasoning` field but replays it as `reasoning_content`.
+                                        let sig = if model.provider == "opencode-go" && field == "reasoning" {
+                                            "reasoning_content"
+                                        } else {
+                                            field
+                                        };
+                                        current_thinking_signature = Some(sig.to_string());
                                         yield Event::ThinkingStart;
                                     }
                                     current_thinking.push_str(reasoning);
@@ -291,6 +299,18 @@ pub fn stream_openai<'a>(
                                             entry.2.push_str(args);
                                             yield Event::ToolCallDelta { delta: args.to_string() };
                                         }
+                                }
+                            }
+                        }
+
+                        // Capture encrypted reasoning details and pair them to tool calls by id
+                        // (mirrors upstream reasoning.encrypted handling for replay).
+                        if let Some(details) = delta.get("reasoning_details").and_then(|v| v.as_array()) {
+                            for detail in details {
+                                if detail.get("type").and_then(|v| v.as_str()) == Some("reasoning.encrypted")
+                                    && let Some(did) = detail.get("id").and_then(|v| v.as_str())
+                                    && detail.get("data").is_some() {
+                                    tool_call_signatures.insert(did.to_string(), detail.to_string());
                                 }
                             }
                         }
@@ -333,7 +353,7 @@ pub fn stream_openai<'a>(
                                         id: id.clone(),
                                         name: name.clone(),
                                         arguments,
-                                        thought_signature: None,
+                                        thought_signature: tool_call_signatures.get(id).cloned(),
                                     });
                                     yield Event::ToolCallEnd {
                                         id: id.clone(),

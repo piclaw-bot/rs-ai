@@ -161,6 +161,38 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_openai_captures_reasoning_details_signature() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc1","function":{"name":"s","arguments":"{}"}}],"reasoning_details":[{"type":"reasoning.encrypted","id":"tc1","data":"ENC"}]},"index":0}]}"#,
+                    r#"{"choices":[{"delta":{},"finish_reason":"tool_calls","index":0}]}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("openai-completions", "openai", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_openai(&model, &ctx, &opts);
+        let mut msg = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { message, .. } = evt { msg = Some(message); }
+        }
+        let m = msg.expect("done");
+        let sig = m.content.iter().find_map(|b| match b {
+            ContentBlock::ToolCall { thought_signature, .. } => thought_signature.clone(),
+            _ => None,
+        });
+        // The encrypted reasoning detail is captured and attached to the tool call.
+        let sig = sig.expect("tool call signature");
+        assert!(sig.contains("reasoning.encrypted"));
+        assert!(sig.contains("ENC"));
+    }
+
+    #[tokio::test]
     async fn test_azure_responses_uses_api_key_and_version() {
         use crate::provider::responses::stream_azure_responses;
         let server = MockServer::start().await;
