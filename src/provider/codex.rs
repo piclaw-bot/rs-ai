@@ -152,6 +152,7 @@ async fn try_websocket(
 
     use futures::StreamExt;
     let mut state = CodexWsState::new(model);
+    state.service_tier = opts.service_tier.clone();
 
     while let Some(msg) = ws.next().await {
         let msg = msg.map_err(|e| e.to_string())?;
@@ -175,6 +176,8 @@ async fn try_websocket(
 struct CodexWsState {
     partial: Message,
     model_cost: crate::types::ModelCost,
+    model_id: String,
+    service_tier: Option<String>,
     events: Vec<Event>,
     current_text: String,
     text_started: bool,
@@ -209,6 +212,8 @@ impl CodexWsState {
         Self {
             partial,
             model_cost: model.cost.clone(),
+            model_id: model.id.clone(),
+            service_tier: None,
             events,
             current_text: String::new(),
             text_started: false,
@@ -368,6 +373,22 @@ impl CodexWsState {
                             total: 0.0,
                         };
                         u.cost.total = u.cost.input + u.cost.output + u.cost.cache_read + u.cost.cache_write;
+                        // Apply service-tier cost multiplier (flex 0.5x, priority 2x/2.5x),
+                        // resolving the response's tier over the requested one.
+                        let tier = response.get("service_tier").and_then(|v| v.as_str())
+                            .or(self.service_tier.as_deref());
+                        let multiplier = match tier {
+                            Some("flex") => 0.5,
+                            Some("priority") => if self.model_id == "gpt-5.5" { 2.5 } else { 2.0 },
+                            _ => 1.0,
+                        };
+                        if multiplier != 1.0 {
+                            u.cost.input *= multiplier;
+                            u.cost.output *= multiplier;
+                            u.cost.cache_read *= multiplier;
+                            u.cost.cache_write *= multiplier;
+                            u.cost.total = u.cost.input + u.cost.output + u.cost.cache_read + u.cost.cache_write;
+                        }
                         self.partial.usage = Some(u);
                     }
                 }
