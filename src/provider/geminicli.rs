@@ -223,6 +223,7 @@ pub fn stream_geminicli<'a>(
                     partial.usage = Some(Usage {
                         input: usage.get("promptTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
                         output: usage.get("candidatesTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+                        cache_read: usage.get("cachedContentTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
                         total_tokens: usage.get("totalTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
                         ..Default::default()
                     });
