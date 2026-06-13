@@ -339,6 +339,25 @@ impl CodexWsState {
                             self.events.push(Event::ThinkingEnd);
                             self.current_thinking.clear();
                         }
+                        Some("message") => {
+                            // Capture the message item id/phase as a v1 text signature for
+                            // correct reasoning-item pairing on replay (mirrors shared processor).
+                            let text = item.get("content").and_then(|v| v.as_array())
+                                .map(|parts| parts.iter().filter_map(|p| {
+                                    p.get("text").and_then(|v| v.as_str())
+                                        .or_else(|| p.get("refusal").and_then(|v| v.as_str()))
+                                }).collect::<Vec<_>>().join(""))
+                                .filter(|s| !s.is_empty())
+                                .unwrap_or_else(|| self.current_text.clone());
+                            let sig = item.get("id").and_then(|v| v.as_str()).map(|id| {
+                                match item.get("phase").and_then(|v| v.as_str()) {
+                                    Some(p) => json!({"v": 1, "id": id, "phase": p}).to_string(),
+                                    None => json!({"v": 1, "id": id}).to_string(),
+                                }
+                            });
+                            self.partial.content.push(ContentBlock::Text { text, text_signature: sig });
+                            self.current_text.clear();
+                        }
                         _ => {}
                     }
                 }

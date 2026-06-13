@@ -939,6 +939,26 @@ mod tests {
     }
 
     #[test]
+    fn test_codex_ws_captures_message_text_signature() {
+        let model = test_model("openai-codex-responses", "openai", "https://example.com");
+        let events = vec![
+            serde_json::json!({"type":"response.created","response":{"id":"r","model":"codex-mini"}}),
+            serde_json::json!({"type":"response.output_item.added","item":{"type":"message","id":"msg_q"}}),
+            serde_json::json!({"type":"response.output_text.delta","delta":"hi"}),
+            serde_json::json!({"type":"response.output_item.done","item":{"type":"message","id":"msg_q","phase":"commentary","content":[{"type":"output_text","text":"hi"}]}}),
+            serde_json::json!({"type":"response.completed","response":{"id":"r","model":"codex-mini","usage":{"input_tokens":1,"output_tokens":1,"total_tokens":2}}}),
+        ];
+        let replayed = replay_codex_ws_events(&model, &events);
+        let done = replayed.iter().find_map(|e| match e { Event::Done { message, .. } => Some(message), _ => None }).expect("done");
+        let sig = done.content.iter().find_map(|b| match b {
+            ContentBlock::Text { text_signature, .. } => text_signature.clone(),
+            _ => None,
+        }).expect("text signature");
+        assert!(sig.contains("msg_q"));
+        assert!(sig.contains("commentary"));
+    }
+
+    #[test]
     fn test_responses_reasoning_effort_maps_thinking_level() {
         use std::collections::HashMap;
         let model = Model {
