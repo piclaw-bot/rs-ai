@@ -135,10 +135,12 @@ pub fn stream_geminicli<'a>(
         let mut byte_stream = resp.bytes_stream();
 
         let mut current_text = String::new();
-        let mut text_started = false;
-        let mut thinking_started = false;
+        let mut current_text_signature: Option<String> = None;
         let mut current_thinking = String::new();
-        let mut tool_calls: Vec<(String, String, serde_json::Value)> = Vec::new();
+        let mut current_thinking_signature: Option<String> = None;
+        // Streaming block state: 0 = none, 1 = text, 2 = thinking (preserves interleaving).
+        let mut block_kind: u8 = 0;
+        let mut tool_call_ids: Vec<String> = Vec::new();
 
         while let Some(chunk_result) = byte_stream.next().await {
             let chunk_bytes = match chunk_result {
@@ -193,56 +195,111 @@ pub fn stream_geminicli<'a>(
                         if let Some(parts) = candidate.pointer("/content/parts").and_then(|v| v.as_array()) {
                             for part in parts {
                                 let is_thought = part.get("thought").and_then(|v| v.as_bool()).unwrap_or(false);
+                                let part_sig = part.get("thoughtSignature").and_then(|v| v.as_str()).filter(|s| !s.is_empty());
                                 if let Some(text) = part.get("text").and_then(|v| v.as_str())
                                     && !text.is_empty() {
-                                        if is_thought {
-                                            if !thinking_started {
-                                                thinking_started = true;
-                                                yield Event::ThinkingStart;
+                                    let want: u8 = if is_thought { 2 } else { 1 };
+                                    if block_kind != want {
+                                        match block_kind {
+                                            1 => {
+                                                yield Event::TextEnd;
+                                                partial.content.push(ContentBlock::Text {
+                                                    text: std::mem::take(&mut current_text),
+                                                    text_signature: current_text_signature.take(),
+                                                });
                                             }
-                                            current_thinking.push_str(text);
-                                            yield Event::ThinkingDelta { delta: text.to_string() };
-                                        } else {
-                                            if !text_started {
-                                                text_started = true;
-                                                yield Event::TextStart;
+                                            2 => {
+                                                yield Event::ThinkingEnd;
+                                                partial.content.push(ContentBlock::Thinking {
+                                                    thinking: std::mem::take(&mut current_thinking),
+                                                    thinking_signature: current_thinking_signature.take(),
+                                                    redacted: false,
+                                                });
                                             }
-                                            current_text.push_str(text);
-                                            yield Event::TextDelta { delta: text.to_string() };
+                                            _ => {}
                                         }
+                                        if want == 2 { yield Event::ThinkingStart; } else { yield Event::TextStart; }
+                                        block_kind = want;
                                     }
+                                    if is_thought {
+                                        current_thinking.push_str(text);
+                                        if let Some(sig) = part_sig { current_thinking_signature = Some(sig.to_string()); }
+                                        yield Event::ThinkingDelta { delta: text.to_string() };
+                                    } else {
+                                        current_text.push_str(text);
+                                        if let Some(sig) = part_sig { current_text_signature = Some(sig.to_string()); }
+                                        yield Event::TextDelta { delta: text.to_string() };
+                                    }
+                                }
                                 if let Some(fc) = part.get("functionCall") {
+                                    match block_kind {
+                                        1 => {
+                                            yield Event::TextEnd;
+                                            partial.content.push(ContentBlock::Text {
+                                                text: std::mem::take(&mut current_text),
+                                                text_signature: current_text_signature.take(),
+                                            });
+                                        }
+                                        2 => {
+                                            yield Event::ThinkingEnd;
+                                            partial.content.push(ContentBlock::Thinking {
+                                                thinking: std::mem::take(&mut current_thinking),
+                                                thinking_signature: current_thinking_signature.take(),
+                                                redacted: false,
+                                            });
+                                        }
+                                        _ => {}
+                                    }
+                                    block_kind = 0;
                                     let name = fc.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
                                     let args = fc.get("args").cloned().unwrap_or_else(|| serde_json::json!({}));
-                                    // Preserve the provider-supplied id when present and unique.
                                     let provided = fc.get("id").and_then(|v| v.as_str()).map(|s| s.to_string());
                                     let needs_new = match &provided {
                                         None => true,
-                                        Some(pid) => tool_calls.iter().any(|(eid, _, _)| eid == pid),
+                                        Some(pid) => tool_call_ids.iter().any(|eid| eid == pid),
                                     };
                                     let id = if needs_new {
-                                        format!("{}_{}_{}", name, crate::utils::now_millis(), tool_calls.len() + 1)
+                                        format!("{}_{}_{}", name, crate::utils::now_millis(), tool_call_ids.len() + 1)
                                     } else {
                                         provided.unwrap()
                                     };
+                                    let sig = part_sig.map(|s| s.to_string());
                                     yield Event::ToolCallStart { id: id.clone(), name: name.clone() };
                                     yield Event::ToolCallDelta { delta: serde_json::to_string(&args).unwrap_or_default() };
                                     yield Event::ToolCallEnd { id: id.clone(), name: name.clone(), arguments: args.clone() };
-                                    tool_calls.push((id, name, args));
+                                    let arguments = match &args {
+                                        serde_json::Value::Object(map) => map.clone().into_iter().collect(),
+                                        _ => std::collections::HashMap::new(),
+                                    };
+                                    partial.content.push(ContentBlock::ToolCall {
+                                        id: id.clone(), name, arguments, thought_signature: sig,
+                                    });
+                                    tool_call_ids.push(id);
                                 }
                             }
                         }
                         if let Some(reason) = candidate.get("finishReason").and_then(|v| v.as_str()) {
-                            if text_started {
-                                yield Event::TextEnd;
-                                text_started = false;
+                            match block_kind {
+                                1 => {
+                                    yield Event::TextEnd;
+                                    partial.content.push(ContentBlock::Text {
+                                        text: std::mem::take(&mut current_text),
+                                        text_signature: current_text_signature.take(),
+                                    });
+                                }
+                                2 => {
+                                    yield Event::ThinkingEnd;
+                                    partial.content.push(ContentBlock::Thinking {
+                                        thinking: std::mem::take(&mut current_thinking),
+                                        thinking_signature: current_thinking_signature.take(),
+                                        redacted: false,
+                                    });
+                                }
+                                _ => {}
                             }
-                            if thinking_started {
-                                yield Event::ThinkingEnd;
-                                thinking_started = false;
-                            }
+                            block_kind = 0;
                             partial.stop_reason = Some(match reason {
-                                "STOP" if !tool_calls.is_empty() => StopReason::ToolUse,
+                                "STOP" if !tool_call_ids.is_empty() => StopReason::ToolUse,
                                 "STOP" => StopReason::Stop,
                                 "MAX_TOKENS" => StopReason::Length,
                                 other => {
@@ -282,22 +339,22 @@ pub fn stream_geminicli<'a>(
                 return;
             }
 
-        if !current_thinking.is_empty() {
-            partial.content.push(ContentBlock::Thinking {
-                thinking: current_thinking,
-                thinking_signature: None,
-                redacted: false,
-            });
-        }
-        if !current_text.is_empty() {
-            partial.content.push(ContentBlock::Text { text: current_text, text_signature: None });
-        }
-        for (id, name, args) in tool_calls {
-            let arguments = match args {
-                serde_json::Value::Object(map) => map.into_iter().collect(),
-                _ => std::collections::HashMap::new(),
-            };
-            partial.content.push(ContentBlock::ToolCall { id, name, arguments, thought_signature: None });
+        // Finalize any block still open when the stream ends without a finishReason.
+        match block_kind {
+            1 if !current_text.is_empty() => {
+                partial.content.push(ContentBlock::Text {
+                    text: std::mem::take(&mut current_text),
+                    text_signature: current_text_signature.take(),
+                });
+            }
+            2 if !current_thinking.is_empty() => {
+                partial.content.push(ContentBlock::Thinking {
+                    thinking: std::mem::take(&mut current_thinking),
+                    thinking_signature: current_thinking_signature.take(),
+                    redacted: false,
+                });
+            }
+            _ => {}
         }
         if let Some(ref mut u) = partial.usage {
             crate::simple_options::finalize_usage(model, u);
