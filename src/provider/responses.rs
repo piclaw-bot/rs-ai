@@ -764,6 +764,21 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
             "summary": opts.reasoning_summary.clone().unwrap_or_else(|| "auto".to_string()),
         });
         payload["include"] = json!(["reasoning.encrypted_content"]);
+    } else if opts.reasoning_summary.is_some() {
+        // Summary requested without an explicit effort: default to medium (mirrors upstream).
+        payload["reasoning"] = json!({
+            "effort": "medium",
+            "summary": opts.reasoning_summary.clone().unwrap_or_else(|| "auto".to_string()),
+        });
+        payload["include"] = json!(["reasoning.encrypted_content"]);
+    } else if model.reasoning && model.provider != "github-copilot" {
+        // Reasoning-capable model with no thinking requested: explicitly disable reasoning
+        // unless the model maps `off` to null (mirrors the upstream else-if branch).
+        match model.thinking_level_map.as_ref().and_then(|m| m.get("off")) {
+            Some(None) => {} // off mapped to null -> omit reasoning entirely
+            Some(Some(off)) => { payload["reasoning"] = json!({ "effort": off }); }
+            None => { payload["reasoning"] = json!({ "effort": "none" }); }
+        }
     }
 
     if !context.tools.is_empty() {
@@ -777,10 +792,6 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
             })
         }).collect();
         payload["tools"] = json!(tools);
-    }
-
-    if let Some(ref tool_choice) = opts.tool_choice {
-        payload["tool_choice"] = tool_choice.clone();
     }
 
     payload

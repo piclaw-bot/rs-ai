@@ -717,6 +717,28 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_reasoning_off_path() {
+        use crate::provider::responses::build_responses_payload;
+        let ctx = test_context();
+        // Reasoning-capable model, no reasoning requested -> effort "none".
+        let model = Model { reasoning: true, ..test_model("openai-responses", "openai", "https://example.com") };
+        let p = build_responses_payload(&model, &ctx, &StreamOptions::default());
+        assert_eq!(p["reasoning"]["effort"], "none");
+        assert!(p.get("tool_choice").is_none());
+
+        // Model that maps `off` to null -> reasoning omitted entirely.
+        let mut model2 = model.clone();
+        model2.thinking_level_map = Some(std::collections::HashMap::from([("off".to_string(), None)]));
+        let p2 = build_responses_payload(&model2, &ctx, &StreamOptions::default());
+        assert!(p2.get("reasoning").is_none());
+
+        // Non-reasoning model -> no reasoning field.
+        let model3 = test_model("openai-responses", "openai", "https://example.com");
+        let p3 = build_responses_payload(&model3, &ctx, &StreamOptions::default());
+        assert!(p3.get("reasoning").is_none());
+    }
+
+    #[test]
     fn test_responses_assistant_text_id_and_phase() {
         let model = test_model("openai-responses", "openai", "https://example.com");
         let ctx = Context {
