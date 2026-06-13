@@ -477,7 +477,7 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
 
     // Thinking/reasoning support
     if thinking_enabled {
-        let budget = opts.thinking_budgets.as_ref().and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)).unwrap_or(8192);
+        let budget = opts.thinking_budgets.as_ref().and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)).unwrap_or(1024);
         payload["thinking"] = json!({"type": "enabled", "budget_tokens": budget});
     }
 
