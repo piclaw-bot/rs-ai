@@ -114,7 +114,8 @@ fn stream_responses_inner<'a>(
         let api_version = std::env::var("AZURE_OPENAI_API_VERSION").unwrap_or_else(|_| "v1".to_string());
         format!("{}/responses?api-version={}", base, api_version)
     } else {
-        let base = model.base_url.trim_end_matches('/');
+        let base = crate::utils::resolve_cloudflare_base_url(model.base_url.trim_end_matches('/'));
+        let base = base.trim_end_matches('/');
         format!("{}/responses", base)
     };
 

@@ -40,7 +40,7 @@ pub fn stream_anthropic<'a>(
             }
         }
     }
-    let url = format!("{}/messages", model.base_url.trim_end_matches('/'));
+    let url = format!("{}/messages", crate::utils::resolve_cloudflare_base_url(model.base_url.trim_end_matches('/')).trim_end_matches('/'));
 
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
