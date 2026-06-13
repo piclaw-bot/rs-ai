@@ -102,6 +102,83 @@ pub async fn refresh_anthropic_token_at(token_url: &str, refresh_token: &str) ->
     Ok(RefreshedToken { access, refresh, expires_at_ms })
 }
 
+/// Anthropic OAuth authorize endpoint.
+pub const ANTHROPIC_AUTHORIZE_URL: &str = "https://claude.ai/oauth/authorize";
+/// Anthropic OAuth scopes.
+pub const ANTHROPIC_SCOPES: &str = "org:create_api_key user:profile user:inference user:sessions:claude_code user:mcp_servers user:file_upload";
+/// Default Anthropic OAuth loopback redirect URI.
+pub const ANTHROPIC_REDIRECT_URI: &str = "http://localhost:53692/callback";
+
+fn url_encode(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for b in s.bytes() {
+        match b {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => out.push(b as char),
+            _ => out.push_str(&format!("%{b:02X}")),
+        }
+    }
+    out
+}
+
+/// Build the Anthropic OAuth authorization URL (mirrors the login authParams).
+pub fn build_anthropic_authorize_url(challenge: &str, verifier: &str, redirect_uri: &str) -> String {
+    let params = [
+        ("code", "true"),
+        ("client_id", ANTHROPIC_CLIENT_ID),
+        ("response_type", "code"),
+        ("redirect_uri", redirect_uri),
+        ("scope", ANTHROPIC_SCOPES),
+        ("code_challenge", challenge),
+        ("code_challenge_method", "S256"),
+        ("state", verifier),
+    ];
+    let query = params
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, url_encode(v)))
+        .collect::<Vec<_>>()
+        .join("&");
+    format!("{ANTHROPIC_AUTHORIZE_URL}?{query}")
+}
+
+/// Exchange an Anthropic authorization code for tokens (mirrors exchangeAuthorizationCode).
+pub async fn exchange_anthropic_code(code: &str, state: &str, verifier: &str, redirect_uri: &str) -> Result<RefreshedToken, String> {
+    exchange_anthropic_code_at(ANTHROPIC_TOKEN_URL, code, state, verifier, redirect_uri).await
+}
+
+/// Exchange against an explicit token endpoint (used for testing).
+pub async fn exchange_anthropic_code_at(token_url: &str, code: &str, state: &str, verifier: &str, redirect_uri: &str) -> Result<RefreshedToken, String> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post(token_url)
+        .json(&serde_json::json!({
+            "grant_type": "authorization_code",
+            "client_id": ANTHROPIC_CLIENT_ID,
+            "code": code,
+            "state": state,
+            "redirect_uri": redirect_uri,
+            "code_verifier": verifier,
+        }))
+        .send()
+        .await
+        .map_err(|e| format!("Token exchange request failed. url={token_url}; redirect_uri={redirect_uri}; details={e}"))?;
+    let status = resp.status();
+    let body = resp.text().await.map_err(|e| format!("Token exchange request failed. url={token_url}; details={e}"))?;
+    if !status.is_success() {
+        return Err(format!("HTTP request failed. status={status}; url={token_url}; body={body}"));
+    }
+    let data: serde_json::Value = serde_json::from_str(&body)
+        .map_err(|e| format!("Token exchange returned invalid JSON. url={token_url}; body={body}; details={e}"))?;
+    let access = data.get("access_token").and_then(|v| v.as_str())
+        .ok_or_else(|| format!("Token exchange missing access_token. body={body}"))?.to_string();
+    let refresh = data.get("refresh_token").and_then(|v| v.as_str()).map(|s| s.to_string());
+    let expires_in = data.get("expires_in").and_then(|v| v.as_i64()).unwrap_or(0);
+    Ok(RefreshedToken {
+        access,
+        refresh,
+        expires_at_ms: crate::utils::now_millis() + expires_in * 1000 - 5 * 60 * 1000,
+    })
+}
+
 /// OpenAI Codex OAuth client id.
 pub const CODEX_CLIENT_ID: &str = "app_EMoamEEZ73f0CkXaXp7hrann";
 /// OpenAI Codex OAuth token endpoint.
@@ -480,5 +557,40 @@ mod tests {
             .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"error":"access_denied","error_description":"nope"}"#))
             .mount(&s4).await;
         assert_eq!(poll_github_device_token_at(&format!("{}/t", s4.uri()), COPILOT_CLIENT_ID, "dc").await, DevicePollStatus::Failed("Device flow failed: access_denied: nope".to_string()));
+    }
+
+    #[test]
+    fn test_build_anthropic_authorize_url() {
+        let url = build_anthropic_authorize_url("CHAL", "VERIF", ANTHROPIC_REDIRECT_URI);
+        assert!(url.starts_with("https://claude.ai/oauth/authorize?"));
+        assert!(url.contains("client_id=9d1c250a-e61b-44d9-88ed-5944d1962f5e"));
+        assert!(url.contains("response_type=code"));
+        assert!(url.contains("code_challenge=CHAL"));
+        assert!(url.contains("code_challenge_method=S256"));
+        assert!(url.contains("state=VERIF"));
+        // redirect_uri and scope are percent-encoded.
+        assert!(url.contains("redirect_uri=http%3A%2F%2Flocalhost%3A53692%2Fcallback"));
+        assert!(url.contains("scope=org%3Acreate_api_key"));
+    }
+
+    #[tokio::test]
+    async fn test_exchange_anthropic_code() {
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+        use wiremock::matchers::{method, path, body_partial_json};
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/oauth/token"))
+            .and(body_partial_json(serde_json::json!({
+                "grant_type": "authorization_code", "code": "the-code", "code_verifier": "v"
+            })))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"access_token":"acc","refresh_token":"ref","expires_in":3600}"#,
+            ))
+            .mount(&server)
+            .await;
+        let url = format!("{}/oauth/token", server.uri());
+        let tok = exchange_anthropic_code_at(&url, "the-code", "st", "v", "http://localhost:53692/callback").await.unwrap();
+        assert_eq!(tok.access, "acc");
+        assert_eq!(tok.refresh.as_deref(), Some("ref"));
     }
 }
