@@ -3,15 +3,75 @@
 //! Mirrors the Go `transform.go` which normalizes messages before sending
 //! to different providers (image downgrade, thinking-to-text, etc.)
 
-use crate::types::{ContentBlock, Message, Model, Role};
+use crate::types::{ContentBlock, Message, Model, Role, StopReason};
 
 const NON_VISION_USER_IMAGE_PLACEHOLDER: &str = "(image omitted: model does not support images)";
 const NON_VISION_TOOL_IMAGE_PLACEHOLDER: &str = "(tool image omitted: model does not support images)";
 
 /// Transform messages for a target model, handling cross-provider differences.
 pub fn transform_messages(messages: &[Message], model: &Model) -> Vec<Message> {
-    let (transformed, _) = downgrade_unsupported_images(messages, model);
-    transformed
+    let (downgraded, _) = downgrade_unsupported_images(messages, model);
+    insert_synthetic_tool_results(downgraded)
+}
+
+/// Skip errored/aborted assistant turns and insert synthetic "No result provided"
+/// tool results for orphaned tool calls (mirrors upstream transformMessages pass 2).
+fn insert_synthetic_tool_results(messages: Vec<Message>) -> Vec<Message> {
+    use std::collections::HashSet;
+    let mut result: Vec<Message> = Vec::new();
+    // Pending tool calls (id, name) from the most recent tool-call-bearing assistant.
+    let mut pending: Vec<(String, String)> = Vec::new();
+    let mut existing: HashSet<String> = HashSet::new();
+
+    fn flush(result: &mut Vec<Message>, pending: &mut Vec<(String, String)>, existing: &mut HashSet<String>) {
+        for (id, name) in pending.drain(..) {
+            if !existing.contains(&id) {
+                result.push(Message {
+                    role: Role::ToolResult,
+                    content: vec![ContentBlock::Text { text: "No result provided".to_string(), text_signature: None }],
+                    timestamp: crate::utils::now_millis(),
+                    api: None, provider: None, model: None, response_id: None,
+                    response_model: None, diagnostics: Vec::new(), usage: None,
+                    stop_reason: None, error_message: None,
+                    tool_call_id: Some(id), tool_name: Some(name), is_error: true, details: None,
+                });
+            }
+        }
+        existing.clear();
+    }
+
+    for msg in messages {
+        match msg.role {
+            Role::Assistant => {
+                flush(&mut result, &mut pending, &mut existing);
+                // Skip errored/aborted assistant turns; they're incomplete and shouldn't replay.
+                if matches!(msg.stop_reason, Some(StopReason::Error) | Some(StopReason::Aborted)) {
+                    continue;
+                }
+                let tool_calls: Vec<(String, String)> = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::ToolCall { id, name, .. } => Some((id.clone(), name.clone())),
+                    _ => None,
+                }).collect();
+                if !tool_calls.is_empty() {
+                    pending = tool_calls;
+                    existing.clear();
+                }
+                result.push(msg);
+            }
+            Role::ToolResult => {
+                if let Some(ref id) = msg.tool_call_id {
+                    existing.insert(id.clone());
+                }
+                result.push(msg);
+            }
+            Role::User => {
+                flush(&mut result, &mut pending, &mut existing);
+                result.push(msg);
+            }
+        }
+    }
+    flush(&mut result, &mut pending, &mut existing);
+    result
 }
 
 /// Replace consecutive image blocks with a single text placeholder, matching
@@ -135,5 +195,59 @@ mod tests {
         let result = transform_messages(&messages, &text_only_model());
         assert_eq!(result[0].content.len(), 2);
         assert!(matches!(&result[0].content[1], ContentBlock::Text { text, .. } if text.contains("omitted")));
+    }
+
+    fn msg(role: Role, content: Vec<ContentBlock>, stop: Option<StopReason>, tcid: Option<&str>) -> Message {
+        Message {
+            role, content, timestamp: 0,
+            api: None, provider: None, model: None, response_id: None,
+            response_model: None, diagnostics: Vec::new(), usage: None,
+            stop_reason: stop, error_message: None,
+            tool_call_id: tcid.map(|s| s.to_string()), tool_name: None, is_error: false, details: None,
+        }
+    }
+
+    #[test]
+    fn test_synthetic_tool_result_for_orphaned_call() {
+        let messages = vec![
+            msg(Role::Assistant, vec![ContentBlock::ToolCall {
+                id: "tc1".into(), name: "search".into(),
+                arguments: std::collections::HashMap::new(), thought_signature: None,
+            }], Some(StopReason::ToolUse), None),
+            // No tool result -> a synthetic one should be inserted before the next user turn.
+            msg(Role::User, vec![ContentBlock::Text { text: "continue".into(), text_signature: None }], None, None),
+        ];
+        let result = transform_messages(&messages, &vision_model());
+        // assistant, synthetic toolResult, user
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[1].role, Role::ToolResult);
+        assert_eq!(result[1].tool_call_id.as_deref(), Some("tc1"));
+        assert!(result[1].is_error);
+        assert!(matches!(&result[1].content[0], ContentBlock::Text { text, .. } if text == "No result provided"));
+    }
+
+    #[test]
+    fn test_existing_tool_result_no_synthetic() {
+        let messages = vec![
+            msg(Role::Assistant, vec![ContentBlock::ToolCall {
+                id: "tc1".into(), name: "s".into(),
+                arguments: std::collections::HashMap::new(), thought_signature: None,
+            }], Some(StopReason::ToolUse), None),
+            msg(Role::ToolResult, vec![ContentBlock::Text { text: "ok".into(), text_signature: None }], None, Some("tc1")),
+        ];
+        let result = transform_messages(&messages, &vision_model());
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_skip_errored_assistant_message() {
+        let messages = vec![
+            msg(Role::Assistant, vec![ContentBlock::Text { text: "partial".into(), text_signature: None }], Some(StopReason::Error), None),
+            msg(Role::User, vec![ContentBlock::Text { text: "hi".into(), text_signature: None }], None, None),
+        ];
+        let result = transform_messages(&messages, &vision_model());
+        // The errored assistant turn is dropped.
+        assert_eq!(result.len(), 1);
+        assert_eq!(result[0].role, Role::User);
     }
 }
