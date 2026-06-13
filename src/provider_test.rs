@@ -222,6 +222,31 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_responses_failed_event_extracts_error_code_message() {
+        use crate::provider::responses::stream_responses;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/responses"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"type\":\"response.created\",\"response\":{\"id\":\"r\",\"model\":\"gpt-5\"}}\n\n\
+                     data: {\"type\":\"response.failed\",\"response\":{\"error\":{\"code\":\"rate_limit\",\"message\":\"slow down\"}}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("openai-responses", "openai", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_responses(&model, &ctx, &opts);
+        let mut err = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Error { error, .. } = evt { err = Some(error.to_string()); }
+        }
+        // Formatted as "code: message".
+        assert_eq!(err.as_deref(), Some("rate_limit: slow down"));
+    }
+
+    #[tokio::test]
     async fn test_responses_stream_tool_calls() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
