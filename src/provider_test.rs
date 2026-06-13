@@ -1561,12 +1561,18 @@ mod tests {
         let ctx_tools = Context { system_prompt: None, messages: vec![], tools: vec![tool] };
         let ctx_none = Context { system_prompt: None, messages: vec![], tools: vec![] };
 
-        // Regular model with tools: fine-grained + interleaved, no OAuth headers.
+        // Regular Anthropic model supports eager tool-input streaming by default, so
+        // fine-grained is NOT applied; interleaved is.
         let model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
         let f = anthropic_beta_features(&model, &ctx_tools, false);
-        assert!(f.contains(&"fine-grained-tool-streaming-2025-05-14"));
+        assert!(!f.contains(&"fine-grained-tool-streaming-2025-05-14"));
         assert!(f.contains(&"interleaved-thinking-2025-05-14"));
         assert!(!f.contains(&"oauth-2025-04-20"));
+
+        // Fireworks defaults to NOT eager -> fine-grained applied.
+        let fw = test_model("anthropic-messages", "fireworks", "https://api.fireworks.ai");
+        let f = anthropic_beta_features(&fw, &ctx_tools, false);
+        assert!(f.contains(&"fine-grained-tool-streaming-2025-05-14"));
 
         // Adaptive-thinking model: interleaved is omitted (built in).
         let mut adaptive = model.clone();
@@ -1574,11 +1580,11 @@ mod tests {
         let f = anthropic_beta_features(&adaptive, &ctx_none, false);
         assert!(!f.contains(&"interleaved-thinking-2025-05-14"));
 
-        // Eager-tool-input model with tools: no fine-grained.
-        let mut eager = model.clone();
-        eager.compat.supports_eager_tool_input_streaming = Some(true);
-        let f = anthropic_beta_features(&eager, &ctx_tools, false);
-        assert!(!f.contains(&"fine-grained-tool-streaming-2025-05-14"));
+        // Explicit non-eager override on a regular model -> fine-grained applied.
+        let mut non_eager = model.clone();
+        non_eager.compat.supports_eager_tool_input_streaming = Some(false);
+        let f = anthropic_beta_features(&non_eager, &ctx_tools, false);
+        assert!(f.contains(&"fine-grained-tool-streaming-2025-05-14"));
 
         // OAuth: claude-code + oauth betas present.
         let f = anthropic_beta_features(&model, &ctx_none, true);
@@ -1601,13 +1607,15 @@ mod tests {
 
         let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
         let payload = build_anthropic_payload(&model, &ctx, &opts);
-        assert_eq!(payload["thinking"]["type"], "enabled");
-        assert_eq!(payload["thinking"]["effort"], "high");
+        // Adaptive models use {type:adaptive, display} + output_config.effort.
+        assert_eq!(payload["thinking"]["type"], "adaptive");
+        assert_eq!(payload["thinking"]["display"], "summarized");
+        assert_eq!(payload["output_config"]["effort"], "high");
         assert!(payload["thinking"].get("budget_tokens").is_none());
 
         let opts = StreamOptions { reasoning: Some(ThinkingLevel::XHigh), ..Default::default() };
         let payload = build_anthropic_payload(&model, &ctx, &opts);
-        assert_eq!(payload["thinking"]["effort"], "max");
+        assert_eq!(payload["output_config"]["effort"], "max");
     }
 
     #[test]

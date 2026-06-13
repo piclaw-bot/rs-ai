@@ -381,6 +381,24 @@ pub fn stream_anthropic<'a>(
     })
 }
 
+/// Resolve Anthropic compat flags with Fireworks-aware defaults (mirrors getAnthropicCompat).
+pub(crate) struct AnthropicCompat {
+    pub supports_eager_tool_input_streaming: bool,
+    pub supports_long_cache_retention: bool,
+    pub supports_cache_control_on_tools: bool,
+    pub supports_temperature: bool,
+}
+
+pub(crate) fn anthropic_compat(model: &Model) -> AnthropicCompat {
+    let is_fireworks = model.provider == "fireworks";
+    AnthropicCompat {
+        supports_eager_tool_input_streaming: model.compat.supports_eager_tool_input_streaming.unwrap_or(!is_fireworks),
+        supports_long_cache_retention: model.compat.supports_long_cache_retention.unwrap_or(!is_fireworks),
+        supports_cache_control_on_tools: model.compat.supports_cache_control_on_tools.unwrap_or(!is_fireworks),
+        supports_temperature: model.compat.supports_temperature.unwrap_or(true),
+    }
+}
+
 /// Compute the Anthropic `anthropic-beta` feature list for a request (mirrors the
 /// upstream createClient beta-header logic).
 pub(crate) fn anthropic_beta_features<'a>(model: &'a Model, context: &Context, is_oauth: bool) -> Vec<&'a str> {
@@ -391,7 +409,7 @@ pub(crate) fn anthropic_beta_features<'a>(model: &'a Model, context: &Context, i
     }
     // Fine-grained tool streaming for any model with tools that doesn't support eager
     // tool-input streaming (mirrors shouldUseFineGrainedToolStreamingBeta).
-    if !context.tools.is_empty() && model.compat.supports_eager_tool_input_streaming != Some(true) {
+    if !context.tools.is_empty() && !anthropic_compat(model).supports_eager_tool_input_streaming {
         beta_features.push("fine-grained-tool-streaming-2025-05-14");
     }
     // Interleaved thinking, except for adaptive-thinking models which have it built in
@@ -489,11 +507,18 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
         i += 1;
     }
 
-    // Cache control (ephemeral) when prompt caching is enabled.
+    // Cache control (ephemeral) when prompt caching is enabled. The 1h TTL only applies
+    // when the model supports long cache retention (mirrors getCacheControl).
     let cache_control: Option<Value> = match opts.cache_retention {
         Some(CacheRetention::None) | None => None,
         Some(CacheRetention::Short) => Some(json!({"type": "ephemeral"})),
-        Some(CacheRetention::Long) => Some(json!({"type": "ephemeral", "ttl": "1h"})),
+        Some(CacheRetention::Long) => {
+            if anthropic_compat(model).supports_long_cache_retention {
+                Some(json!({"type": "ephemeral", "ttl": "1h"}))
+            } else {
+                Some(json!({"type": "ephemeral"}))
+            }
+        }
     };
 
     // Apply cache_control to the last content block of the last message.
@@ -532,22 +557,32 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
         payload["system"] = json!(system_blocks);
     }
 
-    // Temperature is incompatible with extended thinking.
+    // Temperature: incompatible with extended thinking, and only when the model supports it.
     let thinking_enabled = opts.reasoning.is_some() && model.reasoning;
     if let Some(temp) = opts.temperature
-        && !thinking_enabled {
+        && !thinking_enabled
+        && anthropic_compat(model).supports_temperature {
             payload["temperature"] = json!(temp);
         }
 
-    // Thinking/reasoning support
-    if thinking_enabled {
-        if model.compat.force_adaptive_thinking == Some(true) {
-            // Adaptive-thinking models use an effort level, not a token budget.
-            let effort = map_anthropic_effort(model, opts.reasoning.as_ref());
-            payload["thinking"] = json!({"type": "enabled", "effort": effort});
+    // Thinking/reasoning: adaptive, budget-based, or explicitly disabled (mirrors buildParams).
+    if model.reasoning {
+        if thinking_enabled {
+            let display = "summarized";
+            if model.compat.force_adaptive_thinking == Some(true) {
+                payload["thinking"] = json!({"type": "adaptive", "display": display});
+                let effort = map_anthropic_effort(model, opts.reasoning.as_ref());
+                payload["output_config"] = json!({"effort": effort});
+            } else {
+                let budget = opts.thinking_budgets.as_ref().and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)).unwrap_or(1024);
+                payload["thinking"] = json!({"type": "enabled", "budget_tokens": budget, "display": display});
+            }
         } else {
-            let budget = opts.thinking_budgets.as_ref().and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)).unwrap_or(1024);
-            payload["thinking"] = json!({"type": "enabled", "budget_tokens": budget});
+            // Explicitly disable thinking unless the model maps `off` to null.
+            let off_is_null = matches!(model.thinking_level_map.as_ref().and_then(|m| m.get("off")), Some(None));
+            if !off_is_null {
+                payload["thinking"] = json!({"type": "disabled"});
+            }
         }
     }
 
@@ -559,8 +594,9 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
                 "input_schema": t.parameters,
             })
         }).collect();
-        // Cache control on the last tool definition.
-        if let Some(ref cc) = cache_control
+        // Cache control on the last tool definition (only when supported).
+        if anthropic_compat(model).supports_cache_control_on_tools
+            && let Some(ref cc) = cache_control
             && let Some(last) = tools.last_mut() {
                 last["cache_control"] = cc.clone();
             }
