@@ -620,6 +620,35 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_assistant_text_id_and_phase() {
+        let model = test_model("openai-responses", "openai", "https://example.com");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![
+                    // Signed text block carries an explicit id + phase.
+                    ContentBlock::Text { text: "hi".into(), text_signature: Some("{\"v\":1,\"id\":\"msg_abc\",\"phase\":\"final_answer\"}".into()) },
+                    // Unsigned second text block falls back to a deterministic msg_pi id.
+                    ContentBlock::Text { text: "more".into(), text_signature: None },
+                ],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::Stop), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = crate::provider::responses::build_responses_payload(&model, &ctx, &StreamOptions::default());
+        let input = payload["input"].as_array().unwrap();
+        assert_eq!(input[0]["id"], "msg_abc");
+        assert_eq!(input[0]["phase"], "final_answer");
+        assert_eq!(input[1]["id"], "msg_pi_0_1");
+        assert!(input[1].get("phase").is_none());
+    }
+
+    #[test]
     fn test_responses_build_payload_preserves_tool_history() {
         let model = test_model("openai-responses", "openai", "https://example.com");
         let ctx = Context {

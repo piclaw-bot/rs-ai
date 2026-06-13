@@ -458,6 +458,29 @@ fn stream_responses_inner<'a>(
     })
 }
 
+/// Parsed assistant text signature: an item id and an optional phase.
+struct ParsedTextSignature {
+    id: Option<String>,
+    phase: Option<String>,
+}
+
+/// Parse a text signature into an item id (and optional phase), mirroring upstream
+/// parseTextSignature: JSON `{v:1,id,phase}` form, else legacy plain-string id.
+fn parse_text_signature(signature: Option<&str>) -> Option<ParsedTextSignature> {
+    let sig = signature?;
+    if sig.starts_with('{')
+        && let Ok(parsed) = serde_json::from_str::<Value>(sig)
+        && parsed.get("v").and_then(|v| v.as_i64()) == Some(1)
+        && let Some(id) = parsed.get("id").and_then(|v| v.as_str()) {
+        let phase = match parsed.get("phase").and_then(|p| p.as_str()) {
+            Some(p @ ("commentary" | "final_answer")) => Some(p.to_string()),
+            _ => None,
+        };
+        return Some(ParsedTextSignature { id: Some(id.to_string()), phase });
+    }
+    Some(ParsedTextSignature { id: Some(sig.to_string()), phase: None })
+}
+
 pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let compat = detect_compat(model);
     let mut input = Vec::new();
@@ -474,7 +497,7 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
 
     let transformed_messages = crate::transform::transform_messages(&context.messages, model);
 
-    for msg in &transformed_messages {
+    for (msg_index, msg) in transformed_messages.iter().enumerate() {
         match msg.role {
             Role::User => {
                 if msg.content.len() == 1 {
@@ -500,6 +523,7 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
             Role::Assistant => {
                 // Emit blocks in content order so encrypted reasoning items pair with the
                 // following message/function_call items (matching upstream).
+                let mut text_block_index = 0usize;
                 for block in &msg.content {
                     match block {
                         ContentBlock::Thinking { thinking_signature: Some(sig), .. } => {
@@ -507,13 +531,33 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
                                 input.push(v);
                             }
                         }
-                        ContentBlock::Text { text, .. } if !text.trim().is_empty() => {
-                            input.push(json!({
+                        ContentBlock::Text { text, text_signature } if !text.trim().is_empty() => {
+                            // Resolve the assistant message item id/phase from the text
+                            // signature, falling back to a deterministic msg_pi_ id
+                            // (mirrors upstream parseTextSignature + fallback).
+                            let parsed = parse_text_signature(text_signature.as_deref());
+                            let fallback = if text_block_index == 0 {
+                                format!("msg_pi_{msg_index}")
+                            } else {
+                                format!("msg_pi_{msg_index}_{text_block_index}")
+                            };
+                            text_block_index += 1;
+                            let msg_id = match parsed.as_ref().and_then(|p| p.id.clone()) {
+                                Some(id) if id.len() > 64 => format!("msg_{}", crate::utils::short_hash(&id)),
+                                Some(id) => id,
+                                None => fallback,
+                            };
+                            let mut item = json!({
                                 "type": "message",
                                 "role": "assistant",
                                 "content": [{"type": "output_text", "text": text, "annotations": []}],
                                 "status": "completed",
-                            }));
+                                "id": msg_id,
+                            });
+                            if let Some(phase) = parsed.and_then(|p| p.phase) {
+                                item["phase"] = json!(phase);
+                            }
+                            input.push(item);
                         }
                         ContentBlock::ToolCall { id, name, arguments, .. } => {
                             let (call_id, item_id) = id.split_once('|').map(|(a,b)| (a.to_string(), Some(b.to_string()))).unwrap_or((id.clone(), None));
