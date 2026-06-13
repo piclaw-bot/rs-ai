@@ -983,6 +983,37 @@ mod tests {
         clear_ws_fallback(Some("sess-sticky"));
     }
 
+    #[tokio::test]
+    async fn test_codex_sse_fallback_sends_required_headers() {
+        use crate::provider::codex::stream_codex;
+        use base64::Engine;
+        let payload = serde_json::json!({"https://api.openai.com/auth": {"chatgpt_account_id": "acc_h"}});
+        let payload_b64 = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(serde_json::to_vec(&payload).unwrap());
+        let jwt = format!("h.{payload_b64}.s");
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/responses"))
+            .and(header("OpenAI-Beta", "responses=experimental"))
+            .and(header("chatgpt-account-id", "acc_h"))
+            .and(header("session-id", "sess-h"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string("data: {\"type\":\"response.completed\",\"response\":{\"id\":\"r\",\"model\":\"codex\",\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let mut model = test_model("openai-codex-responses", "openai", &server.uri());
+        model.api_key = Some(jwt);
+        let opts = StreamOptions { session_id: Some("sess-h".into()), ..Default::default() };
+        let ctx = test_context();
+        let mut stream = stream_codex(&model, &ctx, &opts);
+        let mut done = false;
+        while let Some(evt) = stream.next().await {
+            if matches!(evt, Event::Done { .. }) { done = true; }
+        }
+        // If the required headers were missing, the wiremock match would fail (no 200).
+        assert!(done);
+    }
+
     #[test]
     fn test_codex_ws_event_replay_tool_and_reasoning() {
         let model = test_model("openai-codex-responses", "openai", "https://example.com");

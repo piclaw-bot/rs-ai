@@ -106,13 +106,29 @@ pub fn stream_codex<'a>(
                 // Fallback to SSE using the Codex request body and headers.
                 let payload = build_codex_payload(model, context, opts);
                 let url = format!("{}/responses", model.base_url.trim_end_matches('/'));
+                let account_id = crate::oauth::codex_account_id(&api_key);
+                let user_agent = format!("pi ({}; {})", std::env::consts::OS, std::env::consts::ARCH);
                 let client = reqwest::Client::new();
-                let resp = client
+                let mut req = client
                     .post(&url)
                     .header("content-type", "application/json")
                     .header("accept", "text/event-stream")
+                    .header("OpenAI-Beta", "responses=experimental")
                     .header("authorization", format!("Bearer {}", api_key))
                     .header("originator", "pi")
+                    .header("User-Agent", user_agent);
+                if let Some(ref aid) = account_id {
+                    req = req.header("chatgpt-account-id", aid);
+                }
+                if let Some(ref sid) = opts.session_id {
+                    req = req.header("session-id", sid).header("x-client-request-id", sid);
+                }
+                if let Some(ref mh) = model.headers {
+                    for (k, v) in mh {
+                        req = req.header(k, v);
+                    }
+                }
+                let resp = req
                     .json(&payload)
                     .send()
                     .await;
@@ -192,11 +208,27 @@ async fn try_websocket(
     use tokio_tungstenite::connect_async;
     use futures::SinkExt;
 
-    let request = tungstenite::http::Request::builder()
+    let account_id = crate::oauth::codex_account_id(api_key);
+    let user_agent = format!("pi ({}; {})", std::env::consts::OS, std::env::consts::ARCH);
+    let request_id = opts.session_id.clone().unwrap_or_else(|| format!("req_{}", crate::utils::now_millis()));
+    let mut builder = tungstenite::http::Request::builder()
         .uri(ws_url)
         .header("Authorization", format!("Bearer {}", api_key))
         .header("originator", "pi")
-        .header("Sec-WebSocket-Protocol", "openai-beta.responses")
+        .header("User-Agent", user_agent)
+        .header("OpenAI-Beta", "responses_websockets=2026-02-06")
+        .header("x-client-request-id", &request_id)
+        .header("session-id", &request_id)
+        .header("Sec-WebSocket-Protocol", "openai-beta.responses");
+    if let Some(ref aid) = account_id {
+        builder = builder.header("chatgpt-account-id", aid);
+    }
+    if let Some(ref mh) = model.headers {
+        for (k, v) in mh {
+            builder = builder.header(k.as_str(), v.as_str());
+        }
+    }
+    let request = builder
         .body(())
         .map_err(|e| e.to_string())?;
 

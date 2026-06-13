@@ -280,6 +280,15 @@ fn decode_jwt_payload(token: &str) -> Option<serde_json::Value> {
     serde_json::from_slice(&bytes).ok()
 }
 
+/// Extract the ChatGPT account id from a Codex OAuth access token's JWT claims.
+pub fn codex_account_id(token: &str) -> Option<String> {
+    decode_jwt_payload(token)
+        .and_then(|p| p.get(CODEX_JWT_CLAIM_PATH)
+            .and_then(|a| a.get("chatgpt_account_id"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string()))
+}
+
 /// Refresh an OpenAI Codex OAuth token (mirrors refreshOpenAICodexToken).
 pub async fn refresh_codex_token(refresh_token: &str) -> Result<CodexCredentials, String> {
     refresh_codex_token_at(CODEX_TOKEN_URL, refresh_token).await
