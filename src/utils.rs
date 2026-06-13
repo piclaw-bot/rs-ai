@@ -108,3 +108,11 @@ pub fn resolve_cloudflare_base_url(base_url: &str) -> String {
 pub fn format_thrown_value(err: &dyn std::fmt::Display) -> String {
     err.to_string()
 }
+
+/// Current unix time in milliseconds.
+pub fn now_millis() -> i64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_millis() as i64
+}

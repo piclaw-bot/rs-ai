@@ -160,7 +160,7 @@ pub fn stream_bedrock<'a>(
         let mut partial = Message {
             role: Role::Assistant,
             content: Vec::new(),
-            timestamp: 0,
+            timestamp: crate::utils::now_millis(),
             api: Some(model.api.clone()),
             provider: Some(model.provider.clone()),
             model: Some(model.id.clone()),
