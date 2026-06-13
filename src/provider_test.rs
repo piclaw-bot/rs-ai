@@ -646,6 +646,20 @@ mod tests {
     }
 
     #[test]
+    fn test_codex_ws_error_event() {
+        let model = test_model("openai-codex-responses", "openai", "https://example.com");
+        let events = vec![
+            serde_json::json!({"type":"response.created","response":{"id":"c1","model":"codex"}}),
+            serde_json::json!({"type":"error","code":"rate_limited","message":"slow down"}),
+        ];
+        let replayed = replay_codex_ws_events(&model, &events);
+        let err = replayed.iter().find_map(|e| match e { Event::Error { error, .. } => Some(error.to_string()), _ => None });
+        assert!(err.unwrap().contains("slow down"));
+        // No Done event after an error.
+        assert!(!replayed.iter().any(|e| matches!(e, Event::Done { .. })));
+    }
+
+    #[test]
     fn test_codex_ws_event_replay_tool_and_reasoning() {
         let model = test_model("openai-codex-responses", "openai", "https://example.com");
         let events = vec![
