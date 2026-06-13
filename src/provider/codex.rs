@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use futures::stream;
-use serde_json::Value;
+use serde_json::{json, Value};
 use tokio_tungstenite::tungstenite;
 use crate::env::resolve_api_key;
 use crate::events::Event;
@@ -345,7 +345,54 @@ impl CodexWsState {
 }
 
 pub(crate) fn build_codex_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
-    responses::build_responses_payload(model, context, opts)
+    // Reuse the Responses input/tool conversion, then restructure for Codex:
+    // the system prompt moves to `instructions` and is removed from `input`.
+    let base = responses::build_responses_payload(model, context, opts);
+    let mut input = base.get("input").cloned().unwrap_or_else(|| json!([]));
+    if let Some(arr) = input.as_array_mut() {
+        arr.retain(|m| {
+            !matches!(m.get("role").and_then(|r| r.as_str()), Some("system") | Some("developer"))
+        });
+    }
+
+    let instructions = context.system_prompt.clone().unwrap_or_else(|| "You are a helpful assistant.".to_string());
+    let mut body = json!({
+        "model": model.id,
+        "store": false,
+        "stream": true,
+        "instructions": instructions,
+        "input": input,
+        "text": { "verbosity": "low" },
+        "include": ["reasoning.encrypted_content"],
+        "tool_choice": "auto",
+        "parallel_tool_calls": true,
+    });
+
+    if let Some(ref session_id) = opts.session_id {
+        body["prompt_cache_key"] = json!(crate::prompt_cache::clamp_openai_prompt_cache_key(session_id));
+    }
+    if let Some(temp) = opts.temperature {
+        body["temperature"] = json!(temp);
+    }
+    if let Some(ref service_tier) = opts.service_tier {
+        body["service_tier"] = json!(service_tier);
+    }
+    if !context.tools.is_empty()
+        && let Some(tools) = base.get("tools") {
+            body["tools"] = tools.clone();
+    }
+    if let Some(level) = opts.reasoning.as_ref().and_then(|l| crate::simple_options::clamp_reasoning_for_model(model, l)) {
+        let key = format!("{:?}", level).to_lowercase();
+        let effort = model.thinking_level_map.as_ref()
+            .and_then(|m| m.get(&key))
+            .and_then(|v| v.clone())
+            .unwrap_or(key);
+        body["reasoning"] = json!({
+            "effort": effort,
+            "summary": opts.reasoning_summary.clone().unwrap_or_else(|| "auto".to_string()),
+        });
+    }
+    body
 }
 
 #[cfg(test)]

@@ -646,6 +646,29 @@ mod tests {
     }
 
     #[test]
+    fn test_codex_payload_structure() {
+        use crate::provider::codex::build_codex_payload;
+        let model = Model { reasoning: true, ..test_model("openai-codex-responses", "openai", "https://chatgpt.com/backend-api") };
+        let ctx = Context {
+            system_prompt: Some("custom sys".into()),
+            messages: vec![user_message("hi")],
+            tools: vec![],
+        };
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::Medium), session_id: Some("s1".into()), ..Default::default() };
+        let payload = build_codex_payload(&model, &ctx, &opts);
+        assert_eq!(payload["store"], false);
+        assert_eq!(payload["instructions"], "custom sys");
+        assert_eq!(payload["tool_choice"], "auto");
+        assert_eq!(payload["parallel_tool_calls"], true);
+        assert_eq!(payload["text"]["verbosity"], "low");
+        assert_eq!(payload["prompt_cache_key"], "s1");
+        assert_eq!(payload["reasoning"]["summary"], "auto");
+        // System prompt must NOT be duplicated in input.
+        let input = payload["input"].as_array().unwrap();
+        assert!(!input.iter().any(|m| matches!(m.get("role").and_then(|r| r.as_str()), Some("system") | Some("developer"))));
+    }
+
+    #[test]
     fn test_codex_ws_error_event() {
         let model = test_model("openai-codex-responses", "openai", "https://example.com");
         let events = vec![
