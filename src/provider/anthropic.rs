@@ -205,7 +205,14 @@ pub fn stream_anthropic<'a>(
                             }
                             "tool_use" => {
                                 current_tool_id = data.pointer("/content_block/id").and_then(|v| v.as_str()).unwrap_or("").to_string();
-                                current_tool_name = data.pointer("/content_block/name").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                                let raw_name = data.pointer("/content_block/name").and_then(|v| v.as_str()).unwrap_or("");
+                                // For OAuth (Claude Code) requests, map canonical tool names back
+                                // to the registered context tool names (mirrors fromClaudeCodeName).
+                                current_tool_name = if is_oauth {
+                                    from_claude_code_name(raw_name, &context.tools)
+                                } else {
+                                    raw_name.to_string()
+                                };
                                 current_tool_args.clear();
                                 yield Event::ToolCallStart { id: current_tool_id.clone(), name: current_tool_name.clone() };
                             }
@@ -381,6 +388,33 @@ pub fn stream_anthropic<'a>(
     })
 }
 
+/// Claude Code canonical tool names (used to canonicalize tool names for OAuth requests).
+const CLAUDE_CODE_TOOLS: &[&str] = &[
+    "Read", "Write", "Edit", "Bash", "Grep", "Glob", "AskUserQuestion", "EnterPlanMode",
+    "ExitPlanMode", "KillShell", "NotebookEdit", "Skill", "Task", "TaskOutput", "TodoWrite",
+    "WebFetch", "WebSearch",
+];
+
+/// Canonicalize a tool name to its Claude Code casing if it matches (mirrors toClaudeCodeName).
+fn to_claude_code_name(name: &str) -> String {
+    let lower = name.to_lowercase();
+    CLAUDE_CODE_TOOLS
+        .iter()
+        .find(|t| t.to_lowercase() == lower)
+        .map(|t| t.to_string())
+        .unwrap_or_else(|| name.to_string())
+}
+
+/// Map an incoming tool-call name back to a registered context tool name (mirrors fromClaudeCodeName).
+fn from_claude_code_name(name: &str, tools: &[Tool]) -> String {
+    let lower = name.to_lowercase();
+    tools
+        .iter()
+        .find(|t| t.name.to_lowercase() == lower)
+        .map(|t| t.name.clone())
+        .unwrap_or_else(|| name.to_string())
+}
+
 /// Resolve Anthropic compat flags with Fireworks-aware defaults (mirrors getAnthropicCompat).
 pub(crate) struct AnthropicCompat {
     pub supports_eager_tool_input_streaming: bool,
@@ -441,6 +475,7 @@ fn map_anthropic_effort(model: &Model, level: Option<&ThinkingLevel>) -> String 
 
 pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let mut messages: Vec<Value> = Vec::new();
+    let is_oauth = crate::env::resolve_api_key(model, opts).map(|k| k.contains("sk-ant-oat")).unwrap_or(false);
 
     let transformed_messages = crate::transform::transform_messages(&context.messages, model);
 
@@ -500,7 +535,9 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
                 }
             }
             ContentBlock::ToolCall { id, name, arguments, .. } => json!({
-                "type": "tool_use", "id": id, "name": name, "input": arguments
+                "type": "tool_use", "id": id,
+                "name": if is_oauth { to_claude_code_name(name) } else { name.clone() },
+                "input": arguments
             }),
         }).collect();
         messages.push(json!({"role": role_str, "content": content}));
@@ -536,7 +573,6 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
         "max_tokens": opts.max_tokens.unwrap_or(model.max_tokens),
     });
 
-    let is_oauth = crate::env::resolve_api_key(model, opts).map(|k| k.contains("sk-ant-oat")).unwrap_or(false);
     let mut system_blocks: Vec<Value> = Vec::new();
     if is_oauth {
         // OAuth tokens require the Claude Code identity as the first system block.
@@ -591,7 +627,7 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
         let mut tools: Vec<Value> = context.tools.iter().map(|t| {
             let schema = &t.parameters;
             let mut tool = json!({
-                "name": t.name,
+                "name": if is_oauth { to_claude_code_name(&t.name) } else { t.name.clone() },
                 "description": t.description,
                 "input_schema": {
                     "type": "object",

@@ -1710,6 +1710,27 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_oauth_tool_name_canonicalization() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        model.api_key = Some("sk-ant-oat01-xyz".into());
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![user_message("hi")],
+            tools: vec![Tool { name: "bash".into(), description: "d".into(), parameters: serde_json::json!({"type":"object"}) }],
+        };
+        let payload = build_anthropic_payload(&model, &ctx, &StreamOptions::default());
+        // "bash" is canonicalized to the Claude Code "Bash" for OAuth requests.
+        assert_eq!(payload["tools"][0]["name"], "Bash");
+
+        // Non-OAuth: name is left as-is.
+        let mut plain = model.clone();
+        plain.api_key = Some("sk-ant-api01-xyz".into());
+        let payload = build_anthropic_payload(&plain, &ctx, &StreamOptions::default());
+        assert_eq!(payload["tools"][0]["name"], "bash");
+    }
+
+    #[test]
     fn test_anthropic_tool_result_payload_shape() {
         use crate::provider::anthropic::build_anthropic_payload;
         let model = test_model("anthropic-messages", "anthropic", "https://example.com");
