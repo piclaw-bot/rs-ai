@@ -1334,6 +1334,24 @@ mod tests {
     }
 
     #[test]
+    fn test_mistral_reasoning_prompt_mode_and_effort() {
+        use crate::provider::mistral::build_mistral_payload;
+        // prompt_mode model
+        let m1 = Model { id: "magistral-medium".into(), reasoning: true, ..test_model("mistral-conversations", "mistral", "https://example.com") };
+        let ctx = test_context();
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
+        let p1 = build_mistral_payload(&m1, &ctx, &opts);
+        assert_eq!(p1["prompt_mode"], "reasoning");
+        assert!(p1.get("reasoning_effort").is_none());
+
+        // reasoning_effort model
+        let m2 = Model { id: "mistral-medium-3.5".into(), reasoning: true, ..test_model("mistral-conversations", "mistral", "https://example.com") };
+        let p2 = build_mistral_payload(&m2, &ctx, &opts);
+        assert_eq!(p2["reasoning_effort"], "high");
+        assert!(p2.get("prompt_mode").is_none());
+    }
+
+    #[test]
     fn test_mistral_payload_serializes_tool_history() {
         use crate::provider::mistral::build_mistral_payload;
         let model = test_model("mistral-conversations", "mistral", "https://example.com");

@@ -339,6 +339,28 @@ pub(crate) fn build_mistral_payload(model: &Model, context: &Context, opts: &Str
         payload["tools"] = json!(tools);
     }
 
+    // Tool choice: string variants pass through; objects pass through.
+    if let Some(ref tc) = opts.tool_choice {
+        payload["tool_choice"] = tc.clone();
+    }
+
+    // Reasoning: Mistral uses prompt_mode for most reasoning models and reasoning_effort
+    // for a specific set (mirrors upstream usesReasoningEffort / usesPromptModeReasoning).
+    if model.reasoning && let Some(level) = opts.reasoning.as_ref() {
+        let uses_reasoning_effort = matches!(model.id.as_str(),
+            "mistral-small-2603" | "mistral-small-latest" | "mistral-medium-3.5");
+        if uses_reasoning_effort {
+            let key = format!("{:?}", level).to_lowercase();
+            let effort = model.thinking_level_map.as_ref()
+                .and_then(|m| m.get(&key))
+                .and_then(|v| v.clone())
+                .unwrap_or_else(|| "high".to_string());
+            payload["reasoning_effort"] = json!(effort);
+        } else {
+            payload["prompt_mode"] = json!("reasoning");
+        }
+    }
+
     payload
 }
 
