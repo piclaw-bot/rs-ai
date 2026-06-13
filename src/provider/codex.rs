@@ -45,7 +45,23 @@ pub fn stream_codex<'a>(
                     yield evt;
                 }
             }
-            Err(_ws_err) => {
+            Err(ws_err) => {
+                // WebSocket transport failed; record a diagnostic and fall back to SSE
+                // (mirrors upstream appendAssistantMessageDiagnostic).
+                let transport_diagnostic = crate::types::AssistantMessageDiagnostic {
+                    diagnostic_type: "provider_transport_failure".to_string(),
+                    timestamp: crate::utils::now_millis(),
+                    error: crate::types::DiagnosticError {
+                        name: Some("TransportError".to_string()),
+                        message: ws_err.to_string(),
+                        stack: None,
+                        code: None,
+                    },
+                    details: Some(std::collections::HashMap::from([
+                        ("fallbackTransport".to_string(), serde_json::json!("sse")),
+                        ("phase".to_string(), serde_json::json!("before_message_stream_start")),
+                    ])),
+                };
                 // Fallback to SSE using the Codex request body and headers.
                 let payload = build_codex_payload(model, context, opts);
                 let url = format!("{}/responses", model.base_url.trim_end_matches('/'));
@@ -84,6 +100,8 @@ pub fn stream_codex<'a>(
                 use futures::StreamExt;
                 let mut parser = sse::SseParser::default();
                 let mut state = CodexWsState::new(model);
+                state.service_tier = opts.service_tier.clone();
+                state.partial.diagnostics.push(transport_diagnostic);
                 let mut byte_stream = resp.bytes_stream();
                 let mut emitted = 0usize;
                 let mut done = false;

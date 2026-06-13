@@ -912,6 +912,36 @@ mod tests {
         assert!(!replayed.iter().any(|e| matches!(e, Event::Done { .. })));
     }
 
+    #[tokio::test]
+    async fn test_codex_ws_failure_falls_back_to_sse_with_diagnostic() {
+        use crate::provider::codex::stream_codex;
+        // Point base_url at an HTTP mock: the wss:// WebSocket handshake fails, then
+        // the provider falls back to SSE and records a provider_transport_failure diagnostic.
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/responses"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"type\":\"response.created\",\"response\":{\"id\":\"r\",\"model\":\"codex\"}}\n\n\
+                     data: {\"type\":\"response.output_text.delta\",\"delta\":\"hi\"}\n\n\
+                     data: {\"type\":\"response.completed\",\"response\":{\"id\":\"r\",\"model\":\"codex\",\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let mut model = test_model("openai-codex-responses", "openai", &server.uri());
+        model.api_key = Some("test-key".into());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_codex(&model, &ctx, &opts);
+        let mut diag_found = false;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { message, .. } = evt {
+                diag_found = message.diagnostics.iter().any(|d| d.diagnostic_type == "provider_transport_failure");
+            }
+        }
+        assert!(diag_found, "SSE-fallback Done message should carry a transport-failure diagnostic");
+    }
+
     #[test]
     fn test_codex_ws_event_replay_tool_and_reasoning() {
         let model = test_model("openai-codex-responses", "openai", "https://example.com");
