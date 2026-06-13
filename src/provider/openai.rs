@@ -491,11 +491,19 @@ pub(crate) fn build_payload(
         payload["store"] = json!(false);
     }
 
+    // Prompt caching: OpenAI uses prompt_cache_key (from session id) on api.openai.com
+    // (unless cache is disabled) or for long retention on supporting providers.
+    let retention = crate::prompt_cache::resolve_cache_retention(opts.cache_retention.as_ref());
+    let cache_none = retention == CacheRetention::None;
+    let cache_long = retention == CacheRetention::Long;
     if let Some(ref session_id) = opts.session_id {
-        payload["sessionId"] = json!(session_id);
+        let on_openai = model.base_url.contains("api.openai.com");
+        if (on_openai && !cache_none) || (cache_long && compat.supports_long_cache_retention != Some(false)) {
+            payload["prompt_cache_key"] = json!(crate::prompt_cache::clamp_openai_prompt_cache_key(session_id));
+        }
     }
-    if let Some(ref metadata) = opts.metadata {
-        payload["metadata"] = json!(metadata);
+    if cache_long && compat.supports_long_cache_retention != Some(false) {
+        payload["prompt_cache_retention"] = json!("24h");
     }
 
     if let Some(max) = opts.max_tokens {

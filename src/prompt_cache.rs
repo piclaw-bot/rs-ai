@@ -76,3 +76,16 @@ mod tests {
 pub fn clamp_openai_prompt_cache_key(session_id: &str) -> String {
     session_id.chars().take(64).collect()
 }
+
+/// Resolve the effective cache retention, defaulting to short (or long via
+/// PI_CACHE_RETENTION=long), mirroring upstream `resolveCacheRetention`.
+pub fn resolve_cache_retention(opt: Option<&crate::types::CacheRetention>) -> crate::types::CacheRetention {
+    use crate::types::CacheRetention;
+    if let Some(r) = opt {
+        return r.clone();
+    }
+    if std::env::var("PI_CACHE_RETENTION").ok().as_deref() == Some("long") {
+        return CacheRetention::Long;
+    }
+    CacheRetention::Short
+}

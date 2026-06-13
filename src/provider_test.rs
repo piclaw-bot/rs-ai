@@ -659,7 +659,8 @@ mod tests {
         };
         let payload = crate::provider::responses::build_responses_payload(&model, &ctx, &opts);
         assert_eq!(payload["store"], false);
-        assert_eq!(payload["session_id"], "sess-1");
+        // session_id is sent via headers, not the body.
+        assert!(payload.get("session_id").is_none());
         assert_eq!(payload["prompt_cache_key"], "sess-1");
         assert_eq!(payload["prompt_cache_retention"], "24h");
     }

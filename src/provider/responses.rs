@@ -91,6 +91,12 @@ fn stream_responses_inner<'a>(
         }
     } else {
         headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
+        // Session affinity request id header (non-Azure).
+        if let Some(ref session_id) = opts.session_id {
+            if let Ok(val) = HeaderValue::from_str(session_id) {
+                headers.insert("x-client-request-id", val);
+            }
+        }
     }
 
     if let Some(ref model_headers) = model.headers {
@@ -513,24 +519,17 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
         "store": false,
     });
 
-    if let Some(ref session_id) = opts.session_id {
-        payload["session_id"] = json!(session_id);
-    }
-    if let Some(ref previous_response_id) = opts.previous_response_id {
-        payload["previous_response_id"] = json!(previous_response_id);
-    }
-    if let Some(ref metadata) = opts.metadata {
-        payload["metadata"] = json!(metadata);
-    }
-
-    match opts.cache_retention {
-        Some(CacheRetention::None) => {}
-        Some(CacheRetention::Short) => {
+    // Prompt caching: session id is sent via headers, not the body. The cache key
+    // is derived from the (resolved) retention.
+    let retention = crate::prompt_cache::resolve_cache_retention(opts.cache_retention.as_ref());
+    match retention {
+        CacheRetention::None => {}
+        CacheRetention::Short => {
             if let Some(ref session_id) = opts.session_id {
                 payload["prompt_cache_key"] = json!(crate::prompt_cache::clamp_openai_prompt_cache_key(session_id));
             }
         }
-        Some(CacheRetention::Long) => {
+        CacheRetention::Long => {
             if let Some(ref session_id) = opts.session_id {
                 payload["prompt_cache_key"] = json!(crate::prompt_cache::clamp_openai_prompt_cache_key(session_id));
             }
@@ -538,7 +537,6 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
                 payload["prompt_cache_retention"] = json!("24h");
             }
         }
-        None => {}
     }
 
     if let Some(max) = opts.max_tokens {
