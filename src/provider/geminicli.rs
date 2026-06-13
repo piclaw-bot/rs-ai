@@ -34,7 +34,16 @@ pub fn stream_geminicli<'a>(
     }
     let api_key = api_key.unwrap();
 
-    let payload = build_geminicli_payload(model, context, opts);
+    let mut payload = build_geminicli_payload(model, context, opts);
+    if let Some(ref hook) = opts.on_payload {
+        match hook(payload.clone(), model) {
+            Ok(next) => payload = next,
+            Err(err) => {
+                let err = Event::Error { reason: StopReason::Error, error: Arc::from(err), message: None };
+                return Box::pin(stream::once(async { err }));
+            }
+        }
+    }
     let url = format!(
         "{}/models/{}:streamGenerateContent?alt=sse",
         model.base_url.trim_end_matches('/'),
@@ -60,6 +69,9 @@ pub fn stream_geminicli<'a>(
     Box::pin(async_stream::stream! {
         let client = reqwest::Client::new();
         let request = client.post(&url).headers(headers).json(&payload);
+        let request = if let Some(ms) = opts.timeout_ms {
+            request.timeout(std::time::Duration::from_millis(ms))
+        } else { request };
         let retry_cfg = crate::retry::retry_config_from_options(opts);
         let resp = crate::retry::do_with_retry(&client, request, &retry_cfg).await;
 
@@ -192,7 +204,17 @@ pub fn stream_geminicli<'a>(
                                 if let Some(fc) = part.get("functionCall") {
                                     let name = fc.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
                                     let args = fc.get("args").cloned().unwrap_or_else(|| serde_json::json!({}));
-                                    let id = format!("call_{}", tool_calls.len());
+                                    // Preserve the provider-supplied id when present and unique.
+                                    let provided = fc.get("id").and_then(|v| v.as_str()).map(|s| s.to_string());
+                                    let needs_new = match &provided {
+                                        None => true,
+                                        Some(pid) => tool_calls.iter().any(|(eid, _, _)| eid == pid),
+                                    };
+                                    let id = if needs_new {
+                                        format!("{}_{}_{}", name, crate::utils::now_millis(), tool_calls.len() + 1)
+                                    } else {
+                                        provided.unwrap()
+                                    };
                                     yield Event::ToolCallStart { id: id.clone(), name: name.clone() };
                                     yield Event::ToolCallDelta { delta: serde_json::to_string(&args).unwrap_or_default() };
                                     yield Event::ToolCallEnd { id: id.clone(), name: name.clone(), arguments: args.clone() };
@@ -213,17 +235,24 @@ pub fn stream_geminicli<'a>(
                                 "STOP" if !tool_calls.is_empty() => StopReason::ToolUse,
                                 "STOP" => StopReason::Stop,
                                 "MAX_TOKENS" => StopReason::Length,
-                                _ => StopReason::Error,
+                                other => {
+                                    partial.error_message = Some(format!("Gemini stopped with finish reason: {other}"));
+                                    StopReason::Error
+                                }
                             });
                         }
                     }
                 }
 
                 if let Some(usage) = chunk.get("usageMetadata") {
+                    let prompt = usage.get("promptTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                    let cached = usage.get("cachedContentTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                    let candidates = usage.get("candidatesTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                    let thoughts = usage.get("thoughtsTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
                     partial.usage = Some(Usage {
-                        input: usage.get("promptTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                        output: usage.get("candidatesTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                        cache_read: usage.get("cachedContentTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+                        input: prompt.saturating_sub(cached),
+                        output: candidates + thoughts,
+                        cache_read: cached,
                         total_tokens: usage.get("totalTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
                         ..Default::default()
                     });
@@ -264,7 +293,16 @@ pub fn stream_geminicli<'a>(
             crate::simple_options::finalize_usage(model, u);
         }
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
-        yield Event::Done { reason, message: partial };
+        if matches!(reason, StopReason::Error | StopReason::Aborted) {
+            let msg = partial.error_message.clone().unwrap_or_else(|| "An unknown error occurred".to_string());
+            yield Event::Error {
+                reason,
+                error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                message: Some(partial),
+            };
+        } else {
+            yield Event::Done { reason, message: partial };
+        }
     })
 }
 
