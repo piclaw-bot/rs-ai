@@ -238,8 +238,12 @@ pub fn stream_anthropic<'a>(
                                 }
                             }
                             "signature_delta" => {
+                                // Signatures may arrive in multiple chunks; concatenate them.
                                 if let Some(sig) = data.pointer("/delta/signature").and_then(|v| v.as_str()) {
-                                    current_thinking_signature = Some(sig.to_string());
+                                    match &mut current_thinking_signature {
+                                        Some(existing) => existing.push_str(sig),
+                                        None => current_thinking_signature = Some(sig.to_string()),
+                                    }
                                 }
                             }
                             "input_json_delta" => {
