@@ -164,11 +164,16 @@ pub fn models_are_equal(a: &crate::types::Model, b: &crate::types::Model) -> boo
     a.provider == b.provider && a.id == b.id
 }
 
+/// Hook invoked with the serialized request payload before sending.
+pub type PayloadHookFn<'a> = dyn Fn(serde_json::Value) -> serde_json::Value + 'a;
+/// Hook invoked with the HTTP status and response headers.
+pub type ResponseHookFn<'a> = dyn Fn(u16, &std::collections::HashMap<String, String>) + 'a;
+
 /// Invoke an on-payload hook (placeholder for hook infrastructure).
 /// In Go this mutates the payload before sending; in Rust we return the modified value.
 pub fn invoke_on_payload(
     payload: serde_json::Value,
-    on_payload: Option<&dyn Fn(serde_json::Value) -> serde_json::Value>,
+    on_payload: Option<&PayloadHookFn<'_>>,
 ) -> serde_json::Value {
     match on_payload {
         Some(f) => f(payload),
@@ -180,7 +185,7 @@ pub fn invoke_on_payload(
 pub fn invoke_on_response(
     status: u16,
     headers: &std::collections::HashMap<String, String>,
-    on_response: Option<&dyn Fn(u16, &std::collections::HashMap<String, String>)>,
+    on_response: Option<&ResponseHookFn<'_>>,
 ) {
     if let Some(f) = on_response {
         f(status, headers);

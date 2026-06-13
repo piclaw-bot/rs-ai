@@ -40,7 +40,7 @@ pub fn azure_session_headers(session_id: &str) -> HashMap<String, String> {
 }
 
 /// Strip Azure-specific tool_call cleanup fields.
-pub fn strip_azure_tool_call_fields(tool_calls: &mut Vec<Value>) {
+pub fn strip_azure_tool_call_fields(tool_calls: &mut [Value]) {
     for tc in tool_calls.iter_mut() {
         if let Some(obj) = tc.as_object_mut() {
             obj.remove("content_filter_results");

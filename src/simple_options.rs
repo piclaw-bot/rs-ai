@@ -76,9 +76,9 @@ pub fn clamp_thinking_level(model: &Model, level: &ModelThinkingLevel) -> ModelT
         }
     }
     // Then upgrade
-    for i in (idx + 1)..LEVELS.len() {
-        if available.contains(&LEVELS[i]) {
-            return LEVELS[i].clone();
+    for level in LEVELS.iter().skip(idx + 1) {
+        if available.contains(level) {
+            return level.clone();
         }
     }
     available[0].clone()
