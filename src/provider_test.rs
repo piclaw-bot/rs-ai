@@ -131,6 +131,35 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_openai_emits_tool_call_end() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"choices":[{"delta":{"tool_calls":[{"index":0,"id":"tc1","function":{"name":"search","arguments":"{\"q\":\"rust\"}"}}]},"index":0}]}"#,
+                    r#"{"choices":[{"delta":{},"finish_reason":"tool_calls","index":0}]}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("openai-completions", "openai", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_openai(&model, &ctx, &opts);
+        let mut tool_end = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::ToolCallEnd { id, name, arguments } = evt {
+                tool_end = Some((id, name, arguments));
+            }
+        }
+        let (id, name, args) = tool_end.expect("ToolCallEnd must be emitted");
+        assert_eq!(id, "tc1");
+        assert_eq!(name, "search");
+        assert_eq!(args["q"], "rust");
+    }
+
+    #[tokio::test]
     async fn test_azure_responses_uses_api_key_and_version() {
         use crate::provider::responses::stream_azure_responses;
         let server = MockServer::start().await;

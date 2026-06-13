@@ -210,13 +210,15 @@ pub fn stream_mistral<'a>(
             });
         }
         for (_idx, (id, name, args_json)) in tool_calls {
-            let arguments = match crate::jsonparse::parse_streaming_json(&args_json) {
-                serde_json::Value::Object(map) => map.into_iter().collect(),
+            let parsed = crate::jsonparse::parse_streaming_json(&args_json);
+            let arguments = match &parsed {
+                serde_json::Value::Object(map) => map.clone().into_iter().collect(),
                 _ => std::collections::HashMap::new(),
             };
             partial.content.push(ContentBlock::ToolCall {
-                id, name, arguments, thought_signature: None,
+                id: id.clone(), name: name.clone(), arguments, thought_signature: None,
             });
+            yield Event::ToolCallEnd { id, name, arguments: parsed };
         }
         match partial.stop_reason.clone() {
             Some(StopReason::Error) => {

@@ -319,8 +319,9 @@ pub fn stream_openai<'a>(
                             }
                             if partial.content.iter().all(|b| !matches!(b, ContentBlock::ToolCall { .. })) {
                                 for (id, name, args_json) in tool_calls.values() {
-                                    let arguments = match crate::jsonparse::parse_streaming_json(args_json) {
-                                        serde_json::Value::Object(map) => map.into_iter().collect(),
+                                    let parsed = crate::jsonparse::parse_streaming_json(args_json);
+                                    let arguments = match &parsed {
+                                        serde_json::Value::Object(map) => map.clone().into_iter().collect(),
                                         _ => std::collections::HashMap::new(),
                                     };
                                     partial.content.push(ContentBlock::ToolCall {
@@ -329,6 +330,11 @@ pub fn stream_openai<'a>(
                                         arguments,
                                         thought_signature: None,
                                     });
+                                    yield Event::ToolCallEnd {
+                                        id: id.clone(),
+                                        name: name.clone(),
+                                        arguments: parsed,
+                                    };
                                 }
                             }
                         }
