@@ -9,7 +9,6 @@ use serde_json::{json, Value};
 use crate::compat::detect_compat;
 use crate::env::resolve_api_key;
 use crate::events::Event;
-use crate::simple_options::{adjust_max_tokens_for_thinking, default_thinking_budgets};
 use crate::transports::sse;
 use crate::types::*;
 
@@ -542,23 +541,10 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
         None => {}
     }
 
-    let mut effective_max_tokens = opts.max_tokens.unwrap_or(model.max_tokens);
-    if let Some(ref level) = opts.reasoning {
-        let budgets_map = if let Some(ref budgets) = opts.thinking_budgets {
-            let mut map = default_thinking_budgets();
-            if let Some(v) = budgets.minimal { map.insert(ThinkingLevel::Minimal, v); }
-            if let Some(v) = budgets.low { map.insert(ThinkingLevel::Low, v); }
-            if let Some(v) = budgets.medium { map.insert(ThinkingLevel::Medium, v); }
-            if let Some(v) = budgets.high { map.insert(ThinkingLevel::High, v); }
-            map
-        } else {
-            default_thinking_budgets()
-        };
-        let (adjusted_max, _budget) = adjust_max_tokens_for_thinking(effective_max_tokens, model.max_tokens, level, &budgets_map);
-        effective_max_tokens = adjusted_max;
-    }
-    if effective_max_tokens > 0 {
-        payload["max_output_tokens"] = json!(effective_max_tokens);
+    if let Some(max) = opts.max_tokens {
+        payload["max_output_tokens"] = json!(max);
+    } else if model.max_tokens > 0 {
+        payload["max_output_tokens"] = json!(model.max_tokens);
     }
     if let Some(temp) = opts.temperature {
         payload["temperature"] = json!(temp);
