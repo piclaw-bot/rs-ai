@@ -1512,6 +1512,60 @@ mod tests {
     }
 
     #[test]
+    fn test_google_foreign_thinking_downgraded_and_signatures_dropped() {
+        use crate::provider::google::build_google_payload_public;
+        let model = Model { id: "gemini-2.5-pro".into(), reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
+        // Assistant message from a DIFFERENT model/provider -> thinking becomes plain
+        // text and thought signatures are not replayed.
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![
+                    ContentBlock::Thinking { thinking: "reasoning".into(), thinking_signature: Some("QUJD".into()), redacted: false },
+                    ContentBlock::Text { text: "answer".into(), text_signature: Some("QUJD".into()) },
+                ],
+                timestamp: 0,
+                api: Some("anthropic-messages".into()), provider: Some("anthropic".into()), model: Some("claude".into()),
+                response_id: None, response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::Stop), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = build_google_payload_public(&model, &ctx, &StreamOptions::default());
+        let parts = payload["contents"][0]["parts"].as_array().unwrap();
+        // Thinking downgraded to plain text (no `thought` flag), no signatures anywhere.
+        assert!(parts[0].get("thought").is_none());
+        assert_eq!(parts[0]["text"], "reasoning");
+        assert!(parts[0].get("thoughtSignature").is_none());
+        assert!(parts[1].get("thoughtSignature").is_none());
+    }
+
+    #[test]
+    fn test_google_same_model_replays_signature_and_thought() {
+        use crate::provider::google::build_google_payload_public;
+        let model = Model { id: "gemini-2.5-pro".into(), reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![ContentBlock::Thinking { thinking: "r".into(), thinking_signature: Some("QUJD".into()), redacted: false }],
+                timestamp: 0,
+                api: Some("google-generative-ai".into()), provider: Some("google".into()), model: Some("gemini-2.5-pro".into()),
+                response_id: None, response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::Stop), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = build_google_payload_public(&model, &ctx, &StreamOptions::default());
+        let part = &payload["contents"][0]["parts"][0];
+        assert_eq!(part["thought"], true);
+        assert_eq!(part["thoughtSignature"], "QUJD");
+    }
+
+    #[test]
     fn test_google_disables_thinking_when_no_reasoning() {
         use crate::provider::google::build_google_payload_public;
         // Gemini 2.x -> thinkingBudget 0

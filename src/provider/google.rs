@@ -272,6 +272,71 @@ pub fn build_google_payload_public(model: &Model, context: &Context, opts: &Stre
     build_google_payload(model, context, opts)
 }
 
+/// Gemini models that require explicit tool-call ids on functionCall/functionResponse
+/// (mirrors requiresToolCallId).
+fn google_requires_tool_call_id(model_id: &str) -> bool {
+    model_id.starts_with("claude-") || model_id.starts_with("gpt-oss-")
+}
+
+/// Normalize a tool-call id for Gemini when required (alnum/_/- only, max 64 chars).
+fn google_normalize_tool_call_id(model_id: &str, id: &str) -> String {
+    if !google_requires_tool_call_id(model_id) {
+        return id.to_string();
+    }
+    let sanitized: String = id
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+        .collect();
+    if sanitized.len() > 64 { sanitized[..64].to_string() } else { sanitized }
+}
+
+/// Parse a leading `gemini-N` / `gemini-live-N` major version.
+fn gemini_major_version(model_id: &str) -> Option<u32> {
+    let lower = model_id.to_lowercase();
+    let rest = lower.strip_prefix("gemini-live-").or_else(|| lower.strip_prefix("gemini-"))?;
+    let digits: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
+    if digits.is_empty() { None } else { digits.parse().ok() }
+}
+
+/// Gemini 3+ (and non-Gemini) models support image parts nested in functionResponse.
+fn google_supports_multimodal_function_response(model_id: &str) -> bool {
+    match gemini_major_version(model_id) {
+        Some(v) => v >= 3,
+        None => true,
+    }
+}
+
+/// Validate a Gemini thought signature: base64-ish and length a multiple of 4.
+fn is_valid_thought_signature(sig: &str) -> bool {
+    if sig.is_empty() || !sig.len().is_multiple_of(4) {
+        return false;
+    }
+    let mut seen_pad = false;
+    let mut pad = 0;
+    for c in sig.chars() {
+        if c == '=' {
+            seen_pad = true;
+            pad += 1;
+            if pad > 2 { return false; }
+        } else {
+            if seen_pad { return false; }
+            if !(c.is_ascii_alphanumeric() || c == '+' || c == '/') {
+                return false;
+            }
+        }
+    }
+    true
+}
+
+/// Only replay a thought signature when the message is from the same provider+model
+/// and the signature is valid (mirrors resolveThoughtSignature).
+fn resolve_thought_signature(is_same: bool, sig: Option<&str>) -> Option<&str> {
+    match sig {
+        Some(s) if is_same && is_valid_thought_signature(s) => Some(s),
+        _ => None,
+    }
+}
+
 fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let mut contents: Vec<Value> = Vec::new();
 
@@ -300,11 +365,26 @@ fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) 
                 } else {
                     json!({"output": response_value})
                 };
+                let mut function_response = json!({
+                    "name": msg.tool_name.clone().unwrap_or_default(),
+                    "response": response,
+                });
+                // Gemini 3+ supports image parts nested in the functionResponse.
+                if has_images && google_supports_multimodal_function_response(&model.id) {
+                    let image_parts: Vec<Value> = msg.content.iter().filter_map(|b| match b {
+                        ContentBlock::Image { data, mime_type } => Some(json!({
+                            "inlineData": {"mimeType": mime_type, "data": data}
+                        })),
+                        _ => None,
+                    }).collect();
+                    function_response["parts"] = json!(image_parts);
+                }
+                if google_requires_tool_call_id(&model.id)
+                    && let Some(ref id) = msg.tool_call_id {
+                    function_response["id"] = json!(google_normalize_tool_call_id(&model.id, id));
+                }
                 let function_response_part = json!({
-                    "functionResponse": {
-                        "name": msg.tool_name.clone().unwrap_or_default(),
-                        "response": response,
-                    }
+                    "functionResponse": function_response
                 });
 
                 let merge = contents.last()
@@ -336,23 +416,42 @@ fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) 
                 contents.push(json!({"role": "user", "parts": parts}));
             }
             Role::Assistant => {
+                // Thought signatures and thinking blocks only replay when the message
+                // came from the same provider+model (mirrors isSameProviderAndModel).
+                let is_same = msg.provider.as_deref() == Some(model.provider.as_str())
+                    && msg.model.as_deref() == Some(model.id.as_str());
                 let parts: Vec<Value> = msg.content.iter().filter_map(|b| match b {
                     ContentBlock::Text { text, text_signature } if !text.trim().is_empty() => {
                         let mut p = json!({"text": text});
-                        if let Some(sig) = text_signature { p["thoughtSignature"] = json!(sig); }
+                        if let Some(sig) = resolve_thought_signature(is_same, text_signature.as_deref()) {
+                            p["thoughtSignature"] = json!(sig);
+                        }
                         Some(p)
                     }
                     ContentBlock::Image { data, mime_type } => Some(json!({
                         "inlineData": {"mimeType": mime_type, "data": data}
                     })),
                     ContentBlock::Thinking { thinking, thinking_signature, .. } if !thinking.trim().is_empty() => {
-                        let mut p = json!({"thought": true, "text": thinking});
-                        if let Some(sig) = thinking_signature { p["thoughtSignature"] = json!(sig); }
-                        Some(p)
+                        if is_same {
+                            let mut p = json!({"thought": true, "text": thinking});
+                            if let Some(sig) = resolve_thought_signature(is_same, thinking_signature.as_deref()) {
+                                p["thoughtSignature"] = json!(sig);
+                            }
+                            Some(p)
+                        } else {
+                            // Different model: downgrade thinking to plain text.
+                            Some(json!({"text": thinking}))
+                        }
                     }
-                    ContentBlock::ToolCall { name, arguments, thought_signature, .. } => {
-                        let mut p = json!({"functionCall": {"name": name, "args": arguments}});
-                        if let Some(sig) = thought_signature { p["thoughtSignature"] = json!(sig); }
+                    ContentBlock::ToolCall { id, name, arguments, thought_signature } => {
+                        let mut fc = json!({"name": name, "args": arguments});
+                        if google_requires_tool_call_id(&model.id) {
+                            fc["id"] = json!(google_normalize_tool_call_id(&model.id, id));
+                        }
+                        let mut p = json!({"functionCall": fc});
+                        if let Some(sig) = resolve_thought_signature(is_same, thought_signature.as_deref()) {
+                            p["thoughtSignature"] = json!(sig);
+                        }
                         Some(p)
                     }
                     _ => None,
