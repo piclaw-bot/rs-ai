@@ -275,9 +275,10 @@ pub fn stream_bedrock<'a>(
         }
 
         // Prompt caching: add cache points to the last user message and the system prompt
-        // for supported Claude models (mirrors the cachePoint logic).
-        let cache_long = matches!(opts.cache_retention, Some(CacheRetention::Long));
-        let cache_enabled = !matches!(opts.cache_retention, Some(CacheRetention::None) | None)
+        // for supported Claude models. Retention is resolved (defaults to short caching on).
+        let retention = crate::prompt_cache::resolve_cache_retention(opts.cache_retention.as_ref());
+        let cache_long = matches!(retention, CacheRetention::Long);
+        let cache_enabled = retention != CacheRetention::None
             && supports_bedrock_prompt_caching(model);
         if cache_enabled
             && let Some(last) = messages.pop() {

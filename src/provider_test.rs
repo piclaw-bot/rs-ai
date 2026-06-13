@@ -1710,6 +1710,18 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_caching_on_by_default() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        // No cache_retention specified -> resolves to "short" -> ephemeral cache_control.
+        let model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        let ctx = Context { system_prompt: Some("sys".into()), messages: vec![user_message("hi")], tools: vec![] };
+        let payload = build_anthropic_payload(&model, &ctx, &StreamOptions::default());
+        assert_eq!(payload["system"][0]["cache_control"]["type"], "ephemeral");
+        // Short retention has no 1h ttl.
+        assert!(payload["system"][0]["cache_control"].get("ttl").is_none());
+    }
+
+    #[test]
     fn test_anthropic_oauth_tool_name_canonicalization() {
         use crate::provider::anthropic::build_anthropic_payload;
         let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");

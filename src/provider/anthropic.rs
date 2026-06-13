@@ -544,12 +544,14 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
         i += 1;
     }
 
-    // Cache control (ephemeral) when prompt caching is enabled. The 1h TTL only applies
-    // when the model supports long cache retention (mirrors getCacheControl).
-    let cache_control: Option<Value> = match opts.cache_retention {
-        Some(CacheRetention::None) | None => None,
-        Some(CacheRetention::Short) => Some(json!({"type": "ephemeral"})),
-        Some(CacheRetention::Long) => {
+    // Cache control (ephemeral) when prompt caching is enabled. Retention is resolved
+    // (defaults to short caching on) and the 1h TTL only applies when the model supports
+    // long cache retention (mirrors resolveCacheRetention + getCacheControl).
+    let retention = crate::prompt_cache::resolve_cache_retention(opts.cache_retention.as_ref());
+    let cache_control: Option<Value> = match retention {
+        CacheRetention::None => None,
+        CacheRetention::Short => Some(json!({"type": "ephemeral"})),
+        CacheRetention::Long => {
             if anthropic_compat(model).supports_long_cache_retention {
                 Some(json!({"type": "ephemeral", "ttl": "1h"}))
             } else {
