@@ -403,12 +403,25 @@ pub(crate) fn build_payload(
         }).collect();
 
         let content: Value = if msg.role == Role::Assistant {
-            if text_blocks.is_empty() {
+            // Collect non-empty thinking blocks for replay handling.
+            let thinking_blocks: Vec<(&String, &Option<String>)> = msg.content.iter().filter_map(|b| match b {
+                ContentBlock::Thinking { thinking, thinking_signature, .. } if !thinking.trim().is_empty() => Some((thinking, thinking_signature)),
+                _ => None,
+            }).collect();
+            let assistant_text = if text_blocks.is_empty() { String::new() } else { text_blocks.join("") };
+
+            if !thinking_blocks.is_empty() && compat.requires_thinking_as_text == Some(true) {
+                // Convert thinking blocks into a leading text block (no tags).
+                let thinking_text = thinking_blocks.iter().map(|(t, _)| t.as_str()).collect::<Vec<_>>().join("\n\n");
+                let mut parts = vec![json!({"type": "text", "text": thinking_text})];
+                if !assistant_text.is_empty() {
+                    parts.push(json!({"type": "text", "text": assistant_text}));
+                }
+                json!(parts)
+            } else if assistant_text.is_empty() {
                 Value::Null
-            } else if text_blocks.len() == 1 {
-                json!(text_blocks[0])
             } else {
-                json!(text_blocks.join("\n"))
+                json!(assistant_text)
             }
         } else if msg.content.len() == 1 {
             match &msg.content[0] {
@@ -424,8 +437,24 @@ pub(crate) fn build_payload(
             if !tool_call_blocks.is_empty() {
                 m["tool_calls"] = json!(tool_call_blocks);
             }
+            // When not sending thinking-as-text, replay thinking via its signature field
+            // (e.g. reasoning_content for llama.cpp / gpt-oss).
+            if compat.requires_thinking_as_text != Some(true) {
+                let thinking_blocks: Vec<(&String, &Option<String>)> = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::Thinking { thinking, thinking_signature, .. } if !thinking.trim().is_empty() => Some((thinking, thinking_signature)),
+                    _ => None,
+                }).collect();
+                if let Some((_, Some(sig))) = thinking_blocks.first() {
+                    if !sig.is_empty() {
+                        let joined = thinking_blocks.iter().map(|(t, _)| t.as_str()).collect::<Vec<_>>().join("\n");
+                        m[sig.as_str()] = json!(joined);
+                    }
+                }
+            }
             // DeepSeek-style providers require reasoning_content on assistant messages.
-            if compat.requires_reasoning_content_on_assistant_messages == Some(true) && model.reasoning {
+            if compat.requires_reasoning_content_on_assistant_messages == Some(true)
+                && model.reasoning
+                && m.get("reasoning_content").is_none() {
                 m["reasoning_content"] = json!("");
             }
             // Skip empty assistant messages (no content and no tool calls).
