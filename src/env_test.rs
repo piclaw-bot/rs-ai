@@ -46,4 +46,28 @@ mod tests {
         assert_eq!(key, Some("custom-key".into()));
         unsafe { std::env::remove_var("TOTALLY_CUSTOM_PROVIDER_API_KEY"); }
     }
+
+    #[test]
+    fn test_env_map_covers_upstream_providers() {
+        unsafe {
+            std::env::set_var("FIREWORKS_API_KEY", "fw");
+            std::env::set_var("MOONSHOT_API_KEY", "mk");
+            std::env::set_var("TOGETHER_API_KEY", "tg");
+            std::env::set_var("HF_TOKEN", "hf");
+            std::env::set_var("CLOUDFLARE_API_KEY", "cf");
+        }
+        assert_eq!(get_env_api_key("fireworks"), Some("fw".into()));
+        assert_eq!(get_env_api_key("moonshotai"), Some("mk".into()));
+        assert_eq!(get_env_api_key("moonshotai-cn"), Some("mk".into()));
+        assert_eq!(get_env_api_key("together"), Some("tg".into()));
+        assert_eq!(get_env_api_key("huggingface"), Some("hf".into()));
+        assert_eq!(get_env_api_key("cloudflare-ai-gateway"), Some("cf".into()));
+        unsafe {
+            std::env::remove_var("FIREWORKS_API_KEY");
+            std::env::remove_var("MOONSHOT_API_KEY");
+            std::env::remove_var("TOGETHER_API_KEY");
+            std::env::remove_var("HF_TOKEN");
+            std::env::remove_var("CLOUDFLARE_API_KEY");
+        }
+    }
 }
