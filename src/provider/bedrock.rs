@@ -5,12 +5,36 @@ use std::sync::Arc;
 use aws_config::BehaviorVersion;
 use aws_sdk_bedrockruntime::types::{
     ContentBlock as BedrockContent, ConversationRole, Message as BedrockMessage,
-    SystemContentBlock,
+    SystemContentBlock, Tool, ToolConfiguration, ToolInputSchema, ToolResultBlock,
+    ToolResultContentBlock, ToolResultStatus, ToolSpecification, ToolUseBlock,
 };
 use aws_sdk_bedrockruntime::Client as BedrockClient;
+use aws_smithy_types::{Document, Number};
 
 use crate::events::Event;
 use crate::types::*;
+
+/// Convert a serde_json::Value into an AWS smithy Document.
+fn json_to_document(v: &serde_json::Value) -> Document {
+    match v {
+        serde_json::Value::Null => Document::Null,
+        serde_json::Value::Bool(b) => Document::Bool(*b),
+        serde_json::Value::Number(n) => {
+            if let Some(u) = n.as_u64() {
+                Document::Number(Number::PosInt(u))
+            } else if let Some(i) = n.as_i64() {
+                Document::Number(Number::NegInt(i))
+            } else {
+                Document::Number(Number::Float(n.as_f64().unwrap_or(0.0)))
+            }
+        }
+        serde_json::Value::String(s) => Document::String(s.clone()),
+        serde_json::Value::Array(a) => Document::Array(a.iter().map(json_to_document).collect()),
+        serde_json::Value::Object(o) => {
+            Document::Object(o.iter().map(|(k, v)| (k.clone(), json_to_document(v))).collect())
+        }
+    }
+}
 
 /// Start a Bedrock ConverseStream.
 pub fn stream_bedrock<'a>(
@@ -28,12 +52,42 @@ pub fn stream_bedrock<'a>(
                 Role::User | Role::ToolResult => ConversationRole::User,
                 Role::Assistant => ConversationRole::Assistant,
             };
-            let content: Vec<BedrockContent> = msg.content.iter().filter_map(|b| match b {
-                ContentBlock::Text { text, .. } => {
-                    Some(BedrockContent::Text(text.clone()))
+            let mut content: Vec<BedrockContent> = Vec::new();
+            if msg.role == Role::ToolResult {
+                let text = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::Text { text, .. } => Some(text.clone()),
+                    _ => None,
+                }).collect::<Vec<_>>().join("\n");
+                let status = if msg.is_error { ToolResultStatus::Error } else { ToolResultStatus::Success };
+                if let Ok(trb) = ToolResultBlock::builder()
+                    .tool_use_id(msg.tool_call_id.clone().unwrap_or_default())
+                    .content(ToolResultContentBlock::Text(text))
+                    .status(status)
+                    .build()
+                {
+                    content.push(BedrockContent::ToolResult(trb));
                 }
-                _ => None,
-            }).collect();
+            } else {
+                for b in &msg.content {
+                    match b {
+                        ContentBlock::Text { text, .. } => {
+                            content.push(BedrockContent::Text(text.clone()));
+                        }
+                        ContentBlock::ToolCall { id, name, arguments, .. } => {
+                            let args_value = serde_json::to_value(arguments).unwrap_or_else(|_| serde_json::json!({}));
+                            if let Ok(tub) = ToolUseBlock::builder()
+                                .tool_use_id(id.clone())
+                                .name(name.clone())
+                                .input(json_to_document(&args_value))
+                                .build()
+                            {
+                                content.push(BedrockContent::ToolUse(tub));
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            }
             if !content.is_empty() {
                 messages.push(
                     BedrockMessage::builder()
@@ -52,6 +106,23 @@ pub fn stream_bedrock<'a>(
 
         if let Some(ref prompt) = context.system_prompt {
             req = req.system(SystemContentBlock::Text(prompt.clone()));
+        }
+
+        if !context.tools.is_empty() {
+            let mut tool_list = Vec::new();
+            for t in &context.tools {
+                if let Ok(spec) = ToolSpecification::builder()
+                    .name(t.name.clone())
+                    .description(t.description.clone())
+                    .input_schema(ToolInputSchema::Json(json_to_document(&t.parameters)))
+                    .build()
+                {
+                    tool_list.push(Tool::ToolSpec(spec));
+                }
+            }
+            if let Ok(tc) = ToolConfiguration::builder().set_tools(Some(tool_list)).build() {
+                req = req.tool_config(tc);
+            }
         }
 
         let result = req.send().await;
@@ -91,6 +162,10 @@ pub fn stream_bedrock<'a>(
 
         let mut current_text = String::new();
         let mut text_started = false;
+        let mut current_tool_id = String::new();
+        let mut current_tool_name = String::new();
+        let mut current_tool_args = String::new();
+        let mut in_tool_block = false;
 
         let mut recv = output.stream;
         loop {
@@ -98,22 +173,55 @@ pub fn stream_bedrock<'a>(
                 Ok(Some(event)) => {
                     use aws_sdk_bedrockruntime::types::ConverseStreamOutput;
                     match event {
-                        ConverseStreamOutput::ContentBlockStart(_) => {
-                            if !text_started {
+                        ConverseStreamOutput::ContentBlockStart(start) => {
+                            if let Some(aws_sdk_bedrockruntime::types::ContentBlockStart::ToolUse(tu)) = start.start() {
+                                in_tool_block = true;
+                                current_tool_id = tu.tool_use_id().to_string();
+                                current_tool_name = tu.name().to_string();
+                                current_tool_args.clear();
+                                yield Event::ToolCallStart { id: current_tool_id.clone(), name: current_tool_name.clone() };
+                            } else if !text_started {
                                 text_started = true;
                                 yield Event::TextStart;
                             }
                         }
                         ConverseStreamOutput::ContentBlockDelta(delta) => {
                             if let Some(d) = delta.delta() {
-                                if let aws_sdk_bedrockruntime::types::ContentBlockDelta::Text(t) = d {
-                                    current_text.push_str(t);
-                                    yield Event::TextDelta { delta: t.to_string() };
+                                match d {
+                                    aws_sdk_bedrockruntime::types::ContentBlockDelta::Text(t) => {
+                                        current_text.push_str(t);
+                                        yield Event::TextDelta { delta: t.to_string() };
+                                    }
+                                    aws_sdk_bedrockruntime::types::ContentBlockDelta::ToolUse(tu) => {
+                                        let input = tu.input();
+                                        current_tool_args.push_str(input);
+                                        yield Event::ToolCallDelta { delta: input.to_string() };
+                                    }
+                                    _ => {}
                                 }
                             }
                         }
                         ConverseStreamOutput::ContentBlockStop(_) => {
-                            if text_started {
+                            if in_tool_block {
+                                in_tool_block = false;
+                                let parsed = crate::jsonparse::parse_streaming_json(&current_tool_args);
+                                let arguments = match &parsed {
+                                    serde_json::Value::Object(map) => map.clone().into_iter().collect(),
+                                    _ => std::collections::HashMap::new(),
+                                };
+                                partial.content.push(ContentBlock::ToolCall {
+                                    id: current_tool_id.clone(),
+                                    name: current_tool_name.clone(),
+                                    arguments,
+                                    thought_signature: None,
+                                });
+                                yield Event::ToolCallEnd {
+                                    id: std::mem::take(&mut current_tool_id),
+                                    name: std::mem::take(&mut current_tool_name),
+                                    arguments: parsed,
+                                };
+                                current_tool_args.clear();
+                            } else if text_started {
                                 text_started = false;
                                 yield Event::TextEnd;
                             }
@@ -176,7 +284,20 @@ pub(crate) fn format_bedrock_error(message: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::format_bedrock_error;
+    use super::{format_bedrock_error, json_to_document};
+    use aws_smithy_types::{Document, Number};
+
+    #[test]
+    fn test_json_to_document_roundtrip_shapes() {
+        let v = serde_json::json!({"q": "rust", "n": 3, "f": 1.5, "b": true, "arr": [1, 2], "nil": null});
+        let doc = json_to_document(&v);
+        let obj = doc.as_object().expect("object");
+        assert!(matches!(obj.get("q"), Some(Document::String(s)) if s == "rust"));
+        assert!(matches!(obj.get("n"), Some(Document::Number(Number::PosInt(3)))));
+        assert!(matches!(obj.get("b"), Some(Document::Bool(true))));
+        assert!(matches!(obj.get("nil"), Some(Document::Null)));
+        assert!(matches!(obj.get("arr"), Some(Document::Array(a)) if a.len() == 2));
+    }
 
     #[test]
     fn test_format_bedrock_error_adds_retention_hint() {

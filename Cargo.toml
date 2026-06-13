@@ -43,3 +43,6 @@ version = "1"
 
 [dependencies.aws-config]
 version = "1"
+
+[dependencies.aws-smithy-types]
+version = "1"
