@@ -392,6 +392,38 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_empty_tools_when_tool_history_present() {
+        // No current tools, but the conversation has a prior tool call -> send tools: [].
+        let model = test_model("openai-completions", "openai", "https://example.com");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![ContentBlock::ToolCall {
+                    id: "tc1".into(), name: "s".into(),
+                    arguments: std::collections::HashMap::new(), thought_signature: None,
+                }],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::ToolUse), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &StreamOptions::default(), &crate::compat::detect_compat(&model));
+        assert_eq!(payload["tools"], serde_json::json!([]));
+    }
+
+    #[test]
+    fn test_openai_no_tools_field_without_history() {
+        let model = test_model("openai-completions", "openai", "https://example.com");
+        let ctx = test_context();
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &StreamOptions::default(), &crate::compat::detect_compat(&model));
+        assert!(payload.get("tools").is_none());
+    }
+
+    #[test]
     fn test_openai_thinking_signature_replay() {
         let model = Model { reasoning: true, ..test_model("openai-completions", "openai", "https://example.com") };
         let ctx = Context {

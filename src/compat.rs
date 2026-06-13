@@ -18,6 +18,7 @@ pub struct OpenAICompletionsCompat {
     pub supports_strict_mode: Option<bool>,
     pub supports_long_cache_retention: Option<bool>,
     pub supports_session_affinity_headers: Option<bool>,
+    pub zai_tool_stream: Option<bool>,
 }
 
 /// Auto-detect compatibility flags from a model's provider/URL, then overlay any
@@ -47,6 +48,7 @@ fn model_compat_overrides(model: &Model) -> Option<OpenAICompletionsCompat> {
         supports_strict_mode: mc.supports_strict_mode,
         supports_long_cache_retention: mc.supports_long_cache_retention,
         supports_session_affinity_headers: mc.send_session_affinity_headers,
+        zai_tool_stream: mc.zai_tool_stream,
     })
 }
 
@@ -67,6 +69,7 @@ pub fn detect_compat_for_model(model: &Model, overrides: Option<&OpenAICompletio
         if o.supports_strict_mode.is_some() { c.supports_strict_mode = o.supports_strict_mode; }
         if o.supports_long_cache_retention.is_some() { c.supports_long_cache_retention = o.supports_long_cache_retention; }
         if o.supports_session_affinity_headers.is_some() { c.supports_session_affinity_headers = o.supports_session_affinity_headers; }
+        if o.zai_tool_stream.is_some() { c.zai_tool_stream = o.zai_tool_stream; }
     }
     c
 }

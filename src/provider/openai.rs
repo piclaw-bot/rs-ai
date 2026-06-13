@@ -682,6 +682,13 @@ pub(crate) fn build_payload(
             json!({ "type": "function", "function": function })
         }).collect();
         payload["tools"] = json!(tools);
+        if compat.zai_tool_stream == Some(true) {
+            payload["tool_stream"] = json!(true);
+        }
+    } else if has_tool_history(&context.messages) {
+        // Anthropic via LiteLLM/proxy requires a tools param when the conversation
+        // already contains tool_calls/tool_results.
+        payload["tools"] = json!([]);
     }
 
     if let Some(ref tool_choice) = opts.tool_choice {
@@ -689,6 +696,16 @@ pub(crate) fn build_payload(
     }
 
     payload
+}
+
+/// Whether the conversation already contains tool calls or tool results
+/// (mirrors upstream hasToolHistory).
+fn has_tool_history(messages: &[Message]) -> bool {
+    messages.iter().any(|m| {
+        m.role == Role::ToolResult
+            || (m.role == Role::Assistant
+                && m.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { .. })))
+    })
 }
 
 /// Normalize a tool-call ID for OpenAI-compatible APIs (mirrors upstream `normalizeToolCallId`).
