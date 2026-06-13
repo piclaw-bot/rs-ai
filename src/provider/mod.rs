@@ -37,7 +37,7 @@ struct AzureOpenAIResponsesProvider;
 impl ApiProvider for AzureOpenAIResponsesProvider {
     fn api(&self) -> &str { "azure-openai-responses" }
     fn stream<'a>(&self, model: &'a Model, context: &'a Context, opts: &'a StreamOptions) -> std::pin::Pin<Box<dyn Stream<Item = Event> + Send + 'a>> {
-        responses::stream_responses(model, context, opts)
+        responses::stream_azure_responses(model, context, opts)
     }
 }
 

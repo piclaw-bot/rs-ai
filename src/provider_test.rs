@@ -131,6 +131,35 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_azure_responses_uses_api_key_and_version() {
+        use crate::provider::responses::stream_azure_responses;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/responses"))
+            .and(header("api-key", "test-key"))
+            .and(wiremock::matchers::query_param("api-version", "v1"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"type\":\"response.created\",\"response\":{\"id\":\"az-1\",\"model\":\"gpt-5\"}}\n\n\
+                     data: {\"type\":\"response.output_text.delta\",\"delta\":\"hi\"}\n\n\
+                     data: {\"type\":\"response.completed\",\"response\":{\"id\":\"az-1\",\"model\":\"gpt-5\",\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+
+        let model = test_model("azure-openai-responses", "azure-openai-responses", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_azure_responses(&model, &ctx, &opts);
+        let mut text = String::new();
+        while let Some(evt) = stream.next().await {
+            if let Event::TextDelta { delta } = evt { text.push_str(&delta); }
+        }
+        // Only matches if api-key header + api-version query were present.
+        assert_eq!(text, "hi");
+    }
+
+    #[tokio::test]
     async fn test_responses_stream_tool_calls() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

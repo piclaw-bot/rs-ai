@@ -19,6 +19,25 @@ pub fn stream_responses<'a>(
     context: &'a Context,
     opts: &'a StreamOptions,
 ) -> std::pin::Pin<Box<dyn futures::Stream<Item = Event> + Send + 'a>> {
+    stream_responses_inner(model, context, opts, false)
+}
+
+/// Start an Azure OpenAI Responses stream (api-key auth, api-version, session headers,
+/// and Azure reasoning-event normalization).
+pub fn stream_azure_responses<'a>(
+    model: &'a Model,
+    context: &'a Context,
+    opts: &'a StreamOptions,
+) -> std::pin::Pin<Box<dyn futures::Stream<Item = Event> + Send + 'a>> {
+    stream_responses_inner(model, context, opts, true)
+}
+
+fn stream_responses_inner<'a>(
+    model: &'a Model,
+    context: &'a Context,
+    opts: &'a StreamOptions,
+    is_azure: bool,
+) -> std::pin::Pin<Box<dyn futures::Stream<Item = Event> + Send + 'a>> {
     let api_key = resolve_api_key(model, opts);
     if api_key.is_none() {
         let err = Event::Error {
@@ -46,11 +65,34 @@ pub fn stream_responses<'a>(
             }
         }
     }
-    let url = format!("{}/responses", model.base_url.trim_end_matches('/'));
+    let base = model.base_url.trim_end_matches('/');
+    let url = if is_azure {
+        let api_version = std::env::var("AZURE_OPENAI_API_VERSION").unwrap_or_else(|_| "v1".to_string());
+        format!("{}/responses?api-version={}", base, api_version)
+    } else {
+        format!("{}/responses", base)
+    };
 
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
+    if is_azure {
+        if let Ok(val) = HeaderValue::from_str(&api_key) {
+            headers.insert("api-key", val);
+        }
+        // Azure session affinity headers.
+        if let Some(ref session_id) = opts.session_id {
+            for (k, v) in crate::azure::azure_session_headers(session_id) {
+                if let (Ok(name), Ok(val)) = (
+                    reqwest::header::HeaderName::from_bytes(k.as_bytes()),
+                    HeaderValue::from_str(&v),
+                ) {
+                    headers.insert(name, val);
+                }
+            }
+        }
+    } else {
+        headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
+    }
 
     if let Some(ref model_headers) = model.headers {
         for (k, v) in model_headers {
@@ -169,10 +211,13 @@ pub fn stream_responses<'a>(
                     return;
                 }
 
-                let data: Value = match serde_json::from_str(&evt.data) {
+                let mut data: Value = match serde_json::from_str(&evt.data) {
                     Ok(v) => v,
                     Err(_) => continue,
                 };
+                if is_azure {
+                    crate::azure::normalize_azure_reasoning_event(&mut data);
+                }
 
                 let event_type = data.get("type").and_then(|v| v.as_str()).unwrap_or("");
                 match event_type {
