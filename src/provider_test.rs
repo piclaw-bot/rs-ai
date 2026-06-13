@@ -360,7 +360,7 @@ mod tests {
                 content: vec![ContentBlock::ToolCall {
                     id: "tc1".into(),
                     name: "search".into(),
-                    arguments: serde_json::json!({"q": "rust"}),
+                    arguments: std::collections::HashMap::from([("q".to_string(), serde_json::json!("rust"))]),
                     thought_signature: Some("{\"type\":\"reasoning.text\",\"text\":\"why\"}".into()),
                 }],
                 timestamp: 0,
