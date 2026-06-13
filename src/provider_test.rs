@@ -533,6 +533,36 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_assistant_ordering_and_output_text() {
+        let model = test_model("openai-responses", "openai", "https://api.openai.com/v1");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![
+                    ContentBlock::Thinking { thinking: "r".into(), thinking_signature: Some("{\"type\":\"reasoning\",\"id\":\"rs_1\"}".into()), redacted: false },
+                    ContentBlock::Text { text: "answer".into(), text_signature: None },
+                    ContentBlock::ToolCall { id: "call_1|fc_1".into(), name: "t".into(), arguments: std::collections::HashMap::new(), thought_signature: None },
+                ],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::ToolUse), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = crate::provider::responses::build_responses_payload(&model, &ctx, &StreamOptions::default());
+        let input = payload["input"].as_array().unwrap();
+        // Order: reasoning item, then message (output_text), then function_call.
+        assert_eq!(input[0]["type"], "reasoning");
+        assert_eq!(input[1]["type"], "message");
+        assert_eq!(input[1]["content"][0]["type"], "output_text");
+        assert_eq!(input[1]["content"][0]["text"], "answer");
+        assert_eq!(input[2]["type"], "function_call");
+    }
+
+    #[test]
     fn test_responses_build_payload_preserves_tool_history() {
         let model = test_model("openai-responses", "openai", "https://example.com");
         let ctx = Context {

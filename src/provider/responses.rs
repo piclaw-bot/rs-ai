@@ -496,19 +496,22 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
                 }
             }
             Role::Assistant => {
-                let text_parts: Vec<String> = msg.content.iter().filter_map(|b| match b {
-                    ContentBlock::Text { text, .. } => Some(text.clone()),
-                    _ => None,
-                }).collect();
-                if !text_parts.is_empty() {
-                    input.push(json!({"role": "assistant", "content": text_parts.join("\n")}));
-                }
+                // Emit blocks in content order so encrypted reasoning items pair with the
+                // following message/function_call items (matching upstream).
                 for block in &msg.content {
                     match block {
                         ContentBlock::Thinking { thinking_signature: Some(sig), .. } => {
                             if let Ok(v) = serde_json::from_str::<Value>(sig) {
                                 input.push(v);
                             }
+                        }
+                        ContentBlock::Text { text, .. } if !text.trim().is_empty() => {
+                            input.push(json!({
+                                "type": "message",
+                                "role": "assistant",
+                                "content": [{"type": "output_text", "text": text, "annotations": []}],
+                                "status": "completed",
+                            }));
                         }
                         ContentBlock::ToolCall { id, name, arguments, .. } => {
                             let (call_id, item_id) = id.split_once('|').map(|(a,b)| (a.to_string(), Some(b.to_string()))).unwrap_or((id.clone(), None));
