@@ -471,7 +471,7 @@ pub(crate) fn build_mistral_payload(model: &Model, context: &Context, opts: &Str
         let tools: Vec<Value> = context.tools.iter().map(|t| {
             json!({
                 "type": "function",
-                "function": {"name": t.name, "description": t.description, "parameters": t.parameters}
+                "function": {"name": t.name, "description": t.description, "parameters": t.parameters, "strict": false}
             })
         }).collect();
         payload["tools"] = json!(tools);
