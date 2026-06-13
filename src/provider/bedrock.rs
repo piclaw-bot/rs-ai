@@ -240,6 +240,8 @@ pub fn stream_bedrock<'a>(
                                 partial.usage = Some(Usage {
                                     input: u.input_tokens() as u32,
                                     output: u.output_tokens() as u32,
+                                    cache_read: u.cache_read_input_tokens().unwrap_or(0) as u32,
+                                    cache_write: u.cache_write_input_tokens().unwrap_or(0) as u32,
                                     total_tokens: u.total_tokens() as u32,
                                     ..Default::default()
                                 });
