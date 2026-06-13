@@ -26,11 +26,10 @@ pub fn is_context_overflow(msg: &Message, model: &Model) -> bool {
     }
 
     // Check usage vs context window
-    if let Some(ref usage) = msg.usage {
-        if model.context_window > 0 && usage.input + usage.output >= model.context_window {
+    if let Some(ref usage) = msg.usage
+        && model.context_window > 0 && usage.input + usage.output >= model.context_window {
             return true;
         }
-    }
 
     false
 }

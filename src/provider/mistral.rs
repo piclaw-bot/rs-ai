@@ -135,8 +135,8 @@ pub fn stream_mistral<'a>(
                 if let Some(choices) = chunk.get("choices").and_then(|v| v.as_array()) {
                     for choice in choices {
                         if let Some(delta) = choice.get("delta") {
-                            if let Some(content) = delta.get("content").and_then(|v| v.as_str()) {
-                                if !content.is_empty() {
+                            if let Some(content) = delta.get("content").and_then(|v| v.as_str())
+                                && !content.is_empty() {
                                     if !text_started {
                                         text_started = true;
                                         yield Event::TextStart;
@@ -144,27 +144,23 @@ pub fn stream_mistral<'a>(
                                     current_text.push_str(content);
                                     yield Event::TextDelta { delta: content.to_string() };
                                 }
-                            }
                             if let Some(delta_tool_calls) = delta.get("tool_calls").and_then(|v| v.as_array()) {
                                 for tc in delta_tool_calls {
                                     let index = tc.get("index").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
                                     let entry = tool_calls.entry(index).or_insert_with(|| (String::new(), String::new(), String::new()));
-                                    if let Some(id) = tc.get("id").and_then(|v| v.as_str()) {
-                                        if entry.0.is_empty() { entry.0 = id.to_string(); }
-                                    }
+                                    if let Some(id) = tc.get("id").and_then(|v| v.as_str())
+                                        && entry.0.is_empty() { entry.0 = id.to_string(); }
                                     if let Some(func) = tc.get("function") {
-                                        if let Some(name) = func.get("name").and_then(|v| v.as_str()) {
-                                            if entry.1.is_empty() && !name.is_empty() {
+                                        if let Some(name) = func.get("name").and_then(|v| v.as_str())
+                                            && entry.1.is_empty() && !name.is_empty() {
                                                 entry.1 = name.to_string();
                                                 yield Event::ToolCallStart { id: entry.0.clone(), name: entry.1.clone() };
                                             }
-                                        }
-                                        if let Some(args) = func.get("arguments").and_then(|v| v.as_str()) {
-                                            if !args.is_empty() {
+                                        if let Some(args) = func.get("arguments").and_then(|v| v.as_str())
+                                            && !args.is_empty() {
                                                 entry.2.push_str(args);
                                                 yield Event::ToolCallDelta { delta: args.to_string() };
                                             }
-                                        }
                                     }
                                 }
                             }
@@ -195,8 +191,8 @@ pub fn stream_mistral<'a>(
             }
         }
 
-        if let Some(evt) = parser.finish() {
-            if evt.event == sse::EVENT_ERROR {
+        if let Some(evt) = parser.finish()
+            && evt.event == sse::EVENT_ERROR {
                 yield Event::Error {
                     reason: StopReason::Error,
                     error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
@@ -206,7 +202,6 @@ pub fn stream_mistral<'a>(
                 };
                 return;
             }
-        }
 
         if !current_text.is_empty() {
             partial.content.push(ContentBlock::Text {

@@ -87,11 +87,10 @@ pub fn clamp_thinking_level(model: &Model, level: &ModelThinkingLevel) -> ModelT
 /// Map a thinking level to its provider-specific string value.
 pub fn map_thinking_level(model: &Model, level: &ModelThinkingLevel) -> Option<String> {
     let clamped = clamp_thinking_level(model, level);
-    if let Some(ref map) = model.thinking_level_map {
-        if let Some(mapped) = map.get(&clamped.to_string()) {
+    if let Some(ref map) = model.thinking_level_map
+        && let Some(mapped) = map.get(&clamped.to_string()) {
             return mapped.clone();
         }
-    }
     if clamped == ModelThinkingLevel::Off {
         return Some("none".to_string());
     }

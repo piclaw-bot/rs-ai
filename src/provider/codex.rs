@@ -181,12 +181,11 @@ impl CodexWsState {
                             }
                         }
                         "reasoning" => self.events.push(Event::ThinkingStart),
-                        "message" => {
-                            if !self.text_started {
+                        "message"
+                            if !self.text_started => {
                                 self.text_started = true;
                                 self.events.push(Event::TextStart);
                             }
-                        }
                         _ => {}
                     }
                 }

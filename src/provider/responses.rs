@@ -92,11 +92,10 @@ fn stream_responses_inner<'a>(
     } else {
         headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
         // Session affinity request id header (non-Azure).
-        if let Some(ref session_id) = opts.session_id {
-            if let Ok(val) = HeaderValue::from_str(session_id) {
+        if let Some(ref session_id) = opts.session_id
+            && let Ok(val) = HeaderValue::from_str(session_id) {
                 headers.insert("x-client-request-id", val);
             }
-        }
     }
 
     if let Some(ref model_headers) = model.headers {
@@ -390,8 +389,8 @@ fn stream_responses_inner<'a>(
             }
         }
 
-        if let Some(evt) = parser.finish() {
-            if evt.event == sse::EVENT_ERROR {
+        if let Some(evt) = parser.finish()
+            && evt.event == sse::EVENT_ERROR {
                 yield Event::Error {
                     reason: StopReason::Error,
                     error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
@@ -401,7 +400,6 @@ fn stream_responses_inner<'a>(
                 };
                 return;
             }
-        }
 
         if !current_text.is_empty() {
             partial.content.push(ContentBlock::Text {
@@ -544,6 +542,9 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
     }
     if let Some(temp) = opts.temperature {
         payload["temperature"] = json!(temp);
+    }
+    if let Some(ref service_tier) = opts.service_tier {
+        payload["service_tier"] = json!(service_tier);
     }
 
     if let Some(level) = opts.reasoning.as_ref().and_then(|l| crate::simple_options::clamp_reasoning_for_model(model, l)) {

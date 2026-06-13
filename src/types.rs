@@ -313,6 +313,7 @@ pub struct StreamOptions {
     pub reasoning_summary: Option<String>,
     pub thinking_budgets: Option<ThinkingBudgets>,
     pub tool_choice: Option<serde_json::Value>,
+    pub service_tier: Option<String>,
     pub on_payload: Option<PayloadHook>,
     pub on_response: Option<ResponseHook>,
 }
@@ -336,6 +337,7 @@ impl std::fmt::Debug for StreamOptions {
             .field("reasoning", &self.reasoning)
             .field("reasoning_summary", &self.reasoning_summary)
             .field("tool_choice", &self.tool_choice)
+            .field("service_tier", &self.service_tier)
             .field("thinking_budgets", &self.thinking_budgets.as_ref().map(|_| "..."))
             .finish()
     }

@@ -44,11 +44,10 @@ pub fn stream_anthropic<'a>(
         let needs_affinity = model.provider == "fireworks"
             || model.base_url.contains("fireworks.ai")
             || model.base_url.contains("gateway.ai.cloudflare.com");
-        if needs_affinity {
-            if let Ok(val) = HeaderValue::from_str(session_id) {
+        if needs_affinity
+            && let Ok(val) = HeaderValue::from_str(session_id) {
                 headers.insert("x-session-affinity", val);
             }
-        }
     }
 
     if let Some(ref model_headers) = model.headers {
@@ -287,14 +286,12 @@ pub fn stream_anthropic<'a>(
                                 _ => StopReason::Stop,
                             });
                         }
-                        if let Some(usage) = data.get("usage") {
-                            if let Some(output) = usage.get("output_tokens").and_then(|v| v.as_u64()) {
-                                if let Some(ref mut u) = partial.usage {
+                        if let Some(usage) = data.get("usage")
+                            && let Some(output) = usage.get("output_tokens").and_then(|v| v.as_u64())
+                                && let Some(ref mut u) = partial.usage {
                                     u.output = output as u32;
                                     u.total_tokens = u.input + u.output;
                                 }
-                            }
-                        }
                     }
                     "message_stop" => {}
                     _ => {}
@@ -302,8 +299,8 @@ pub fn stream_anthropic<'a>(
             }
         }
 
-        if let Some(evt) = parser.finish() {
-            if evt.event == sse::EVENT_ERROR {
+        if let Some(evt) = parser.finish()
+            && evt.event == sse::EVENT_ERROR {
                 yield Event::Error {
                     reason: StopReason::Error,
                     error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
@@ -313,7 +310,6 @@ pub fn stream_anthropic<'a>(
                 };
                 return;
             }
-        }
 
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
         yield Event::Done { reason, message: partial };
@@ -391,15 +387,12 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
     };
 
     // Apply cache_control to the last content block of the last message.
-    if let Some(ref cc) = cache_control {
-        if let Some(last_msg) = messages.last_mut() {
-            if let Some(blocks) = last_msg.get_mut("content").and_then(|c| c.as_array_mut()) {
-                if let Some(last_block) = blocks.last_mut() {
+    if let Some(ref cc) = cache_control
+        && let Some(last_msg) = messages.last_mut()
+            && let Some(blocks) = last_msg.get_mut("content").and_then(|c| c.as_array_mut())
+                && let Some(last_block) = blocks.last_mut() {
                     last_block["cache_control"] = cc.clone();
                 }
-            }
-        }
-    }
 
     let mut payload = json!({
         "model": model.id,
@@ -419,11 +412,10 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
 
     // Temperature is incompatible with extended thinking.
     let thinking_enabled = opts.reasoning.is_some() && model.reasoning;
-    if let Some(temp) = opts.temperature {
-        if !thinking_enabled {
+    if let Some(temp) = opts.temperature
+        && !thinking_enabled {
             payload["temperature"] = json!(temp);
         }
-    }
 
     // Thinking/reasoning support
     if thinking_enabled {
@@ -440,11 +432,10 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
             })
         }).collect();
         // Cache control on the last tool definition.
-        if let Some(ref cc) = cache_control {
-            if let Some(last) = tools.last_mut() {
+        if let Some(ref cc) = cache_control
+            && let Some(last) = tools.last_mut() {
                 last["cache_control"] = cc.clone();
             }
-        }
         payload["tools"] = json!(tools);
     }
 
@@ -458,11 +449,10 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
     }
 
     // Metadata: only user_id is forwarded (mirrors upstream).
-    if let Some(ref metadata) = opts.metadata {
-        if let Some(user_id) = metadata.get("user_id").and_then(|v| v.as_str()) {
+    if let Some(ref metadata) = opts.metadata
+        && let Some(user_id) = metadata.get("user_id").and_then(|v| v.as_str()) {
             payload["metadata"] = json!({"user_id": user_id});
         }
-    }
 
     payload
 }

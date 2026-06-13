@@ -175,14 +175,13 @@ fn parse_response(raw: &Value, model: &ImagesModel, out: &mut AssistantImages) {
         out.usage = Some(parse_usage(usage, model));
     }
 
-    if let Some(choices) = raw.get("choices").and_then(|v| v.as_array()) {
-        if let Some(choice) = choices.first() {
-            if let Some(msg) = choice.get("message") {
-                if let Some(text) = msg.get("content").and_then(|v| v.as_str()) {
-                    if !text.is_empty() {
+    if let Some(choices) = raw.get("choices").and_then(|v| v.as_array())
+        && let Some(choice) = choices.first()
+            && let Some(msg) = choice.get("message") {
+                if let Some(text) = msg.get("content").and_then(|v| v.as_str())
+                    && !text.is_empty() {
                         out.output.push(ImageOutput::Text { text: text.to_string() });
                     }
-                }
                 if let Some(images) = msg.get("images").and_then(|v| v.as_array()) {
                     for img in images {
                         let url = img.get("image_url")
@@ -190,21 +189,17 @@ fn parse_response(raw: &Value, model: &ImagesModel, out: &mut AssistantImages) {
                             .and_then(|o| o.get("url"))
                             .and_then(|v| v.as_str())
                             .or_else(|| img.get("image_url").and_then(|v| v.as_str()));
-                        if let Some(u) = url {
-                            if let Some(rest) = u.strip_prefix("data:") {
-                                if let Some((mime, data)) = rest.split_once(";base64,") {
+                        if let Some(u) = url
+                            && let Some(rest) = u.strip_prefix("data:")
+                                && let Some((mime, data)) = rest.split_once(";base64,") {
                                     out.output.push(ImageOutput::Image {
                                         data: data.to_string(),
                                         mime_type: mime.to_string(),
                                     });
                                 }
-                            }
-                        }
                     }
                 }
             }
-        }
-    }
 }
 
 fn parse_usage(raw: &Value, model: &ImagesModel) -> Usage {

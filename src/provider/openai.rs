@@ -77,15 +77,13 @@ pub fn stream_openai<'a>(
     }
 
     // Session affinity headers for providers that require them.
-    if let Some(ref session_id) = opts.session_id {
-        if compat.supports_session_affinity_headers == Some(true) {
-            if let Ok(val) = HeaderValue::from_str(session_id) {
+    if let Some(ref session_id) = opts.session_id
+        && compat.supports_session_affinity_headers == Some(true)
+            && let Ok(val) = HeaderValue::from_str(session_id) {
                 headers.insert("session_id", val.clone());
                 headers.insert("x-client-request-id", val.clone());
                 headers.insert("x-session-affinity", val);
             }
-        }
-    }
 
     // Add model-level headers
     if let Some(ref model_headers) = model.headers {
@@ -227,8 +225,8 @@ pub fn stream_openai<'a>(
                             None => continue,
                         };
 
-                        if let Some(content) = delta.get("content").and_then(|v| v.as_str()) {
-                            if !content.is_empty() {
+                        if let Some(content) = delta.get("content").and_then(|v| v.as_str())
+                            && !content.is_empty() {
                                 if !text_started {
                                     text_started = true;
                                     yield Event::TextStart;
@@ -236,12 +234,11 @@ pub fn stream_openai<'a>(
                                 current_text.push_str(content);
                                 yield Event::TextDelta { delta: content.to_string() };
                             }
-                        }
 
                         let reasoning_fields = ["reasoning_content", "reasoning", "reasoning_text"];
                         for field in reasoning_fields {
-                            if let Some(reasoning) = delta.get(field).and_then(|v| v.as_str()) {
-                                if !reasoning.is_empty() {
+                            if let Some(reasoning) = delta.get(field).and_then(|v| v.as_str())
+                                && !reasoning.is_empty() {
                                     if !thinking_started {
                                         thinking_started = true;
                                         current_thinking_signature = Some(field.to_string());
@@ -251,33 +248,29 @@ pub fn stream_openai<'a>(
                                     yield Event::ThinkingDelta { delta: reasoning.to_string() };
                                     break;
                                 }
-                            }
                         }
 
                         if let Some(delta_tool_calls) = delta.get("tool_calls").and_then(|v| v.as_array()) {
                             for tc in delta_tool_calls {
                                 let index = tc.get("index").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
                                 let entry = tool_calls.entry(index).or_insert_with(|| (String::new(), String::new(), String::new()));
-                                if let Some(id) = tc.get("id").and_then(|v| v.as_str()) {
-                                    if entry.0.is_empty() {
+                                if let Some(id) = tc.get("id").and_then(|v| v.as_str())
+                                    && entry.0.is_empty() {
                                         entry.0 = id.to_string();
                                     }
-                                }
                                 if let Some(func) = tc.get("function") {
-                                    if let Some(name) = func.get("name").and_then(|v| v.as_str()) {
-                                        if entry.1.is_empty() {
+                                    if let Some(name) = func.get("name").and_then(|v| v.as_str())
+                                        && entry.1.is_empty() {
                                             entry.1 = name.to_string();
                                             if !entry.1.is_empty() {
                                                 yield Event::ToolCallStart { id: entry.0.clone(), name: entry.1.clone() };
                                             }
                                         }
-                                    }
-                                    if let Some(args) = func.get("arguments").and_then(|v| v.as_str()) {
-                                        if !args.is_empty() {
+                                    if let Some(args) = func.get("arguments").and_then(|v| v.as_str())
+                                        && !args.is_empty() {
                                             entry.2.push_str(args);
                                             yield Event::ToolCallDelta { delta: args.to_string() };
                                         }
-                                    }
                                 }
                             }
                         }
@@ -312,7 +305,7 @@ pub fn stream_openai<'a>(
                                 });
                             }
                             if partial.content.iter().all(|b| !matches!(b, ContentBlock::ToolCall { .. })) {
-                                for (_idx, (id, name, args_json)) in &tool_calls {
+                                for (id, name, args_json) in tool_calls.values() {
                                     let arguments = match crate::jsonparse::parse_streaming_json(args_json) {
                                         serde_json::Value::Object(map) => map.into_iter().collect(),
                                         _ => std::collections::HashMap::new(),
@@ -340,8 +333,8 @@ pub fn stream_openai<'a>(
             }
         }
 
-        if let Some(evt) = parser.finish() {
-            if evt.event == sse::EVENT_ERROR {
+        if let Some(evt) = parser.finish()
+            && evt.event == sse::EVENT_ERROR {
                 yield Event::Error {
                     reason: StopReason::Error,
                     error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
@@ -351,7 +344,6 @@ pub fn stream_openai<'a>(
                 };
                 return;
             }
-        }
 
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
         yield Event::Done { reason, message: partial };
@@ -443,12 +435,11 @@ pub(crate) fn build_payload(
                     ContentBlock::Thinking { thinking, thinking_signature, .. } if !thinking.trim().is_empty() => Some((thinking, thinking_signature)),
                     _ => None,
                 }).collect();
-                if let Some((_, Some(sig))) = thinking_blocks.first() {
-                    if !sig.is_empty() {
+                if let Some((_, Some(sig))) = thinking_blocks.first()
+                    && !sig.is_empty() {
                         let joined = thinking_blocks.iter().map(|(t, _)| t.as_str()).collect::<Vec<_>>().join("\n");
                         m[sig.as_str()] = json!(joined);
                     }
-                }
             }
             // DeepSeek-style providers require reasoning_content on assistant messages.
             if compat.requires_reasoning_content_on_assistant_messages == Some(true)
@@ -467,11 +458,10 @@ pub(crate) fn build_payload(
             if let Some(ref id) = msg.tool_call_id {
                 m["tool_call_id"] = json!(normalize_tool_call_id(id, &model.provider));
             }
-            if compat.requires_tool_result_name == Some(true) {
-                if let Some(ref name) = msg.tool_name {
+            if compat.requires_tool_result_name == Some(true)
+                && let Some(ref name) = msg.tool_name {
                     m["name"] = json!(name);
                 }
-            }
         }
         messages.push(m);
     }
@@ -510,11 +500,10 @@ pub(crate) fn build_payload(
         payload[max_tokens_field] = json!(max);
     }
 
-    if let Some(temp) = opts.temperature {
-        if compat.supports_temperature != Some(false) {
+    if let Some(temp) = opts.temperature
+        && compat.supports_temperature != Some(false) {
             payload["temperature"] = json!(temp);
         }
-    }
 
     // Reasoning/thinking (clamped to the model's supported levels).
     // Mirrors upstream buildParams thinking-format handling, gated on model.reasoning.
@@ -543,19 +532,17 @@ pub(crate) fn build_payload(
             }
             Some("together") => {
                 payload["reasoning"] = json!({"enabled": clamped_effort.is_some()});
-                if let Some(ref level) = clamped_effort {
-                    if compat.supports_reasoning_effort == Some(true) {
+                if let Some(ref level) = clamped_effort
+                    && compat.supports_reasoning_effort == Some(true) {
                         payload["reasoning_effort"] = json!(map_effort(level));
                     }
-                }
             }
             Some("deepseek") => {
                 payload["thinking"] = json!({"type": if clamped_effort.is_some() { "enabled" } else { "disabled" }});
-                if let Some(ref level) = clamped_effort {
-                    if compat.supports_reasoning_effort == Some(true) {
+                if let Some(ref level) = clamped_effort
+                    && compat.supports_reasoning_effort == Some(true) {
                         payload["reasoning_effort"] = json!(map_effort(level));
                     }
-                }
             }
             Some("openrouter") => {
                 if let Some(ref level) = clamped_effort {

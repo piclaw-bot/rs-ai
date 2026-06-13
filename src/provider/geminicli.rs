@@ -151,8 +151,8 @@ pub fn stream_geminicli<'a>(
                         if let Some(parts) = candidate.pointer("/content/parts").and_then(|v| v.as_array()) {
                             for part in parts {
                                 let is_thought = part.get("thought").and_then(|v| v.as_bool()).unwrap_or(false);
-                                if let Some(text) = part.get("text").and_then(|v| v.as_str()) {
-                                    if !text.is_empty() {
+                                if let Some(text) = part.get("text").and_then(|v| v.as_str())
+                                    && !text.is_empty() {
                                         if is_thought {
                                             if !thinking_started {
                                                 thinking_started = true;
@@ -169,7 +169,6 @@ pub fn stream_geminicli<'a>(
                                             yield Event::TextDelta { delta: text.to_string() };
                                         }
                                     }
-                                }
                                 if let Some(fc) = part.get("functionCall") {
                                     let name = fc.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
                                     let args = fc.get("args").cloned().unwrap_or_else(|| serde_json::json!({}));
@@ -211,8 +210,8 @@ pub fn stream_geminicli<'a>(
             }
         }
 
-        if let Some(evt) = parser.finish() {
-            if evt.event == sse::EVENT_ERROR {
+        if let Some(evt) = parser.finish()
+            && evt.event == sse::EVENT_ERROR {
                 yield Event::Error {
                     reason: StopReason::Error,
                     error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
@@ -222,7 +221,6 @@ pub fn stream_geminicli<'a>(
                 };
                 return;
             }
-        }
 
         if !current_thinking.is_empty() {
             partial.content.push(ContentBlock::Thinking {

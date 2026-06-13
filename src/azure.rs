@@ -20,12 +20,11 @@ pub fn normalize_azure_reasoning_event(event: &mut Value) {
         return;
     }
     // Move content → summary
-    if let Some(content) = event.pointer("/item/content").cloned() {
-        if let Some(item) = event.get_mut("item").and_then(|v| v.as_object_mut()) {
+    if let Some(content) = event.pointer("/item/content").cloned()
+        && let Some(item) = event.get_mut("item").and_then(|v| v.as_object_mut()) {
             item.insert("summary".to_string(), content);
             item.remove("content");
         }
-    }
 }
 
 /// Generate Azure session affinity headers.

@@ -98,11 +98,10 @@ pub fn parse_json_with_repair(json: &str) -> Option<Value> {
         return Some(v);
     }
     let repaired = repair_json(json);
-    if repaired != json {
-        if let Ok(v) = serde_json::from_str::<Value>(&repaired) {
+    if repaired != json
+        && let Ok(v) = serde_json::from_str::<Value>(&repaired) {
             return Some(v);
         }
-    }
     None
 }
 

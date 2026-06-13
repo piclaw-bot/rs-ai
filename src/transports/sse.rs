@@ -74,7 +74,7 @@ impl SseParser {
     pub fn finish(&mut self) -> Option<SseEvent> {
         if !self.line_buffer.is_empty() {
             let line = std::mem::take(&mut self.line_buffer);
-            for ev in self.process_line(line.trim_end_matches('\r')) {
+            if let Some(ev) = self.process_line(line.trim_end_matches('\r')).into_iter().next() {
                 return Some(ev);
             }
         }

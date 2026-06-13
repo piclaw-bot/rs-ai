@@ -86,8 +86,8 @@ pub fn resolve_cloudflare_base_url(base_url: &str) -> String {
     let bytes = base_url.as_bytes();
     let mut i = 0;
     while i < base_url.len() {
-        if bytes[i] == b'{' {
-            if let Some(end) = base_url[i + 1..].find('}') {
+        if bytes[i] == b'{'
+            && let Some(end) = base_url[i + 1..].find('}') {
                 let name = &base_url[i + 1..i + 1 + end];
                 if name.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_')
                     && name.chars().next().map(|c| c.is_ascii_uppercase() || c == '_').unwrap_or(false)
@@ -98,7 +98,6 @@ pub fn resolve_cloudflare_base_url(base_url: &str) -> String {
                     continue;
                 }
             }
-        }
         out.push(bytes[i] as char);
         i += 1;
     }
