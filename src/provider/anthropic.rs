@@ -457,6 +457,13 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
         }
     }
 
+    // Metadata: only user_id is forwarded (mirrors upstream).
+    if let Some(ref metadata) = opts.metadata {
+        if let Some(user_id) = metadata.get("user_id").and_then(|v| v.as_str()) {
+            payload["metadata"] = json!({"user_id": user_id});
+        }
+    }
+
     payload
 }
 
