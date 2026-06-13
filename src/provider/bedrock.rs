@@ -497,6 +497,14 @@ pub fn stream_bedrock<'a>(
                                 yield Event::ThinkingEnd;
                             } else if text_started {
                                 text_started = false;
+                                // Finalize this text block in order (Bedrock can interleave
+                                // text/tool/text blocks); don't merge them at stream end.
+                                if !current_text.is_empty() {
+                                    partial.content.push(ContentBlock::Text {
+                                        text: std::mem::take(&mut current_text),
+                                        text_signature: None,
+                                    });
+                                }
                                 yield Event::TextEnd;
                             }
                         }
