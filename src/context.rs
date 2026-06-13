@@ -11,16 +11,36 @@ pub fn is_context_overflow(msg: &Message, model: &Model) -> bool {
         return true;
     }
 
-    // Check if error message mentions context/token limits
+    // Check if the error message matches any known overflow phrasing (mirrors upstream
+    // overflow.js patterns across providers).
     if let Some(ref err) = msg.error_message {
         let lower = err.to_lowercase();
-        if lower.contains("context") && (lower.contains("length") || lower.contains("exceed") || lower.contains("limit"))
-            || lower.contains("maximum context")
-            || lower.contains("token limit")
-            || lower.contains("too many tokens")
-            || lower.contains("reduce the length")
-            || lower.contains("context_length_exceeded")
-        {
+        const NEEDLES: &[&str] = &[
+            "prompt is too long",                 // Anthropic
+            "request_too_large",                  // Anthropic 413
+            "request exceeds the maximum size",   // Anthropic 413
+            "input is too long for requested model", // Bedrock
+            "exceeds the context window",         // OpenAI
+            "maximum context length",             // OpenAI / LiteLLM / OpenRouter / Mistral
+            "maximum prompt length",              // xAI / Grok
+            "reduce the length of the messages",  // Groq
+            "maximum allowed input length",       // OpenRouter / Poolside
+            "context length",                     // Together AI / generic
+            "exceeds the limit of",               // GitHub Copilot
+            "exceeds the available context size", // llama.cpp
+            "greater than the context length",    // LM Studio
+            "context window exceeds limit",       // MiniMax
+            "exceeded model token limit",         // Kimi
+            "too large for model",                // Mistral
+            "model_context_window_exceeded",      // z.ai
+            "prompt too long",                    // Ollama
+            "context_length_exceeded",            // generic
+            "context length exceeded",            // generic
+            "token limit",
+            "too many tokens",
+            "input token count",                  // Google (with "exceeds the maximum")
+        ];
+        if NEEDLES.iter().any(|n| lower.contains(n)) {
             return true;
         }
     }
@@ -83,6 +103,24 @@ mod tests {
         let mut msg = base_msg();
         msg.error_message = Some("context_length_exceeded".into());
         assert!(is_context_overflow(&msg, &test_model()));
+    }
+
+    #[test]
+    fn test_overflow_provider_phrasings() {
+        let cases = [
+            "prompt is too long: 213462 tokens > 200000 maximum",          // Anthropic
+            "Your input exceeds the context window of this model",          // OpenAI
+            "Input length (265330) exceeds model's maximum context length (262144).", // LiteLLM
+            "The input token count (1196265) exceeds the maximum number of tokens allowed", // Google
+            "prompt token count of 50000 exceeds the limit of 8192",        // Copilot
+            "input is too long for requested model",                        // Bedrock
+            "413 request_too_large",                                        // Anthropic 413
+        ];
+        for c in cases {
+            let mut msg = base_msg();
+            msg.error_message = Some(c.to_string());
+            assert!(is_context_overflow(&msg, &test_model()), "should detect overflow: {c}");
+        }
     }
 
     #[test]
