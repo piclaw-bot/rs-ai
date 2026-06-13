@@ -139,6 +139,8 @@ pub fn stream_anthropic<'a>(
         let mut current_tool_id = String::new();
         let mut current_tool_name = String::new();
         let mut current_tool_args = String::new();
+        let mut saw_message_start = false;
+        let mut saw_message_stop = false;
 
         while let Some(chunk_result) = byte_stream.next().await {
             let chunk_bytes = match chunk_result {
@@ -173,6 +175,7 @@ pub fn stream_anthropic<'a>(
                 let event_type = evt.event.as_str();
                 match event_type {
                     "message_start" => {
+                        saw_message_start = true;
                         if let Some(id) = data.pointer("/message/id").and_then(|v| v.as_str()) {
                             partial.response_id = Some(id.to_string());
                         }
@@ -346,7 +349,7 @@ pub fn stream_anthropic<'a>(
                                 u.total_tokens = u.input + u.output + u.cache_read + u.cache_write;
                             }
                     }
-                    "message_stop" => {}
+                    "message_stop" => { saw_message_stop = true; }
                     "error" => {
                         let msg = data.pointer("/error/message").and_then(|v| v.as_str())
                             .map(|s| s.to_string())
@@ -381,6 +384,12 @@ pub fn stream_anthropic<'a>(
 
             crate::simple_options::finalize_usage(model, u);
 
+        }
+
+        // A stream that started but never reached message_stop was truncated (mirrors upstream).
+        if saw_message_start && !saw_message_stop && partial.stop_reason.is_none() {
+            partial.stop_reason = Some(StopReason::Error);
+            partial.error_message = Some("Anthropic stream ended before message_stop".to_string());
         }
 
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);

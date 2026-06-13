@@ -1521,6 +1521,37 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_anthropic_truncated_stream_is_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/messages"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    // message_start + some text, but the stream ends with no message_stop.
+                    "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"m\",\"usage\":{\"input_tokens\":5,\"output_tokens\":0}}}\n\n\
+                     event: content_block_start\ndata: {\"type\":\"content_block_start\",\"content_block\":{\"type\":\"text\"}}\n\n\
+                     event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"hi\"}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("anthropic-messages", "anthropic", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_anthropic(&model, &ctx, &opts);
+        let mut err = None;
+        let mut saw_done = false;
+        while let Some(evt) = stream.next().await {
+            match evt {
+                Event::Error { message, .. } => err = message.and_then(|m| m.error_message),
+                Event::Done { .. } => saw_done = true,
+                _ => {}
+            }
+        }
+        assert_eq!(err.as_deref(), Some("Anthropic stream ended before message_stop"));
+        assert!(!saw_done);
+    }
+
+    #[tokio::test]
     async fn test_anthropic_message_delta_updates_cache_usage() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
