@@ -1559,6 +1559,39 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_anthropic_on_payload_hook_modifies_request() {
+        use std::sync::Arc;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/messages"))
+            .and(wiremock::matchers::body_partial_json(serde_json::json!({"injected": "yes"})))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"m\",\"usage\":{\"input_tokens\":1,\"output_tokens\":0}}}\n\n\
+                     event: message_delta\ndata: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\"}}\n\n\
+                     event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("anthropic-messages", "anthropic", &server.uri());
+        let opts = StreamOptions {
+            on_payload: Some(Arc::new(|mut p: serde_json::Value, _m: &Model| {
+                p["injected"] = serde_json::json!("yes");
+                Ok(p)
+            })),
+            ..Default::default()
+        };
+        let ctx = test_context();
+        let mut stream = stream_anthropic(&model, &ctx, &opts);
+        let mut done = false;
+        while let Some(evt) = stream.next().await {
+            if matches!(evt, Event::Done { .. }) { done = true; }
+        }
+        // The injected field must be present or the wiremock body match fails (no 200 -> no Done).
+        assert!(done);
+    }
+
+    #[tokio::test]
     async fn test_anthropic_truncated_stream_is_error() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

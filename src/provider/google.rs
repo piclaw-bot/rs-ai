@@ -30,7 +30,16 @@ pub fn stream_google<'a>(
     }
     let api_key = api_key.unwrap();
 
-    let payload = build_google_payload(model, context, opts);
+    let mut payload = build_google_payload(model, context, opts);
+    if let Some(ref hook) = opts.on_payload {
+        match hook(payload.clone(), model) {
+            Ok(next) => payload = next,
+            Err(err) => {
+                let err = Event::Error { reason: StopReason::Error, error: Arc::from(err), message: None };
+                return Box::pin(stream::once(async { err }));
+            }
+        }
+    }
     let url = format!(
         "{}/models/{}:streamGenerateContent?alt=sse&key={}",
         model.base_url.trim_end_matches('/'),

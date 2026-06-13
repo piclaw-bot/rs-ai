@@ -60,6 +60,17 @@ pub fn stream_codex<'a>(
     }
     let api_key = api_key.unwrap();
 
+    let mut payload = build_codex_payload(model, context, opts);
+    if let Some(ref hook) = opts.on_payload {
+        match hook(payload.clone(), model) {
+            Ok(next) => payload = next,
+            Err(err) => {
+                let err = Event::Error { reason: StopReason::Error, error: Arc::from(err), message: None };
+                return Box::pin(stream::once(async { err }));
+            }
+        }
+    }
+
     Box::pin(async_stream::stream! {
         // Try WebSocket first, fall back to SSE
         let ws_url = format!(
@@ -74,7 +85,7 @@ pub fn stream_codex<'a>(
         let mut transport_diagnostic: Option<crate::types::AssistantMessageDiagnostic> = None;
         let mut do_sse = skip_ws;
         if !skip_ws {
-            match try_websocket(&ws_url, &api_key, model, context, opts).await {
+            match try_websocket(&ws_url, &api_key, model, opts, &payload).await {
                 Ok(events) => {
                     for evt in events {
                         yield evt;
@@ -104,7 +115,6 @@ pub fn stream_codex<'a>(
         }
         if do_sse {
                 // Fallback to SSE using the Codex request body and headers.
-                let payload = build_codex_payload(model, context, opts);
                 let url = format!("{}/responses", model.base_url.trim_end_matches('/'));
                 let account_id = crate::oauth::codex_account_id(&api_key);
                 let user_agent = format!("pi ({}; {})", std::env::consts::OS, std::env::consts::ARCH);
@@ -202,8 +212,8 @@ async fn try_websocket(
     ws_url: &str,
     api_key: &str,
     model: &Model,
-    context: &Context,
     opts: &StreamOptions,
+    payload: &Value,
 ) -> Result<Vec<Event>, String> {
     use tokio_tungstenite::connect_async;
     use futures::SinkExt;
@@ -237,8 +247,7 @@ async fn try_websocket(
         .map_err(|e| e.to_string())?;
 
     // Send the request payload
-    let payload = build_codex_payload(model, context, opts);
-    ws.send(tungstenite::Message::Text(serde_json::to_string(&payload).unwrap().into()))
+    ws.send(tungstenite::Message::Text(serde_json::to_string(payload).unwrap().into()))
         .await
         .map_err(|e| e.to_string())?;
 
