@@ -1722,6 +1722,36 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_history_cache_breakpoint_only_on_user() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        // Last message is an assistant prefill -> no history cache breakpoint on it.
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![
+                user_message("hi"),
+                Message {
+                    role: Role::Assistant,
+                    content: vec![ContentBlock::Text { text: "partial".into(), text_signature: None }],
+                    timestamp: 0,
+                    api: None, provider: None, model: None, response_id: None,
+                    response_model: None, diagnostics: Vec::new(), usage: None,
+                    stop_reason: Some(StopReason::Stop), error_message: None,
+                    tool_call_id: None, tool_name: None, is_error: false, details: None,
+                },
+            ],
+            tools: vec![],
+        };
+        let payload = build_anthropic_payload(&model, &ctx, &StreamOptions::default());
+        let msgs = payload["messages"].as_array().unwrap();
+        let last = &msgs[msgs.len() - 1];
+        assert_eq!(last["role"], "assistant");
+        assert!(last["content"][0].get("cache_control").is_none());
+        // The user message (not last) also doesn't get the trailing breakpoint.
+        assert!(msgs[0]["content"][0].get("cache_control").is_none());
+    }
+
+    #[test]
     fn test_anthropic_oauth_tool_name_canonicalization() {
         use crate::provider::anthropic::build_anthropic_payload;
         let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");

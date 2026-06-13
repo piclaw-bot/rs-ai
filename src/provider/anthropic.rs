@@ -560,13 +560,18 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
         }
     };
 
-    // Apply cache_control to the last content block of the last message.
+    // Add cache_control to the last user message's last block (text/image/tool_result only),
+    // to cache conversation history (mirrors upstream).
     if let Some(ref cc) = cache_control
         && let Some(last_msg) = messages.last_mut()
-            && let Some(blocks) = last_msg.get_mut("content").and_then(|c| c.as_array_mut())
-                && let Some(last_block) = blocks.last_mut() {
-                    last_block["cache_control"] = cc.clone();
-                }
+        && last_msg.get("role").and_then(|r| r.as_str()) == Some("user")
+        && let Some(blocks) = last_msg.get_mut("content").and_then(|c| c.as_array_mut())
+        && let Some(last_block) = blocks.last_mut() {
+            let block_type = last_block.get("type").and_then(|t| t.as_str());
+            if matches!(block_type, Some("text") | Some("image") | Some("tool_result")) {
+                last_block["cache_control"] = cc.clone();
+            }
+        }
 
     let mut payload = json!({
         "model": model.id,
