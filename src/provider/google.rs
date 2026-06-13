@@ -246,26 +246,84 @@ pub fn build_google_payload_public(model: &Model, context: &Context, opts: &Stre
 }
 
 fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
-    let mut contents = Vec::new();
+    let mut contents: Vec<Value> = Vec::new();
 
     let transformed_messages = crate::transform::transform_messages(&context.messages, model);
 
     for msg in &transformed_messages {
-        let role = match msg.role {
-            Role::User | Role::ToolResult => "user",
-            Role::Assistant => "model",
-        };
-        let parts: Vec<Value> = msg.content.iter().map(|b| match b {
-            ContentBlock::Text { text, .. } => json!({"text": text}),
-            ContentBlock::Image { data, mime_type } => json!({
-                "inlineData": {"mimeType": mime_type, "data": data}
-            }),
-            ContentBlock::Thinking { thinking, .. } => json!({"text": thinking}),
-            ContentBlock::ToolCall { name, arguments, .. } => json!({
-                "functionCall": {"name": name, "args": arguments}
-            }),
-        }).collect();
-        contents.push(json!({"role": role, "parts": parts}));
+        match msg.role {
+            Role::ToolResult => {
+                // Tool results must be sent as functionResponse parts, and consecutive
+                // tool results must be merged into a single user turn (Cloud Code Assist).
+                let text_result = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::Text { text, .. } => Some(text.clone()),
+                    _ => None,
+                }).collect::<Vec<_>>().join("\n");
+                let has_images = model.input.iter().any(|i| i == "image")
+                    && msg.content.iter().any(|b| matches!(b, ContentBlock::Image { .. }));
+                let response_value = if !text_result.is_empty() {
+                    text_result
+                } else if has_images {
+                    "(see attached image)".to_string()
+                } else {
+                    String::new()
+                };
+                let response = if msg.is_error {
+                    json!({"error": response_value})
+                } else {
+                    json!({"output": response_value})
+                };
+                let function_response_part = json!({
+                    "functionResponse": {
+                        "name": msg.tool_name.clone().unwrap_or_default(),
+                        "response": response,
+                    }
+                });
+
+                let merge = contents.last()
+                    .and_then(|c| c.get("role").and_then(|r| r.as_str()).map(|r| r == "user")
+                        .map(|is_user| is_user && c.get("parts").and_then(|p| p.as_array())
+                            .map(|parts| parts.iter().any(|p| p.get("functionResponse").is_some()))
+                            .unwrap_or(false)))
+                    .unwrap_or(false);
+                if merge {
+                    if let Some(parts) = contents.last_mut().and_then(|c| c.get_mut("parts")).and_then(|p| p.as_array_mut()) {
+                        parts.push(function_response_part);
+                    }
+                } else {
+                    contents.push(json!({"role": "user", "parts": [function_response_part]}));
+                }
+            }
+            Role::User => {
+                let parts: Vec<Value> = msg.content.iter().map(|b| match b {
+                    ContentBlock::Text { text, .. } => json!({"text": text}),
+                    ContentBlock::Image { data, mime_type } => json!({
+                        "inlineData": {"mimeType": mime_type, "data": data}
+                    }),
+                    ContentBlock::Thinking { thinking, .. } => json!({"text": thinking}),
+                    ContentBlock::ToolCall { name, arguments, .. } => json!({
+                        "functionCall": {"name": name, "args": arguments}
+                    }),
+                }).collect();
+                if parts.is_empty() { continue; }
+                contents.push(json!({"role": "user", "parts": parts}));
+            }
+            Role::Assistant => {
+                let parts: Vec<Value> = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::Text { text, .. } if !text.trim().is_empty() => Some(json!({"text": text})),
+                    ContentBlock::Image { data, mime_type } => Some(json!({
+                        "inlineData": {"mimeType": mime_type, "data": data}
+                    })),
+                    ContentBlock::Thinking { thinking, .. } if !thinking.trim().is_empty() => Some(json!({"text": thinking})),
+                    ContentBlock::ToolCall { name, arguments, .. } => Some(json!({
+                        "functionCall": {"name": name, "args": arguments}
+                    })),
+                    _ => None,
+                }).collect();
+                if parts.is_empty() { continue; }
+                contents.push(json!({"role": "model", "parts": parts}));
+            }
+        }
     }
 
     let mut payload = json!({"contents": contents});

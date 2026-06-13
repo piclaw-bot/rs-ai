@@ -938,6 +938,36 @@ mod tests {
         assert!(msg.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { id, name, arguments, .. } if id == "tc1" && name == "search" && arguments["q"] == "rust")));
     }
 
+    #[test]
+    fn test_google_tool_result_function_response_merging() {
+        use crate::provider::google::build_google_payload_public;
+        let model = test_model("google-generative-ai", "google", "https://example.com");
+        let tr = |name: &str, txt: &str, err: bool| Message {
+            role: Role::ToolResult,
+            content: vec![ContentBlock::Text { text: txt.into(), text_signature: None }],
+            timestamp: 0,
+            api: None, provider: None, model: None, response_id: None,
+            response_model: None, diagnostics: Vec::new(), usage: None,
+            stop_reason: None, error_message: None,
+            tool_call_id: Some("x".into()), tool_name: Some(name.into()),
+            is_error: err, details: None,
+        };
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![tr("search", "ok", false), tr("calc", "bad", true)],
+            tools: vec![],
+        };
+        let payload = build_google_payload_public(&model, &ctx, &StreamOptions::default());
+        let contents = payload["contents"].as_array().unwrap();
+        // Both function responses merge into a single user turn.
+        assert_eq!(contents.len(), 1);
+        let parts = contents[0]["parts"].as_array().unwrap();
+        assert_eq!(parts.len(), 2);
+        assert_eq!(parts[0]["functionResponse"]["name"], "search");
+        assert_eq!(parts[0]["functionResponse"]["response"]["output"], "ok");
+        assert_eq!(parts[1]["functionResponse"]["response"]["error"], "bad");
+    }
+
     #[tokio::test]
     async fn test_google_stream_function_call() {
         use crate::provider::google::stream_google;
