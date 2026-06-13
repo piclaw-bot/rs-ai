@@ -170,7 +170,8 @@ pub fn stream_google<'a>(
                             for part in parts {
                                 let is_thought = part.get("thought").and_then(|v| v.as_bool()).unwrap_or(false);
                                 if is_thought
-                                    && let Some(sig) = part.get("thoughtSignature").and_then(|v| v.as_str()) {
+                                    && let Some(sig) = part.get("thoughtSignature").and_then(|v| v.as_str())
+                                    && !sig.is_empty() {
                                     current_thinking_signature = Some(sig.to_string());
                                 }
                                 if let Some(text) = part.get("text").and_then(|v| v.as_str())
