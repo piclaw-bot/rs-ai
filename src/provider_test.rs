@@ -649,6 +649,42 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_foreign_tool_call_id_normalized() {
+        // A tool call captured from a different provider/api gets a hashed fc_ item id.
+        let model = test_model("openai-responses", "openai", "https://example.com");
+        let mut msg = Message {
+            role: Role::Assistant,
+            content: vec![ContentBlock::ToolCall {
+                id: "call_1|weird id!".into(),
+                name: "t".into(),
+                arguments: std::collections::HashMap::new(),
+                thought_signature: None,
+            }],
+            timestamp: 0,
+            api: Some("anthropic-messages".into()), provider: Some("anthropic".into()), model: Some("claude".into()),
+            response_id: None, response_model: None, diagnostics: Vec::new(), usage: None,
+            stop_reason: Some(StopReason::ToolUse), error_message: None,
+            tool_call_id: None, tool_name: None, is_error: false, details: None,
+        };
+        let ctx = Context { system_prompt: None, messages: vec![msg.clone()], tools: vec![] };
+        let payload = crate::provider::responses::build_responses_payload(&model, &ctx, &StreamOptions::default());
+        let fc = payload["input"].as_array().unwrap().iter().find(|i| i["type"] == "function_call").unwrap();
+        assert_eq!(fc["call_id"], "call_1");
+        assert!(fc["id"].as_str().unwrap().starts_with("fc_"));
+
+        // Same provider/api but different model -> item id omitted to avoid pairing validation.
+        msg.provider = Some("openai".into());
+        msg.api = Some("openai-responses".into());
+        msg.model = Some("gpt-other".into());
+        if let ContentBlock::ToolCall { id, .. } = &mut msg.content[0] { *id = "call_1|fc_abc".into(); }
+        let ctx = Context { system_prompt: None, messages: vec![msg], tools: vec![] };
+        let payload = crate::provider::responses::build_responses_payload(&model, &ctx, &StreamOptions::default());
+        let fc = payload["input"].as_array().unwrap().iter().find(|i| i["type"] == "function_call").unwrap();
+        assert_eq!(fc["call_id"], "call_1");
+        assert!(fc["id"].is_null());
+    }
+
+    #[test]
     fn test_responses_build_payload_preserves_tool_history() {
         let model = test_model("openai-responses", "openai", "https://example.com");
         let ctx = Context {

@@ -464,6 +464,73 @@ struct ParsedTextSignature {
     phase: Option<String>,
 }
 
+/// Providers whose stored tool-call ids use the Responses `callId|itemId` form.
+fn is_responses_tool_call_provider(provider: &str) -> bool {
+    matches!(provider, "openai" | "openai-codex" | "opencode")
+}
+
+/// Sanitize an id part for the Responses API: keep [A-Za-z0-9_-], cap at 64, trim
+/// trailing underscores (mirrors normalizeIdPart).
+fn normalize_id_part(part: &str) -> String {
+    let sanitized: String = part
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+        .collect();
+    let truncated = if sanitized.len() > 64 { sanitized[..64].to_string() } else { sanitized };
+    truncated.trim_end_matches('_').to_string()
+}
+
+/// Build a foreign-history item id (mirrors buildForeignResponsesItemId).
+fn build_foreign_responses_item_id(item_id: &str) -> String {
+    let s = format!("fc_{}", crate::utils::short_hash(item_id));
+    if s.len() > 64 { s[..64].to_string() } else { s }
+}
+
+/// Resolve the `call_id` and optional item `id` for a Responses `function_call`
+/// item from a stored tool-call id, applying upstream normalizeToolCallId plus the
+/// isDifferentModel item-id omission rule.
+fn responses_function_call_ids(
+    raw_id: &str,
+    model: &Model,
+    src_provider: Option<&str>,
+    src_api: Option<&str>,
+    src_model: Option<&str>,
+) -> (String, Option<String>) {
+    if !is_responses_tool_call_provider(&model.provider) || !raw_id.contains('|') {
+        return (normalize_id_part(raw_id), None);
+    }
+    let (call_part, item_part) = raw_id.split_once('|').unwrap();
+    let call_id = normalize_id_part(call_part);
+    let is_foreign = src_provider != Some(model.provider.as_str()) || src_api != Some(model.api.as_str());
+    let mut item_id = if is_foreign {
+        build_foreign_responses_item_id(item_part)
+    } else {
+        normalize_id_part(item_part)
+    };
+    if !item_id.starts_with("fc_") {
+        item_id = normalize_id_part(&format!("fc_{item_id}"));
+    }
+    // For a different model on the same provider/api, omit the item id to avoid
+    // OpenAI's fc/rs pairing validation.
+    let is_different_model = src_model != Some(model.id.as_str())
+        && src_provider == Some(model.provider.as_str())
+        && src_api == Some(model.api.as_str());
+    if is_different_model && item_id.starts_with("fc_") {
+        return (call_id, None);
+    }
+    (call_id, Some(item_id))
+}
+
+/// Resolve the `call_id` for a Responses `function_call_output` from a stored
+/// tool-call id (normalizeToolCallId then split on `|`).
+fn responses_function_output_call_id(raw_id: &str, model: &Model) -> String {
+    if !is_responses_tool_call_provider(&model.provider) || !raw_id.contains('|') {
+        return normalize_id_part(raw_id);
+    }
+    let (call_part, _) = raw_id.split_once('|').unwrap();
+    normalize_id_part(call_part)
+}
+
 /// Parse a text signature into an item id (and optional phase), mirroring upstream
 /// parseTextSignature: JSON `{v:1,id,phase}` form, else legacy plain-string id.
 fn parse_text_signature(signature: Option<&str>) -> Option<ParsedTextSignature> {
@@ -560,7 +627,13 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
                             input.push(item);
                         }
                         ContentBlock::ToolCall { id, name, arguments, .. } => {
-                            let (call_id, item_id) = id.split_once('|').map(|(a,b)| (a.to_string(), Some(b.to_string()))).unwrap_or((id.clone(), None));
+                            let (call_id, item_id) = responses_function_call_ids(
+                                id,
+                                model,
+                                msg.provider.as_deref(),
+                                msg.api.as_deref(),
+                                msg.model.as_deref(),
+                            );
                             input.push(json!({
                                 "type": "function_call",
                                 "id": item_id,
@@ -586,7 +659,7 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
                     })),
                     _ => None,
                 }).collect();
-                let call_id = msg.tool_call_id.as_deref().and_then(|id| id.split('|').next()).unwrap_or_default();
+                let call_id = msg.tool_call_id.as_deref().map(|id| responses_function_output_call_id(id, model)).unwrap_or_default();
                 if !image_parts.is_empty() {
                     let mut output = Vec::new();
                     if !text_result.is_empty() {
