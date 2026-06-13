@@ -87,7 +87,10 @@ pub fn stream_anthropic<'a>(
 
     Box::pin(async_stream::stream! {
         let client = reqwest::Client::new();
-        let request = client.post(&url).headers(headers).json(&payload);
+        let mut request = client.post(&url).headers(headers).json(&payload);
+        if let Some(ms) = opts.timeout_ms {
+            request = request.timeout(std::time::Duration::from_millis(ms));
+        }
         let retry_cfg = crate::retry::retry_config_from_options(opts);
         let resp = crate::retry::do_with_retry(&client, request, &retry_cfg).await;
 

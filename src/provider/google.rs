@@ -65,6 +65,9 @@ pub fn stream_google<'a>(
     Box::pin(async_stream::stream! {
         let client = reqwest::Client::new();
         let request = client.post(&url).headers(headers).json(&payload);
+        let request = if let Some(ms) = opts.timeout_ms {
+            request.timeout(std::time::Duration::from_millis(ms))
+        } else { request };
         let retry_cfg = crate::retry::retry_config_from_options(opts);
         let resp = crate::retry::do_with_retry(&client, request, &retry_cfg).await;
 

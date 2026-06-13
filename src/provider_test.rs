@@ -1592,6 +1592,30 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_anthropic_timeout_ms_aborts_slow_request() {
+        use std::time::Duration;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/messages"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_delay(Duration::from_millis(800))
+                .set_body_string("event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("anthropic-messages", "anthropic", &server.uri());
+        let opts = StreamOptions { timeout_ms: Some(50), ..Default::default() };
+        let ctx = test_context();
+        let mut stream = stream_anthropic(&model, &ctx, &opts);
+        let mut saw_error = false;
+        while let Some(evt) = stream.next().await {
+            if matches!(evt, Event::Error { .. }) { saw_error = true; }
+        }
+        // A 50ms timeout against an 800ms-delayed response must error.
+        assert!(saw_error);
+    }
+
+    #[tokio::test]
     async fn test_anthropic_on_response_hook_invoked() {
         use std::sync::{Arc, Mutex};
         let server = MockServer::start().await;

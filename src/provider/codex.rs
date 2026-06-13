@@ -138,10 +138,11 @@ pub fn stream_codex<'a>(
                         req = req.header(k, v);
                     }
                 }
-                let resp = req
-                    .json(&payload)
-                    .send()
-                    .await;
+                let mut req = req.json(&payload);
+                if let Some(ms) = opts.timeout_ms {
+                    req = req.timeout(std::time::Duration::from_millis(ms));
+                }
+                let resp = req.send().await;
                 let resp = match resp {
                     Ok(r) => r,
                     Err(e) => {
