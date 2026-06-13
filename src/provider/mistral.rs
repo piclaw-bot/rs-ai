@@ -221,7 +221,7 @@ pub fn stream_mistral<'a>(
                                 yield Event::ThinkingEnd;
                                 thinking_started = false;
                             }
-                            let (stop, err_msg) = crate::simple_options::map_openai_finish_reason(reason);
+                            let (stop, err_msg) = map_mistral_finish_reason(reason);
                             if let Some(msg) = err_msg {
                                 partial.error_message = Some(msg);
                             }
@@ -486,6 +486,17 @@ pub(crate) fn build_mistral_payload(model: &Model, context: &Context, opts: &Str
     payload
 }
 
+/// Map a Mistral chat finish_reason to a stop reason (mirrors mapChatStopReason).
+fn map_mistral_finish_reason(reason: &str) -> (StopReason, Option<String>) {
+    match reason {
+        "stop" => (StopReason::Stop, None),
+        "length" | "model_length" => (StopReason::Length, None),
+        "tool_calls" => (StopReason::ToolUse, None),
+        "error" => (StopReason::Error, None),
+        _ => (StopReason::Stop, None),
+    }
+}
+
 /// Build the text body for a Mistral tool-result message (mirrors upstream buildToolResultText).
 fn build_tool_result_text(text: &str, has_images: bool, supports_images: bool, is_error: bool) -> String {
     let trimmed = text.trim();
@@ -509,4 +520,21 @@ fn build_tool_result_text(text: &str, has_images: bool, supports_images: bool, i
         };
     }
     if is_error { "[tool error] (no tool output)".to_string() } else { "(no tool output)".to_string() }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::map_mistral_finish_reason;
+    use crate::types::StopReason;
+
+    #[test]
+    fn test_map_mistral_finish_reason() {
+        assert!(matches!(map_mistral_finish_reason("stop").0, StopReason::Stop));
+        assert!(matches!(map_mistral_finish_reason("length").0, StopReason::Length));
+        assert!(matches!(map_mistral_finish_reason("model_length").0, StopReason::Length));
+        assert!(matches!(map_mistral_finish_reason("tool_calls").0, StopReason::ToolUse));
+        assert!(matches!(map_mistral_finish_reason("error").0, StopReason::Error));
+        // Unknown reasons fall back to Stop (not Error), unlike the OpenAI mapper.
+        assert!(matches!(map_mistral_finish_reason("weird").0, StopReason::Stop));
+    }
 }
