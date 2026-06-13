@@ -1294,6 +1294,41 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_mistral_streams_thinking_array_content() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"choices":[{"delta":{"content":[{"type":"thinking","thinking":[{"type":"text","text":"pondering"}]}]},"index":0}]}"#,
+                    r#"{"choices":[{"delta":{"content":[{"type":"text","text":"answer"}]},"index":0}]}"#,
+                    r#"{"choices":[{"delta":{},"finish_reason":"stop","index":0}]}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("mistral-conversations", "mistral", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_mistral(&model, &ctx, &opts);
+        let mut thinking = String::new();
+        let mut text = String::new();
+        let mut done: Option<Message> = None;
+        while let Some(evt) = stream.next().await {
+            match evt {
+                Event::ThinkingDelta { delta } => thinking.push_str(&delta),
+                Event::TextDelta { delta } => text.push_str(&delta),
+                Event::Done { message, .. } => done = Some(message),
+                _ => {}
+            }
+        }
+        assert_eq!(thinking, "pondering");
+        assert_eq!(text, "answer");
+        let msg = done.unwrap();
+        assert!(msg.content.iter().any(|b| matches!(b, ContentBlock::Thinking { thinking, .. } if thinking == "pondering")));
+    }
+
+    #[tokio::test]
     async fn test_mistral_stream_tool_calls() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

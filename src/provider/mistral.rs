@@ -95,6 +95,8 @@ pub fn stream_mistral<'a>(
 
         let mut text_started = false;
         let mut current_text = String::new();
+        let mut thinking_started = false;
+        let mut current_thinking = String::new();
         let mut tool_calls: std::collections::BTreeMap<usize, (String, String, String)> = std::collections::BTreeMap::new();
         let mut got_done = false;
 
@@ -138,15 +140,57 @@ pub fn stream_mistral<'a>(
                 if let Some(choices) = chunk.get("choices").and_then(|v| v.as_array()) {
                     for choice in choices {
                         if let Some(delta) = choice.get("delta") {
-                            if let Some(content) = delta.get("content").and_then(|v| v.as_str())
-                                && !content.is_empty() {
+                            // Mistral `content` may be a string or an array of content items
+                            // (text and thinking, used by magistral reasoning models).
+                            match delta.get("content") {
+                                Some(serde_json::Value::String(s)) if !s.is_empty() => {
                                     if !text_started {
                                         text_started = true;
                                         yield Event::TextStart;
                                     }
-                                    current_text.push_str(content);
-                                    yield Event::TextDelta { delta: content.to_string() };
+                                    current_text.push_str(s);
+                                    yield Event::TextDelta { delta: s.clone() };
                                 }
+                                Some(serde_json::Value::Array(items)) => {
+                                    for item in items {
+                                        if let Some(s) = item.as_str() {
+                                            if !s.is_empty() {
+                                                if !text_started { text_started = true; yield Event::TextStart; }
+                                                current_text.push_str(s);
+                                                yield Event::TextDelta { delta: s.to_string() };
+                                            }
+                                            continue;
+                                        }
+                                        match item.get("type").and_then(|v| v.as_str()) {
+                                            Some("text") => {
+                                                if let Some(t) = item.get("text").and_then(|v| v.as_str())
+                                                    && !t.is_empty() {
+                                                        if !text_started { text_started = true; yield Event::TextStart; }
+                                                        current_text.push_str(t);
+                                                        yield Event::TextDelta { delta: t.to_string() };
+                                                }
+                                            }
+                                            Some("thinking") => {
+                                                // `thinking` is a string or an array of {type:text,text}.
+                                                let tt = match item.get("thinking") {
+                                                    Some(serde_json::Value::String(s)) => s.clone(),
+                                                    Some(serde_json::Value::Array(parts)) => parts.iter()
+                                                        .filter_map(|p| p.get("text").and_then(|v| v.as_str()).or_else(|| p.as_str()))
+                                                        .collect::<Vec<_>>().join(""),
+                                                    _ => String::new(),
+                                                };
+                                                if !tt.is_empty() {
+                                                    if !thinking_started { thinking_started = true; yield Event::ThinkingStart; }
+                                                    current_thinking.push_str(&tt);
+                                                    yield Event::ThinkingDelta { delta: tt };
+                                                }
+                                            }
+                                            _ => {}
+                                        }
+                                    }
+                                }
+                                _ => {}
+                            }
                             if let Some(delta_tool_calls) = delta.get("tool_calls").and_then(|v| v.as_array()) {
                                 for tc in delta_tool_calls {
                                     let index = tc.get("index").and_then(|v| v.as_u64()).unwrap_or(0) as usize;
@@ -172,6 +216,10 @@ pub fn stream_mistral<'a>(
                             if text_started {
                                 yield Event::TextEnd;
                                 text_started = false;
+                            }
+                            if thinking_started {
+                                yield Event::ThinkingEnd;
+                                thinking_started = false;
                             }
                             let (stop, err_msg) = crate::simple_options::map_openai_finish_reason(reason);
                             if let Some(msg) = err_msg {
@@ -203,6 +251,13 @@ pub fn stream_mistral<'a>(
                 return;
             }
 
+        if !current_thinking.is_empty() && !partial.content.iter().any(|b| matches!(b, ContentBlock::Thinking { .. })) {
+            partial.content.push(ContentBlock::Thinking {
+                thinking: current_thinking,
+                thinking_signature: None,
+                redacted: false,
+            });
+        }
         if !current_text.is_empty() {
             partial.content.push(ContentBlock::Text {
                 text: current_text,
