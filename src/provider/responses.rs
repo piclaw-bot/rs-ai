@@ -31,6 +31,24 @@ pub fn stream_azure_responses<'a>(
     stream_responses_inner(model, context, opts, true)
 }
 
+/// Resolve the Azure deployment name from AZURE_OPENAI_DEPLOYMENT_NAME_MAP
+/// ("modelId=deployment,..."), defaulting to the model id (mirrors resolveDeploymentName).
+fn resolve_azure_deployment(model_id: &str) -> String {
+    resolve_azure_deployment_from_map(std::env::var("AZURE_OPENAI_DEPLOYMENT_NAME_MAP").ok().as_deref(), model_id)
+}
+
+pub(crate) fn resolve_azure_deployment_from_map(map_str: Option<&str>, model_id: &str) -> String {
+    if let Some(map_str) = map_str {
+        for entry in map_str.split(',') {
+            if let Some((mid, dep)) = entry.split_once('=')
+                && mid.trim() == model_id {
+                return dep.trim().to_string();
+            }
+        }
+    }
+    model_id.to_string()
+}
+
 fn stream_responses_inner<'a>(
     model: &'a Model,
     context: &'a Context,
@@ -51,6 +69,11 @@ fn stream_responses_inner<'a>(
     let api_key = api_key.unwrap();
 
     let mut payload = build_responses_payload(model, context, opts);
+    if is_azure {
+        // Azure's request `model` field is the deployment name (mapped via
+        // AZURE_OPENAI_DEPLOYMENT_NAME_MAP, else the model id). Mirrors resolveDeploymentName.
+        payload["model"] = json!(resolve_azure_deployment(&model.id));
+    }
     if let Some(ref hook) = opts.on_payload {
         match hook(payload.clone(), model) {
             Ok(next) => payload = next,

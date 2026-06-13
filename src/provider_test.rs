@@ -221,6 +221,20 @@ mod tests {
         assert_eq!(text, "hi");
     }
 
+    #[test]
+    fn test_resolve_azure_deployment_from_map() {
+        use crate::provider::responses::resolve_azure_deployment_from_map;
+        // No map -> model id.
+        assert_eq!(resolve_azure_deployment_from_map(None, "gpt-5"), "gpt-5");
+        // Mapped -> deployment name.
+        assert_eq!(
+            resolve_azure_deployment_from_map(Some("gpt-5=my-deploy, gpt-4o=other"), "gpt-5"),
+            "my-deploy"
+        );
+        // Unmapped id with a map present -> falls back to model id.
+        assert_eq!(resolve_azure_deployment_from_map(Some("gpt-4o=other"), "gpt-5"), "gpt-5");
+    }
+
     #[tokio::test]
     async fn test_responses_failed_event_extracts_error_code_message() {
         use crate::provider::responses::stream_responses;
