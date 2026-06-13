@@ -266,7 +266,7 @@ mod tests {
     #[test]
     fn test_adjust_max_tokens_basic() {
         let budgets = default_thinking_budgets();
-        let (max, budget) = adjust_max_tokens_for_thinking(4096, 32000, &ThinkingLevel::High, &budgets);
+        let (max, budget) = adjust_max_tokens_for_thinking(Some(4096), 32000, &ThinkingLevel::High, &budgets);
         assert!(max <= 32000);
         assert!(budget > 0);
         assert!(budget <= 16384); // high budget capped at 16384
@@ -275,7 +275,7 @@ mod tests {
     #[test]
     fn test_adjust_max_tokens_capped() {
         let budgets = default_thinking_budgets();
-        let (max, budget) = adjust_max_tokens_for_thinking(4096, 8000, &ThinkingLevel::High, &budgets);
+        let (max, budget) = adjust_max_tokens_for_thinking(Some(4096), 8000, &ThinkingLevel::High, &budgets);
         assert!(max <= 8000);
         assert!(budget < 16384); // capped by model limit
     }

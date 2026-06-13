@@ -108,7 +108,7 @@ mod tests {
     #[test]
     fn test_adjust_max_tokens() {
         let budgets = default_thinking_budgets();
-        let (max, budget) = adjust_max_tokens_for_thinking(4096, 16384, &ThinkingLevel::Medium, &budgets);
+        let (max, budget) = adjust_max_tokens_for_thinking(Some(4096), 16384, &ThinkingLevel::Medium, &budgets);
         assert!(max <= 16384);
         assert!(budget > 0);
         assert!(budget <= max);

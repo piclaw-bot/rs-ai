@@ -1775,6 +1775,34 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_budget_selects_level_and_adjusts_max_tokens() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        model.reasoning = true;
+        model.max_tokens = 64000;
+        let ctx = Context { system_prompt: None, messages: vec![user_message("hi")], tools: vec![] };
+        // Explicit max_tokens=4096, low reasoning -> budget 2048 (default low), max_tokens = 4096+2048.
+        let opts = StreamOptions {
+            reasoning: Some(ThinkingLevel::Low),
+            max_tokens: Some(4096),
+            ..Default::default()
+        };
+        let payload = build_anthropic_payload(&model, &ctx, &opts);
+        assert_eq!(payload["thinking"]["budget_tokens"], 2048);
+        assert_eq!(payload["max_tokens"], 4096 + 2048);
+
+        // Medium -> budget 8192 (proves level selection, not always-medium-or-high).
+        let opts = StreamOptions {
+            reasoning: Some(ThinkingLevel::Medium),
+            max_tokens: Some(4096),
+            ..Default::default()
+        };
+        let payload = build_anthropic_payload(&model, &ctx, &opts);
+        assert_eq!(payload["thinking"]["budget_tokens"], 8192);
+        assert_eq!(payload["max_tokens"], 4096 + 8192);
+    }
+
+    #[test]
     fn test_anthropic_oauth_identity_system_block() {
         use crate::provider::anthropic::build_anthropic_payload;
         let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");

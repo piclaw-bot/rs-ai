@@ -644,7 +644,20 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
                 let effort = map_anthropic_effort(model, opts.reasoning.as_ref());
                 payload["output_config"] = json!({"effort": effort});
             } else {
-                let budget = opts.thinking_budgets.as_ref().and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)).unwrap_or(1024);
+                // Budget-based thinking: select the budget by the requested level and adjust
+                // max_tokens to fit thinking + output (mirrors adjustMaxTokensForThinking).
+                let mut budgets_map = std::collections::HashMap::new();
+                if let Some(b) = opts.thinking_budgets.as_ref() {
+                    if let Some(v) = b.minimal { budgets_map.insert(ThinkingLevel::Minimal, v); }
+                    if let Some(v) = b.low { budgets_map.insert(ThinkingLevel::Low, v); }
+                    if let Some(v) = b.medium { budgets_map.insert(ThinkingLevel::Medium, v); }
+                    if let Some(v) = b.high { budgets_map.insert(ThinkingLevel::High, v); }
+                }
+                let level = opts.reasoning.clone().unwrap_or(ThinkingLevel::Medium);
+                let (adj_max, budget) = crate::simple_options::adjust_max_tokens_for_thinking(
+                    opts.max_tokens, model.max_tokens, &level, &budgets_map,
+                );
+                payload["max_tokens"] = json!(adj_max);
                 payload["thinking"] = json!({"type": "enabled", "budget_tokens": budget, "display": display});
             }
         } else {

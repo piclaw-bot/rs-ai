@@ -240,21 +240,22 @@ pub fn supports_xhigh(model: &Model) -> bool {
 
 /// Adjust max tokens for thinking budget.
 pub fn adjust_max_tokens_for_thinking(
-    base_max_tokens: u32,
+    base_max_tokens: Option<u32>,
     model_max_tokens: u32,
     level: &ThinkingLevel,
     budgets: &std::collections::HashMap<ThinkingLevel, u32>,
 ) -> (u32, u32) {
     let clamped = clamp_reasoning(level);
-    let thinking_budget = budgets.get(&clamped).copied()
+    let mut thinking_budget = budgets.get(&clamped).copied()
         .unwrap_or_else(|| default_thinking_budgets().get(&clamped).copied().unwrap_or(8192));
-    
-    let mut max_tokens = base_max_tokens + thinking_budget;
-    if model_max_tokens > 0 && max_tokens > model_max_tokens {
-        max_tokens = model_max_tokens;
-    }
+    // No explicit caller cap -> use the model cap; otherwise fit thinking inside base+budget.
+    let max_tokens = match base_max_tokens {
+        None => model_max_tokens,
+        Some(base) => (base + thinking_budget).min(model_max_tokens),
+    };
     let min_output = 1024u32;
-    let available = max_tokens.saturating_sub(min_output);
-    let final_budget = thinking_budget.min(available);
-    (max_tokens, final_budget)
+    if max_tokens <= thinking_budget {
+        thinking_budget = max_tokens.saturating_sub(min_output);
+    }
+    (max_tokens, thinking_budget)
 }
