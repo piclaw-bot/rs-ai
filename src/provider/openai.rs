@@ -335,17 +335,18 @@ pub fn stream_openai<'a>(
                                 partial.error_message = Some(msg);
                             }
                             partial.stop_reason = Some(stop.clone());
-                            if !current_text.is_empty() && !partial.content.iter().any(|b| matches!(b, ContentBlock::Text { .. })) {
-                                partial.content.push(ContentBlock::Text {
-                                    text: current_text.clone(),
-                                    text_signature: None,
-                                });
-                            }
+                            // reasoning_content streams before content, so emit Thinking first.
                             if !current_thinking.is_empty() && !partial.content.iter().any(|b| matches!(b, ContentBlock::Thinking { .. })) {
                                 partial.content.push(ContentBlock::Thinking {
                                     thinking: current_thinking.clone(),
                                     thinking_signature: current_thinking_signature.clone(),
                                     redacted: false,
+                                });
+                            }
+                            if !current_text.is_empty() && !partial.content.iter().any(|b| matches!(b, ContentBlock::Text { .. })) {
+                                partial.content.push(ContentBlock::Text {
+                                    text: current_text.clone(),
+                                    text_signature: None,
                                 });
                             }
                             if partial.content.iter().all(|b| !matches!(b, ContentBlock::ToolCall { .. })) {
