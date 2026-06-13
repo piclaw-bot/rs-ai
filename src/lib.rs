@@ -16,6 +16,8 @@
 //! }
 //! ```
 
+#![allow(clippy::items_after_test_module)]
+
 pub mod types;
 pub mod events;
 pub mod registry;

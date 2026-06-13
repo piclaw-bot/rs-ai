@@ -199,5 +199,6 @@ mod tests {
     fn test_crate_compiles() {
         // If this test runs, the entire crate (including all providers,
         // images, transports, etc.) compiled successfully.
-        assert!(true);
+        let compiled = std::mem::size_of::<crate::types::Message>() > 0;
+        assert!(compiled);
     }
