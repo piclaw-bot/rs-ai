@@ -528,12 +528,12 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
         Some(CacheRetention::None) => {}
         Some(CacheRetention::Short) => {
             if let Some(ref session_id) = opts.session_id {
-                payload["prompt_cache_key"] = json!(session_id);
+                payload["prompt_cache_key"] = json!(crate::prompt_cache::clamp_openai_prompt_cache_key(session_id));
             }
         }
         Some(CacheRetention::Long) => {
             if let Some(ref session_id) = opts.session_id {
-                payload["prompt_cache_key"] = json!(session_id);
+                payload["prompt_cache_key"] = json!(crate::prompt_cache::clamp_openai_prompt_cache_key(session_id));
             }
             if compat.supports_long_cache_retention != Some(false) {
                 payload["prompt_cache_retention"] = json!("24h");

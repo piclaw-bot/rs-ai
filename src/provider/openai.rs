@@ -49,7 +49,7 @@ pub fn stream_openai<'a>(
         }
     }
 
-    let url = format!("{}/chat/completions", model.base_url.trim_end_matches('/'));
+    let url = format!("{}/chat/completions", crate::utils::resolve_cloudflare_base_url(model.base_url.trim_end_matches('/')).trim_end_matches('/'));
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     headers.insert("Accept", HeaderValue::from_static("text/event-stream"));

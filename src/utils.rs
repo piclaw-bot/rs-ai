@@ -76,9 +76,33 @@ pub fn is_cloudflare_provider(provider: &str) -> bool {
     provider == "cloudflare-workers-ai" || provider == "cloudflare-ai-gateway"
 }
 
-/// Resolve Cloudflare base URL (pass-through; Cloudflare uses standard paths).
+/// Resolve a Cloudflare base URL, substituting `{ENV_VAR}` placeholders from the
+/// environment (mirrors upstream `resolveCloudflareBaseUrl`).
 pub fn resolve_cloudflare_base_url(base_url: &str) -> String {
-    base_url.to_string()
+    if !base_url.contains('{') {
+        return base_url.to_string();
+    }
+    let mut out = String::with_capacity(base_url.len());
+    let bytes = base_url.as_bytes();
+    let mut i = 0;
+    while i < base_url.len() {
+        if bytes[i] == b'{' {
+            if let Some(end) = base_url[i + 1..].find('}') {
+                let name = &base_url[i + 1..i + 1 + end];
+                if name.chars().all(|c| c.is_ascii_uppercase() || c.is_ascii_digit() || c == '_')
+                    && name.chars().next().map(|c| c.is_ascii_uppercase() || c == '_').unwrap_or(false)
+                {
+                    let value = std::env::var(name).unwrap_or_default();
+                    out.push_str(&value);
+                    i = i + 1 + end + 1;
+                    continue;
+                }
+            }
+        }
+        out.push(bytes[i] as char);
+        i += 1;
+    }
+    out
 }
 
 /// Format a thrown/panic value as a string (Rust equivalent: just Display).

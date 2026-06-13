@@ -224,6 +224,23 @@ mod tests {
     }
 
     #[test]
+    fn test_resolve_cloudflare_base_url_substitutes_env() {
+        unsafe { std::env::set_var("RS_AI_TEST_ACCT", "acct123"); }
+        let resolved = resolve_cloudflare_base_url("https://gateway.ai.cloudflare.com/v1/{RS_AI_TEST_ACCT}/openai");
+        assert_eq!(resolved, "https://gateway.ai.cloudflare.com/v1/acct123/openai");
+        // No placeholders -> pass-through.
+        assert_eq!(resolve_cloudflare_base_url("https://example.com"), "https://example.com");
+        unsafe { std::env::remove_var("RS_AI_TEST_ACCT"); }
+    }
+
+    #[test]
+    fn test_clamp_prompt_cache_key_char_safe() {
+        let long = "é".repeat(100); // multi-byte chars; must not panic
+        let clamped = crate::prompt_cache::clamp_openai_prompt_cache_key(&long);
+        assert_eq!(clamped.chars().count(), 64);
+    }
+
+    #[test]
     fn test_copilot_headers_structure() {
         let h = copilot_headers();
         assert!(h.contains_key("User-Agent"));
