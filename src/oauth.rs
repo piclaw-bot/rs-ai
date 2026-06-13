@@ -184,6 +184,78 @@ pub const CODEX_CLIENT_ID: &str = "app_EMoamEEZ73f0CkXaXp7hrann";
 /// OpenAI Codex OAuth token endpoint.
 pub const CODEX_TOKEN_URL: &str = "https://auth.openai.com/oauth/token";
 const CODEX_JWT_CLAIM_PATH: &str = "https://api.openai.com/auth";
+/// OpenAI Codex OAuth authorize endpoint.
+pub const CODEX_AUTHORIZE_URL: &str = "https://auth.openai.com/oauth/authorize";
+/// OpenAI Codex OAuth scope.
+pub const CODEX_SCOPE: &str = "openid profile email offline_access";
+/// Default OpenAI Codex loopback redirect URI.
+pub const CODEX_REDIRECT_URI: &str = "http://localhost:1455/auth/callback";
+
+/// Build the OpenAI Codex authorization URL (mirrors createAuthorizationFlow).
+pub fn build_codex_authorize_url(challenge: &str, state: &str, redirect_uri: &str, originator: &str) -> String {
+    let params = [
+        ("response_type", "code"),
+        ("client_id", CODEX_CLIENT_ID),
+        ("redirect_uri", redirect_uri),
+        ("scope", CODEX_SCOPE),
+        ("code_challenge", challenge),
+        ("code_challenge_method", "S256"),
+        ("state", state),
+        ("id_token_add_organizations", "true"),
+        ("codex_cli_simplified_flow", "true"),
+        ("originator", originator),
+    ];
+    let query = params
+        .iter()
+        .map(|(k, v)| format!("{}={}", k, url_encode(v)))
+        .collect::<Vec<_>>()
+        .join("&");
+    format!("{CODEX_AUTHORIZE_URL}?{query}")
+}
+
+/// Exchange an OpenAI Codex authorization code for credentials (mirrors
+/// exchangeAuthorizationCodeForCredentials).
+pub async fn exchange_codex_code(code: &str, verifier: &str, redirect_uri: &str) -> Result<CodexCredentials, String> {
+    exchange_codex_code_at(CODEX_TOKEN_URL, code, verifier, redirect_uri).await
+}
+
+/// Exchange against an explicit token endpoint (used for testing).
+pub async fn exchange_codex_code_at(token_url: &str, code: &str, verifier: &str, redirect_uri: &str) -> Result<CodexCredentials, String> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post(token_url)
+        .form(&[
+            ("grant_type", "authorization_code"),
+            ("client_id", CODEX_CLIENT_ID),
+            ("code", code),
+            ("code_verifier", verifier),
+            ("redirect_uri", redirect_uri),
+        ])
+        .send()
+        .await
+        .map_err(|e| format!("OpenAI Codex token exchange error: {e}"))?;
+    let status = resp.status();
+    let body = resp.text().await.map_err(|e| format!("OpenAI Codex token exchange error: {e}"))?;
+    if !status.is_success() {
+        return Err(format!("OpenAI Codex token exchange failed ({status}): {body}"));
+    }
+    let data: serde_json::Value = serde_json::from_str(&body)
+        .map_err(|e| format!("OpenAI Codex token exchange invalid JSON: body={body}; details={e}"))?;
+    let access = data.get("access_token").and_then(|v| v.as_str())
+        .ok_or_else(|| format!("OpenAI Codex token exchange response missing fields: {body}"))?.to_string();
+    let refresh = data.get("refresh_token").and_then(|v| v.as_str()).map(|s| s.to_string());
+    let expires_in = data.get("expires_in").and_then(|v| v.as_i64())
+        .ok_or_else(|| format!("OpenAI Codex token exchange response missing fields: {body}"))?;
+    let account_id = decode_jwt_payload(&access)
+        .and_then(|p| p.get(CODEX_JWT_CLAIM_PATH).and_then(|a| a.get("chatgpt_account_id")).and_then(|v| v.as_str()).map(|s| s.to_string()))
+        .ok_or_else(|| "Failed to extract accountId from token".to_string())?;
+    Ok(CodexCredentials {
+        access,
+        refresh,
+        expires_at_ms: crate::utils::now_millis() + expires_in * 1000,
+        account_id,
+    })
+}
 
 /// Refreshed Codex credentials (includes the ChatGPT account id from the JWT).
 #[derive(Debug, Clone)]
@@ -592,5 +664,40 @@ mod tests {
         let tok = exchange_anthropic_code_at(&url, "the-code", "st", "v", "http://localhost:53692/callback").await.unwrap();
         assert_eq!(tok.access, "acc");
         assert_eq!(tok.refresh.as_deref(), Some("ref"));
+    }
+
+    #[test]
+    fn test_build_codex_authorize_url() {
+        let url = build_codex_authorize_url("CHAL", "ST", CODEX_REDIRECT_URI, "pi");
+        assert!(url.starts_with("https://auth.openai.com/oauth/authorize?"));
+        assert!(url.contains("client_id=app_EMoamEEZ73f0CkXaXp7hrann"));
+        assert!(url.contains("scope=openid%20profile%20email%20offline_access"));
+        assert!(url.contains("code_challenge_method=S256"));
+        assert!(url.contains("id_token_add_organizations=true"));
+        assert!(url.contains("codex_cli_simplified_flow=true"));
+        assert!(url.contains("originator=pi"));
+        assert!(url.contains("redirect_uri=http%3A%2F%2Flocalhost%3A1455%2Fauth%2Fcallback"));
+    }
+
+    #[tokio::test]
+    async fn test_exchange_codex_code() {
+        use base64::Engine;
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+        use wiremock::matchers::{method, path};
+        let payload = serde_json::json!({"https://api.openai.com/auth": {"chatgpt_account_id": "acc_9"}});
+        let payload_b64 = base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(serde_json::to_vec(&payload).unwrap());
+        let jwt = format!("h.{payload_b64}.s");
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/oauth/token"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(format!(
+                r#"{{"access_token":"{jwt}","refresh_token":"r","expires_in":3600}}"#
+            )))
+            .mount(&server)
+            .await;
+        let url = format!("{}/oauth/token", server.uri());
+        let creds = exchange_codex_code_at(&url, "code", "verifier", CODEX_REDIRECT_URI).await.unwrap();
+        assert_eq!(creds.account_id, "acc_9");
+        assert_eq!(creds.refresh.as_deref(), Some("r"));
     }
 }
