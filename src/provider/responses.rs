@@ -540,5 +540,9 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
         payload["tools"] = json!(tools);
     }
 
+    if let Some(ref tool_choice) = opts.tool_choice {
+        payload["tool_choice"] = tool_choice.clone();
+    }
+
     payload
 }

@@ -268,6 +268,36 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_zai_thinking_format() {
+        let model = Model { reasoning: true, ..test_model("openai-completions", "zai", "https://z.ai/api") };
+        let ctx = test_context();
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &opts, &crate::compat::detect_compat(&model));
+        // zai must use a thinking object, not enable_thinking.
+        assert_eq!(payload["thinking"]["type"], "enabled");
+        assert!(payload.get("enable_thinking").is_none());
+    }
+
+    #[test]
+    fn test_openai_deepseek_thinking_object() {
+        let model = Model { reasoning: true, ..test_model("openai-completions", "deepseek", "https://api.deepseek.com") };
+        let ctx = test_context();
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &opts, &crate::compat::detect_compat(&model));
+        assert_eq!(payload["thinking"]["type"], "enabled");
+        assert_eq!(payload["reasoning_effort"], "high");
+    }
+
+    #[test]
+    fn test_openai_tool_choice_passthrough() {
+        let model = test_model("openai-completions", "openai", "https://example.com");
+        let ctx = test_context();
+        let opts = StreamOptions { tool_choice: Some(serde_json::json!("required")), ..Default::default() };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &opts, &crate::compat::detect_compat(&model));
+        assert_eq!(payload["tool_choice"], "required");
+    }
+
+    #[test]
     fn test_openai_reasoning_dropped_for_non_reasoning_model() {
         // test_model has reasoning: false → supported levels = [off] → reasoning clamped away.
         let model = test_model("openai-completions", "deepseek", "https://api.deepseek.com");

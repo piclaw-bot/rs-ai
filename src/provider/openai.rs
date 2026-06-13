@@ -442,8 +442,14 @@ pub(crate) fn build_payload(
         "model": model.id,
         "messages": messages,
         "stream": true,
-        "stream_options": { "include_usage": true },
     });
+
+    if compat.supports_usage_in_streaming != Some(false) {
+        payload["stream_options"] = json!({ "include_usage": true });
+    }
+    if compat.supports_store == Some(true) {
+        payload["store"] = json!(false);
+    }
 
     if let Some(ref session_id) = opts.session_id {
         payload["sessionId"] = json!(session_id);
@@ -477,28 +483,61 @@ pub(crate) fn build_payload(
         }
     }
 
-    // Reasoning/thinking (clamped to the model's supported levels)
-    if let Some(level) = opts.reasoning.as_ref().and_then(|l| crate::simple_options::clamp_reasoning_for_model(model, l)) {
-        let level = &level;
+    // Reasoning/thinking (clamped to the model's supported levels).
+    // Mirrors upstream buildParams thinking-format handling, gated on model.reasoning.
+    let clamped_effort = opts.reasoning.as_ref().and_then(|l| crate::simple_options::clamp_reasoning_for_model(model, l));
+    if model.reasoning {
+        let map_effort = |level: &ThinkingLevel| -> String {
+            let key = format!("{:?}", level).to_lowercase();
+            model.thinking_level_map.as_ref()
+                .and_then(|m| m.get(&key))
+                .and_then(|v| v.clone())
+                .unwrap_or(key)
+        };
+        let off_value = || -> Option<String> {
+            match model.thinking_level_map.as_ref().and_then(|m| m.get("off")) {
+                Some(Some(s)) => Some(s.clone()),
+                Some(None) => None,           // explicitly disabled
+                None => Some("none".to_string()),
+            }
+        };
         match compat.thinking_format.as_deref() {
-            Some("openrouter") => {
-                payload["reasoning"] = json!({"effort": format!("{:?}", level).to_lowercase()});
-            }
-            Some("deepseek") => {
-                payload["reasoning_effort"] = json!(format!("{:?}", level).to_lowercase());
-            }
             Some("zai") => {
-                payload["enable_thinking"] = json!(true);
+                payload["thinking"] = json!({"type": if clamped_effort.is_some() { "enabled" } else { "disabled" }});
             }
             Some("qwen") => {
-                payload["enable_thinking"] = json!(true);
+                payload["enable_thinking"] = json!(clamped_effort.is_some());
+            }
+            Some("deepseek") => {
+                payload["thinking"] = json!({"type": if clamped_effort.is_some() { "enabled" } else { "disabled" }});
+                if let Some(ref level) = clamped_effort {
+                    if compat.supports_reasoning_effort == Some(true) {
+                        payload["reasoning_effort"] = json!(map_effort(level));
+                    }
+                }
+            }
+            Some("openrouter") => {
+                if let Some(ref level) = clamped_effort {
+                    payload["reasoning"] = json!({"effort": map_effort(level)});
+                } else if let Some(off) = off_value() {
+                    payload["reasoning"] = json!({"effort": off});
+                }
             }
             Some("ant-ling") => {
-                payload["reasoning"] = json!({"effort": format!("{:?}", level).to_lowercase()});
+                if let Some(ref level) = clamped_effort {
+                    let key = format!("{:?}", level).to_lowercase();
+                    if let Some(Some(mapped)) = model.thinking_level_map.as_ref().map(|m| m.get(&key).cloned().flatten()) {
+                        payload["reasoning"] = json!({"effort": mapped});
+                    }
+                }
             }
             _ => {
                 if compat.supports_reasoning_effort == Some(true) {
-                    payload["reasoning_effort"] = json!(format!("{:?}", level).to_lowercase());
+                    if let Some(ref level) = clamped_effort {
+                        payload["reasoning_effort"] = json!(map_effort(level));
+                    } else if let Some(Some(off)) = model.thinking_level_map.as_ref().map(|m| m.get("off").cloned().flatten()) {
+                        payload["reasoning_effort"] = json!(off);
+                    }
                 }
             }
         }
@@ -506,17 +545,23 @@ pub(crate) fn build_payload(
 
     // Tools
     if !context.tools.is_empty() {
+        let include_strict = compat.supports_strict_mode != Some(false);
         let tools: Vec<Value> = context.tools.iter().map(|t| {
-            json!({
-                "type": "function",
-                "function": {
-                    "name": t.name,
-                    "description": t.description,
-                    "parameters": t.parameters,
-                }
-            })
+            let mut function = json!({
+                "name": t.name,
+                "description": t.description,
+                "parameters": t.parameters,
+            });
+            if include_strict {
+                function["strict"] = json!(false);
+            }
+            json!({ "type": "function", "function": function })
         }).collect();
         payload["tools"] = json!(tools);
+    }
+
+    if let Some(ref tool_choice) = opts.tool_choice {
+        payload["tool_choice"] = tool_choice.clone();
     }
 
     payload
