@@ -395,8 +395,26 @@ fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) 
                     match effort.as_str() { "minimal" => "MINIMAL", "low" => "LOW", "medium" => "MEDIUM", _ => "HIGH" }
                 };
                 thinking_config["thinkingLevel"] = json!(tl);
-            } else if let Some(budget) = opts.thinking_budgets.as_ref()
-                .and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)) {
+            } else {
+                // Budget-based models: per-effort custom budget, else model-specific
+                // defaults, else -1 (dynamic). Mirrors upstream getGoogleBudget.
+                let custom = opts.thinking_budgets.as_ref().and_then(|b| match effort.as_str() {
+                    "minimal" => b.minimal,
+                    "low" => b.low,
+                    "medium" => b.medium,
+                    _ => b.high,
+                }).map(|v| v as i64);
+                let budget = custom.unwrap_or_else(|| {
+                    if id.contains("2.5-pro") {
+                        match effort.as_str() { "minimal" => 128, "low" => 2048, "medium" => 8192, _ => 32768 }
+                    } else if id.contains("2.5-flash-lite") {
+                        match effort.as_str() { "minimal" => 512, "low" => 2048, "medium" => 8192, _ => 24576 }
+                    } else if id.contains("2.5-flash") {
+                        match effort.as_str() { "minimal" => 128, "low" => 2048, "medium" => 8192, _ => 24576 }
+                    } else {
+                        -1
+                    }
+                });
                 thinking_config["thinkingBudget"] = json!(budget);
             }
             config["thinkingConfig"] = thinking_config;
