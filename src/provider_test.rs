@@ -726,6 +726,54 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_responses_incomplete_status_is_length() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/responses"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"type\":\"response.created\",\"response\":{\"id\":\"r1\",\"model\":\"gpt-5\"}}\n\n\
+                     data: {\"type\":\"response.output_text.delta\",\"delta\":\"hi\"}\n\n\
+                     data: {\"type\":\"response.completed\",\"response\":{\"id\":\"r1\",\"model\":\"gpt-5\",\"status\":\"incomplete\",\"incomplete_details\":{\"reason\":\"max_output_tokens\"}}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("openai-responses", "openai", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_responses(&model, &ctx, &opts);
+        let mut reason = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { reason: r, .. } = evt { reason = Some(r); }
+        }
+        assert_eq!(reason, Some(StopReason::Length));
+    }
+
+    #[tokio::test]
+    async fn test_responses_failed_status_is_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/responses"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"type\":\"response.created\",\"response\":{\"id\":\"r1\",\"model\":\"gpt-5\"}}\n\n\
+                     data: {\"type\":\"response.completed\",\"response\":{\"id\":\"r1\",\"model\":\"gpt-5\",\"status\":\"failed\",\"error\":{\"message\":\"internal\"}}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("openai-responses", "openai", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_responses(&model, &ctx, &opts);
+        let mut saw_error = false;
+        let mut saw_done = false;
+        while let Some(evt) = stream.next().await {
+            match evt { Event::Error { .. } => saw_error = true, Event::Done { .. } => saw_done = true, _ => {} }
+        }
+        assert!(saw_error && !saw_done);
+    }
+
+    #[tokio::test]
     async fn test_responses_error_event_emits_error() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

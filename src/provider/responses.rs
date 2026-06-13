@@ -366,7 +366,7 @@ fn stream_responses_inner<'a>(
                             }
                         }
                     }
-                    "response.completed" => {
+                    "response.completed" | "response.incomplete" => {
                         if let Some(response) = data.get("response") {
                             if let Some(model_name) = response.get("model").and_then(|v| v.as_str()) {
                                 partial.response_model = Some(model_name.to_string());
@@ -374,11 +374,28 @@ fn stream_responses_inner<'a>(
                             if let Some(usage) = response.get("usage") {
                                 partial.usage = Some(crate::simple_options::parse_responses_usage(usage, model));
                             }
-                            partial.stop_reason = Some(if partial.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { .. })) {
-                                StopReason::ToolUse
-                            } else {
-                                StopReason::Stop
-                            });
+                            // Map response.status, then upgrade to tool-use when tool calls are present.
+                            let status = response.get("status").and_then(|v| v.as_str()).unwrap_or("completed");
+                            let mut reason = match status {
+                                "completed" | "in_progress" | "queued" => StopReason::Stop,
+                                "incomplete" => StopReason::Length,
+                                "failed" | "cancelled" => StopReason::Error,
+                                _ => StopReason::Stop,
+                            };
+                            if reason == StopReason::Error {
+                                let detail = response.pointer("/incomplete_details/reason").and_then(|v| v.as_str())
+                                    .or_else(|| response.pointer("/error/message").and_then(|v| v.as_str()))
+                                    .unwrap_or(status);
+                                partial.error_message = Some(format!("response {}: {}", status, detail));
+                            } else if status == "incomplete"
+                                && let Some(d) = response.pointer("/incomplete_details/reason").and_then(|v| v.as_str()) {
+                                    partial.error_message = Some(format!("incomplete: {}", d));
+                            }
+                            if reason != StopReason::Error
+                                && partial.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { .. })) {
+                                reason = StopReason::ToolUse;
+                            }
+                            partial.stop_reason = Some(reason);
                         }
                     }
                     "error" | "response.failed" => {
@@ -420,8 +437,22 @@ fn stream_responses_inner<'a>(
                 text_signature: None,
             });
         }
-        let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
-        yield Event::Done { reason, message: partial };
+        match partial.stop_reason.clone() {
+            Some(StopReason::Error) => {
+                let msg = partial.error_message.clone().unwrap_or_else(|| "Provider returned an error stop reason".to_string());
+                yield Event::Error {
+                    reason: StopReason::Error,
+                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                    message: Some(partial),
+                };
+            }
+            Some(reason) => {
+                yield Event::Done { reason, message: partial };
+            }
+            None => {
+                yield Event::Done { reason: StopReason::Stop, message: partial };
+            }
+        }
     })
 }
 
