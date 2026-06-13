@@ -1265,6 +1265,20 @@ mod tests {
     }
 
     #[test]
+    fn test_google_disables_thinking_when_no_reasoning() {
+        use crate::provider::google::build_google_payload_public;
+        // Gemini 2.x -> thinkingBudget 0
+        let m1 = Model { id: "gemini-2.5-pro".into(), reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
+        let ctx = test_context();
+        let p1 = build_google_payload_public(&m1, &ctx, &StreamOptions::default());
+        assert_eq!(p1["generationConfig"]["thinkingConfig"]["thinkingBudget"], 0);
+        // Gemini 3 pro -> thinkingLevel LOW
+        let m2 = Model { id: "gemini-3-pro".into(), reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
+        let p2 = build_google_payload_public(&m2, &ctx, &StreamOptions::default());
+        assert_eq!(p2["generationConfig"]["thinkingConfig"]["thinkingLevel"], "LOW");
+    }
+
+    #[test]
     fn test_google_gemini3_uses_thinking_level() {
         use crate::provider::google::build_google_payload_public;
         let model = Model { id: "gemini-3-pro".into(), reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
