@@ -477,8 +477,9 @@ pub(crate) fn build_payload(
         }
     }
 
-    // Reasoning/thinking
-    if let Some(ref level) = opts.reasoning {
+    // Reasoning/thinking (clamped to the model's supported levels)
+    if let Some(level) = opts.reasoning.as_ref().and_then(|l| crate::simple_options::clamp_reasoning_for_model(model, l)) {
+        let level = &level;
         match compat.thinking_format.as_deref() {
             Some("openrouter") => {
                 payload["reasoning"] = json!({"effort": format!("{:?}", level).to_lowercase()});

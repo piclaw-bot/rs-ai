@@ -132,6 +132,28 @@ pub fn clamp_reasoning(level: &ThinkingLevel) -> ThinkingLevel {
     }
 }
 
+/// Clamp a requested reasoning level to what the model actually supports.
+///
+/// Returns `None` when the level clamps to `off` (reasoning disabled), mirroring
+/// upstream's `reasoningEffort = clampedReasoning === "off" ? undefined`.
+pub fn clamp_reasoning_for_model(model: &Model, level: &ThinkingLevel) -> Option<ThinkingLevel> {
+    let requested = match level {
+        ThinkingLevel::Minimal => ModelThinkingLevel::Minimal,
+        ThinkingLevel::Low => ModelThinkingLevel::Low,
+        ThinkingLevel::Medium => ModelThinkingLevel::Medium,
+        ThinkingLevel::High => ModelThinkingLevel::High,
+        ThinkingLevel::XHigh => ModelThinkingLevel::XHigh,
+    };
+    match clamp_thinking_level(model, &requested) {
+        ModelThinkingLevel::Off => None,
+        ModelThinkingLevel::Minimal => Some(ThinkingLevel::Minimal),
+        ModelThinkingLevel::Low => Some(ThinkingLevel::Low),
+        ModelThinkingLevel::Medium => Some(ThinkingLevel::Medium),
+        ModelThinkingLevel::High => Some(ThinkingLevel::High),
+        ModelThinkingLevel::XHigh => Some(ThinkingLevel::XHigh),
+    }
+}
+
 /// Check if a model supports xhigh thinking.
 pub fn supports_xhigh(model: &Model) -> bool {
     get_supported_thinking_levels(model)

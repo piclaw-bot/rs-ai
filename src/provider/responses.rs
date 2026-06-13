@@ -519,7 +519,7 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
         payload["temperature"] = json!(temp);
     }
 
-    if let Some(ref level) = opts.reasoning {
+    if let Some(level) = opts.reasoning.as_ref().and_then(|l| crate::simple_options::clamp_reasoning_for_model(model, l)) {
         payload["reasoning"] = json!({
             "effort": format!("{:?}", level).to_lowercase(),
             "summary": opts.reasoning_summary.clone().unwrap_or_else(|| "auto".to_string()),
