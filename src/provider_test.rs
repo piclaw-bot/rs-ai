@@ -1162,6 +1162,29 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_redacted_thinking_payload_roundtrip() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let model = test_model("anthropic-messages", "anthropic", "https://example.com");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![ContentBlock::Thinking { thinking: "[Reasoning redacted]".into(), thinking_signature: Some("opaque-blob".into()), redacted: true }],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::Stop), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = build_anthropic_payload(&model, &ctx, &StreamOptions::default());
+        let block = &payload["messages"][0]["content"][0];
+        assert_eq!(block["type"], "redacted_thinking");
+        assert_eq!(block["data"], "opaque-blob");
+    }
+
+    #[test]
     fn test_anthropic_oauth_identity_system_block() {
         use crate::provider::anthropic::build_anthropic_payload;
         let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");

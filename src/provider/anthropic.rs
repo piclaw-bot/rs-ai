@@ -208,6 +208,12 @@ pub fn stream_anthropic<'a>(
                                 current_thinking_signature = None;
                                 yield Event::ThinkingStart;
                             }
+                            "redacted_thinking" => {
+                                // Opaque, safety-redacted reasoning. Capture the data for replay.
+                                current_thinking.clear();
+                                current_thinking_signature = data.pointer("/content_block/data").and_then(|v| v.as_str()).map(|s| s.to_string());
+                                yield Event::ThinkingStart;
+                            }
                             "tool_use" => {
                                 current_tool_id = data.pointer("/content_block/id").and_then(|v| v.as_str()).unwrap_or("").to_string();
                                 current_tool_name = data.pointer("/content_block/name").and_then(|v| v.as_str()).unwrap_or("").to_string();
@@ -266,6 +272,14 @@ pub fn stream_anthropic<'a>(
                                     thinking: std::mem::take(&mut current_thinking),
                                     thinking_signature: current_thinking_signature.take(),
                                     redacted: false,
+                                });
+                            }
+                            "redacted_thinking" => {
+                                yield Event::ThinkingEnd;
+                                partial.content.push(ContentBlock::Thinking {
+                                    thinking: "[Reasoning redacted]".to_string(),
+                                    thinking_signature: current_thinking_signature.take(),
+                                    redacted: true,
                                 });
                             }
                             "tool_use" => {
@@ -410,12 +424,17 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
                 "type": "image",
                 "source": {"type": "base64", "media_type": mime_type, "data": data}
             }),
-            ContentBlock::Thinking { thinking, thinking_signature, .. } => {
-                let mut block = json!({"type": "thinking", "thinking": thinking});
-                if let Some(sig) = thinking_signature {
-                    block["signature"] = json!(sig);
+            ContentBlock::Thinking { thinking, thinking_signature, redacted } => {
+                if *redacted {
+                    // Send the opaque payload back as redacted_thinking.
+                    json!({"type": "redacted_thinking", "data": thinking_signature.clone().unwrap_or_default()})
+                } else {
+                    let mut block = json!({"type": "thinking", "thinking": thinking});
+                    if let Some(sig) = thinking_signature {
+                        block["signature"] = json!(sig);
+                    }
+                    block
                 }
-                block
             }
             ContentBlock::ToolCall { id, name, arguments, .. } => json!({
                 "type": "tool_use", "id": id, "name": name, "input": arguments
