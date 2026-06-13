@@ -167,6 +167,15 @@ fn build_payload(model: &ImagesModel, context: &ImagesContext) -> Value {
 }
 
 fn parse_response(raw: &Value, model: &ImagesModel, out: &mut AssistantImages) {
+    // Surface in-band error objects (some providers return 200 with an error body).
+    if let Some(err) = raw.get("error") {
+        let msg = err.get("message").and_then(|v| v.as_str())
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| err.to_string());
+        out.stop_reason = StopReason::Error;
+        out.error_message = Some(msg);
+        return;
+    }
     if let Some(id) = raw.get("id").and_then(|v| v.as_str()) {
         out.response_id = Some(id.to_string());
     }
@@ -213,19 +222,21 @@ fn parse_usage(raw: &Value, model: &ImagesModel) -> Usage {
     let input = prompt.saturating_sub(cache_read + cache_write);
 
     let m = 1_000_000.0;
+    let cost = CostBreakdown {
+        input: f64::from(input) * model.cost.input / m,
+        output: f64::from(completion) * model.cost.output / m,
+        cache_read: f64::from(cache_read) * model.cost.cache_read / m,
+        cache_write: f64::from(cache_write) * model.cost.cache_write / m,
+        total: 0.0,
+    };
+    let total = cost.input + cost.output + cost.cache_read + cost.cache_write;
     Usage {
         input,
         output: completion,
         cache_read,
         cache_write,
         total_tokens: input + completion + cache_read + cache_write,
-        cost: CostBreakdown {
-            input: f64::from(input) * model.cost.input / m,
-            output: f64::from(completion) * model.cost.output / m,
-            cache_read: f64::from(cache_read) * model.cost.cache_read / m,
-            cache_write: f64::from(cache_write) * model.cost.cache_write / m,
-            total: 0.0, // computed below
-        },
+        cost: CostBreakdown { total, ..cost },
     }
 }
 
@@ -234,4 +245,47 @@ fn chrono_timestamp() -> i64 {
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap_or_default()
         .as_millis() as i64
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::types::ModelCost;
+
+    fn img_model() -> ImagesModel {
+        ImagesModel {
+            id: "m".into(), name: "M".into(), api: "openrouter-images".into(),
+            provider: "openrouter".into(), base_url: "https://example.com".into(),
+            input: vec!["text".into()], output: vec!["image".into()],
+            cost: ModelCost { input: 3.0, output: 15.0, cache_read: 0.3, cache_write: 0.0 },
+        }
+    }
+
+    #[test]
+    fn test_parse_usage_computes_total_cost() {
+        let raw = serde_json::json!({
+            "prompt_tokens": 1000, "completion_tokens": 200,
+            "prompt_tokens_details": { "cached_tokens": 400 }
+        });
+        let usage = parse_usage(&raw, &img_model());
+        assert_eq!(usage.cache_read, 400);
+        assert_eq!(usage.input, 600);
+        // total must be non-zero and equal the sum of components
+        let expected = usage.cost.input + usage.cost.output + usage.cost.cache_read + usage.cost.cache_write;
+        assert!(usage.cost.total > 0.0);
+        assert!((usage.cost.total - expected).abs() < 1e-9);
+    }
+
+    #[test]
+    fn test_parse_response_surfaces_error() {
+        let raw = serde_json::json!({ "error": { "message": "content policy" } });
+        let mut out = AssistantImages {
+            api: "openrouter-images".into(), provider: "openrouter".into(), model: "m".into(),
+            output: Vec::new(), stop_reason: StopReason::Stop, timestamp: 0,
+            response_id: None, usage: None, error_message: None,
+        };
+        parse_response(&raw, &img_model(), &mut out);
+        assert_eq!(out.stop_reason, StopReason::Error);
+        assert_eq!(out.error_message.as_deref(), Some("content policy"));
+    }
 }
