@@ -313,8 +313,6 @@ pub(crate) fn build_mistral_payload(model: &Model, context: &Context, opts: &Str
 
     if let Some(max) = opts.max_tokens {
         payload["max_tokens"] = json!(max);
-    } else if model.max_tokens > 0 {
-        payload["max_tokens"] = json!(model.max_tokens);
     }
     if let Some(temp) = opts.temperature {
         payload["temperature"] = json!(temp);

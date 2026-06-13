@@ -543,8 +543,6 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
 
     if let Some(max) = opts.max_tokens {
         payload["max_output_tokens"] = json!(max);
-    } else if model.max_tokens > 0 {
-        payload["max_output_tokens"] = json!(model.max_tokens);
     }
     if let Some(temp) = opts.temperature {
         payload["temperature"] = json!(temp);

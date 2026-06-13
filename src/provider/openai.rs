@@ -500,8 +500,6 @@ pub(crate) fn build_payload(
 
     if let Some(max) = opts.max_tokens {
         payload[max_tokens_field] = json!(max);
-    } else if model.max_tokens > 0 {
-        payload[max_tokens_field] = json!(model.max_tokens);
     }
 
     if let Some(temp) = opts.temperature {

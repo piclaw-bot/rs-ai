@@ -335,8 +335,6 @@ fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) 
     let mut config = json!({});
     if let Some(max) = opts.max_tokens {
         config["maxOutputTokens"] = json!(max);
-    } else if model.max_tokens > 0 {
-        config["maxOutputTokens"] = json!(model.max_tokens);
     }
     if let Some(temp) = opts.temperature {
         config["temperature"] = json!(temp);
