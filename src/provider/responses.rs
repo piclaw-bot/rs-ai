@@ -479,7 +479,7 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
                         ContentBlock::Text { text, .. } => input.push(json!({"role": "user", "content": text})),
                         ContentBlock::Image { data, mime_type } => input.push(json!({
                             "role": "user",
-                            "content": [{"type": "input_image", "image_url": format!("data:{};base64,{}", mime_type, data)}]
+                            "content": [{"type": "input_image", "detail": "auto", "image_url": format!("data:{};base64,{}", mime_type, data)}]
                         })),
                         _ => {}
                     }
@@ -487,7 +487,7 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
                     let parts: Vec<Value> = msg.content.iter().filter_map(|b| match b {
                         ContentBlock::Text { text, .. } => Some(json!({"type": "input_text", "text": text})),
                         ContentBlock::Image { data, mime_type } => Some(json!({
-                            "type": "input_image", "image_url": format!("data:{};base64,{}", mime_type, data)
+                            "type": "input_image", "detail": "auto", "image_url": format!("data:{};base64,{}", mime_type, data)
                         })),
                         _ => None,
                     }).collect();
