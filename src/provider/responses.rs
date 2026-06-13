@@ -457,10 +457,17 @@ fn stream_responses_inner<'a>(
 }
 
 pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
+    let compat = detect_compat(model);
     let mut input = Vec::new();
 
     if let Some(ref prompt) = context.system_prompt {
-        input.push(json!({"role": "system", "content": prompt}));
+        // Reasoning models use the developer role (matching upstream).
+        let role = if model.reasoning && compat.supports_developer_role != Some(false) {
+            "developer"
+        } else {
+            "system"
+        };
+        input.push(json!({"role": role, "content": prompt}));
     }
 
     let transformed_messages = crate::transform::transform_messages(&context.messages, model);
@@ -553,7 +560,6 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
         }
     }
 
-    let compat = detect_compat(model);
     let mut payload = json!({
         "model": model.id,
         "input": input,

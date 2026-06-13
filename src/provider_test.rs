@@ -686,6 +686,18 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_reasoning_model_uses_developer_role() {
+        let model = Model { reasoning: true, ..test_model("openai-responses", "openai", "https://api.openai.com/v1") };
+        let ctx = Context { system_prompt: Some("sys".into()), messages: vec![user_message("hi")], tools: vec![] };
+        let payload = crate::provider::responses::build_responses_payload(&model, &ctx, &StreamOptions::default());
+        assert_eq!(payload["input"][0]["role"], "developer");
+        // Non-reasoning model uses system.
+        let model2 = Model { reasoning: false, ..test_model("openai-responses", "openai", "https://api.openai.com/v1") };
+        let payload2 = crate::provider::responses::build_responses_payload(&model2, &ctx, &StreamOptions::default());
+        assert_eq!(payload2["input"][0]["role"], "system");
+    }
+
+    #[test]
     fn test_responses_build_payload_includes_cache_and_store_flags() {
         let model = test_model("openai-responses", "openai", "https://api.openai.com/v1");
         let ctx = test_context();
