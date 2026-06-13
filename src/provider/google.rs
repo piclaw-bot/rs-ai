@@ -235,6 +235,9 @@ pub fn stream_google<'a>(
                 thought_signature: None,
             });
         }
+        if let Some(ref mut u) = partial.usage {
+            crate::simple_options::finalize_usage(model, u);
+        }
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
         yield Event::Done { reason, message: partial };
     })

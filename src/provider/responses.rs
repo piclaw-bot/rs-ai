@@ -372,12 +372,7 @@ fn stream_responses_inner<'a>(
                                 partial.response_model = Some(model_name.to_string());
                             }
                             if let Some(usage) = response.get("usage") {
-                                partial.usage = Some(Usage {
-                                    input: usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                                    output: usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                                    total_tokens: usage.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                                    ..Default::default()
-                                });
+                                partial.usage = Some(crate::simple_options::parse_responses_usage(usage, model));
                             }
                             partial.stop_reason = Some(if partial.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { .. })) {
                                 StopReason::ToolUse

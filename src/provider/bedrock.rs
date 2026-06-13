@@ -263,6 +263,9 @@ pub fn stream_bedrock<'a>(
         if !current_text.is_empty() {
             partial.content.push(ContentBlock::Text { text: current_text, text_signature: None });
         }
+        if let Some(ref mut u) = partial.usage {
+            crate::simple_options::finalize_usage(model, u);
+        }
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
         yield Event::Done { reason, message: partial };
     })

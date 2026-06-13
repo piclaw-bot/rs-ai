@@ -183,12 +183,7 @@ pub fn stream_mistral<'a>(
                 }
 
                 if let Some(usage) = chunk.get("usage") {
-                    partial.usage = Some(Usage {
-                        input: usage.get("prompt_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                        output: usage.get("completion_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                        total_tokens: usage.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                        ..Default::default()
-                    });
+                    partial.usage = Some(crate::simple_options::parse_openai_usage(usage, model));
                 }
             }
         }

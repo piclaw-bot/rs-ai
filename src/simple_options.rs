@@ -123,6 +123,53 @@ pub fn calculate_cost(model: &Model, usage: &crate::types::Usage) -> crate::type
     }
 }
 
+/// Parse OpenAI-style chunk usage, accounting for cache read/write tokens and cost
+/// (mirrors upstream `parseChunkUsage`).
+pub fn parse_openai_usage(raw: &serde_json::Value, model: &Model) -> crate::types::Usage {
+    let prompt_tokens = raw.get("prompt_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+    let cache_read = raw.pointer("/prompt_tokens_details/cached_tokens")
+        .and_then(|v| v.as_u64())
+        .or_else(|| raw.get("prompt_cache_hit_tokens").and_then(|v| v.as_u64()))
+        .unwrap_or(0) as u32;
+    let cache_write = raw.pointer("/prompt_tokens_details/cache_write_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0) as u32;
+    let input = prompt_tokens.saturating_sub(cache_read).saturating_sub(cache_write);
+    let output = raw.get("completion_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+    let mut usage = crate::types::Usage {
+        input,
+        output,
+        cache_read,
+        cache_write,
+        total_tokens: input + output + cache_read + cache_write,
+        cost: Default::default(),
+    };
+    usage.cost = calculate_cost(model, &usage);
+    usage
+}
+
+/// Parse OpenAI Responses-style usage (input_tokens/output_tokens with cached
+/// tokens) including cost.
+pub fn parse_responses_usage(raw: &serde_json::Value, model: &Model) -> crate::types::Usage {
+    let cached = raw.pointer("/input_tokens_details/cached_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+    let input_total = raw.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+    let input = input_total.saturating_sub(cached);
+    let output = raw.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+    let total = raw.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or((input + output + cached) as u64) as u32;
+    let mut usage = crate::types::Usage {
+        input, output, cache_read: cached, cache_write: 0, total_tokens: total, cost: Default::default(),
+    };
+    usage.cost = calculate_cost(model, &usage);
+    usage
+}
+
+/// Recompute total tokens and cost for a usage record (for providers that build
+/// usage incrementally across events).
+pub fn finalize_usage(model: &Model, usage: &mut crate::types::Usage) {
+    usage.total_tokens = usage.input + usage.output + usage.cache_read + usage.cache_write;
+    usage.cost = calculate_cost(model, usage);
+}
+
 /// Clamp xhigh to high for legacy callers.
 pub fn clamp_reasoning(level: &ThinkingLevel) -> ThinkingLevel {
     match level {

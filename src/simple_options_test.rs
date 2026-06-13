@@ -121,4 +121,36 @@ mod tests {
         assert!((cost.input - 0.003).abs() < 0.0001);
         assert!((cost.output - 0.0075).abs() < 0.0001);
     }
+
+    #[test]
+    fn test_parse_openai_usage_subtracts_cache_and_computes_cost() {
+        let model = reasoning_model(None);
+        let model = Model { cost: ModelCost { input: 3.0, output: 15.0, cache_read: 0.3, cache_write: 0.0 }, ..model };
+        let raw = serde_json::json!({
+            "prompt_tokens": 1000,
+            "completion_tokens": 200,
+            "prompt_tokens_details": { "cached_tokens": 400 }
+        });
+        let usage = parse_openai_usage(&raw, &model);
+        assert_eq!(usage.cache_read, 400);
+        assert_eq!(usage.input, 600); // 1000 - 400 cached
+        assert_eq!(usage.output, 200);
+        assert_eq!(usage.total_tokens, 1200); // 600 + 200 + 400
+        // cost: input 600*3/1e6 + output 200*15/1e6 + cache_read 400*0.3/1e6
+        assert!((usage.cost.input - 0.0018).abs() < 1e-6);
+        assert!((usage.cost.cache_read - 0.00012).abs() < 1e-7);
+    }
+
+    #[test]
+    fn test_parse_responses_usage_cache() {
+        let model = reasoning_model(None);
+        let raw = serde_json::json!({
+            "input_tokens": 500, "output_tokens": 100, "total_tokens": 600,
+            "input_tokens_details": { "cached_tokens": 200 }
+        });
+        let usage = parse_responses_usage(&raw, &model);
+        assert_eq!(usage.cache_read, 200);
+        assert_eq!(usage.input, 300); // 500 - 200
+        assert_eq!(usage.output, 100);
+    }
 }

@@ -108,6 +108,7 @@ async fn try_websocket(
 #[derive(Debug, Clone)]
 struct CodexWsState {
     partial: Message,
+    model_cost: crate::types::ModelCost,
     events: Vec<Event>,
     current_text: String,
     text_started: bool,
@@ -141,6 +142,7 @@ impl CodexWsState {
         let events = vec![Event::Start { partial: partial.clone() }];
         Self {
             partial,
+            model_cost: model.cost.clone(),
             events,
             current_text: String::new(),
             text_started: false,
@@ -283,12 +285,24 @@ impl CodexWsState {
                         self.partial.response_model = Some(model_name.to_string());
                     }
                     if let Some(usage) = response.get("usage") {
-                        self.partial.usage = Some(Usage {
-                            input: usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                            output: usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                            total_tokens: usage.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                            ..Default::default()
-                        });
+                        let cached = usage.pointer("/input_tokens_details/cached_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        let input_total = usage.get("input_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        let input = input_total.saturating_sub(cached);
+                        let output = usage.get("output_tokens").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                        let total = usage.get("total_tokens").and_then(|v| v.as_u64()).unwrap_or((input + output + cached) as u64) as u32;
+                        let mut u = Usage {
+                            input, output, cache_read: cached, cache_write: 0, total_tokens: total, cost: Default::default(),
+                        };
+                        let m = 1_000_000.0;
+                        u.cost = crate::types::CostBreakdown {
+                            input: f64::from(u.input) * self.model_cost.input / m,
+                            output: f64::from(u.output) * self.model_cost.output / m,
+                            cache_read: f64::from(u.cache_read) * self.model_cost.cache_read / m,
+                            cache_write: f64::from(u.cache_write) * self.model_cost.cache_write / m,
+                            total: 0.0,
+                        };
+                        u.cost.total = u.cost.input + u.cost.output + u.cost.cache_read + u.cost.cache_write;
+                        self.partial.usage = Some(u);
                     }
                 }
                 self.partial.stop_reason = Some(if self.partial.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { .. })) { StopReason::ToolUse } else { StopReason::Stop });
