@@ -2155,11 +2155,18 @@ mod tests {
         let opts = StreamOptions::default();
         let ctx = test_context();
         let mut stream = stream_google(&model, &ctx, &opts);
-        let mut reason = None;
+        let mut err_reason = None;
+        let mut saw_done = false;
         while let Some(evt) = stream.next().await {
-            if let Event::Done { reason: r, .. } = evt { reason = Some(r); }
+            match evt {
+                Event::Error { reason, .. } => err_reason = Some(reason),
+                Event::Done { .. } => saw_done = true,
+                _ => {}
+            }
         }
-        assert_eq!(reason, Some(StopReason::Error));
+        // A safety finish reason surfaces as an Error event, not a Done.
+        assert_eq!(err_reason, Some(StopReason::Error));
+        assert!(!saw_done);
     }
 
     #[tokio::test]

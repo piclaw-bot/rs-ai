@@ -235,7 +235,11 @@ pub fn stream_google<'a>(
                                 "STOP" if !tool_calls.is_empty() => StopReason::ToolUse,
                                 "STOP" => StopReason::Stop,
                                 "MAX_TOKENS" => StopReason::Length,
-                                _ => StopReason::Error,
+                                other => {
+                                    // Safety/recitation/malformed/etc. finish reasons are errors.
+                                    partial.error_message = Some(format!("Gemini stopped with finish reason: {other}"));
+                                    StopReason::Error
+                                }
                             });
                         }
                     }
@@ -300,7 +304,16 @@ pub fn stream_google<'a>(
             crate::simple_options::finalize_usage(model, u);
         }
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
-        yield Event::Done { reason, message: partial };
+        if matches!(reason, StopReason::Error | StopReason::Aborted) {
+            let msg = partial.error_message.clone().unwrap_or_else(|| "An unknown error occurred".to_string());
+            yield Event::Error {
+                reason,
+                error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                message: Some(partial),
+            };
+        } else {
+            yield Event::Done { reason, message: partial };
+        }
     })
 }
 
