@@ -520,7 +520,7 @@ pub fn stream_bedrock<'a>(
                 Err(e) => {
                     yield Event::Error {
                         reason: StopReason::Error,
-                        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(format_bedrock_error(&e.to_string()))),
+                        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(format_bedrock_stream_error(&e))),
                         message: Some(partial.clone()),
                     };
                     return;
@@ -576,6 +576,32 @@ fn format_bedrock_sdk_error<R>(
     >,
 ) -> String {
     use aws_sdk_bedrockruntime::operation::converse_stream::ConverseStreamError as Cse;
+    use aws_smithy_types::error::metadata::ProvideErrorMetadata;
+    let base = format_bedrock_error(&e.to_string());
+    let prefix: Option<String> = match e.as_service_error() {
+        Some(Cse::InternalServerException(_)) => Some("Internal server error".to_string()),
+        Some(Cse::ModelStreamErrorException(_)) => Some("Model stream error".to_string()),
+        Some(Cse::ValidationException(_)) => Some("Validation error".to_string()),
+        Some(Cse::ThrottlingException(_)) => Some("Throttling error".to_string()),
+        Some(Cse::ServiceUnavailableException(_)) => Some("Service unavailable".to_string()),
+        Some(other) => other.code().map(|c| c.to_string()),
+        None => None,
+    };
+    match prefix {
+        Some(p) => format!("{p}: {base}"),
+        None => base,
+    }
+}
+
+/// Format a mid-stream Bedrock error (ConverseStreamOutputError), prepending a prefix
+/// for known exceptions (internalServer/modelStream/validation/throttling/serviceUnavailable).
+fn format_bedrock_stream_error<R>(
+    e: &aws_sdk_bedrockruntime::error::SdkError<
+        aws_sdk_bedrockruntime::types::error::ConverseStreamOutputError,
+        R,
+    >,
+) -> String {
+    use aws_sdk_bedrockruntime::types::error::ConverseStreamOutputError as Cse;
     use aws_smithy_types::error::metadata::ProvideErrorMetadata;
     let base = format_bedrock_error(&e.to_string());
     let prefix: Option<String> = match e.as_service_error() {
