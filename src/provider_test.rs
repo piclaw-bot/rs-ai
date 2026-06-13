@@ -1227,7 +1227,10 @@ mod tests {
         while let Some(evt) = stream.next().await {
             if let Event::Error { error, .. } = evt { err = Some(error.to_string()); }
         }
-        assert!(err.unwrap().contains("overloaded"));
+        let e = err.unwrap();
+        // Both the error type and the message are surfaced.
+        assert!(e.contains("overloaded_error"));
+        assert!(e.contains("server overloaded"));
     }
 
     #[tokio::test]

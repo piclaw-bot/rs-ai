@@ -351,9 +351,14 @@ pub fn stream_anthropic<'a>(
                     }
                     "message_stop" => { saw_message_stop = true; }
                     "error" => {
-                        let msg = data.pointer("/error/message").and_then(|v| v.as_str())
-                            .map(|s| s.to_string())
-                            .unwrap_or_else(|| "Anthropic stream error".to_string());
+                        let err = data.get("error");
+                        let message = err.and_then(|e| e.get("message")).and_then(|v| v.as_str()).unwrap_or("Anthropic stream error");
+                        let err_type = err.and_then(|e| e.get("type")).and_then(|v| v.as_str());
+                        // Preserve the error type (e.g. overloaded_error) alongside the message.
+                        let msg = match err_type {
+                            Some(t) => format!("{t}: {message}"),
+                            None => message.to_string(),
+                        };
                         partial.stop_reason = Some(StopReason::Error);
                         partial.error_message = Some(msg.clone());
                         yield Event::Error {
