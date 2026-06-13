@@ -689,6 +689,29 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_openai_in_band_error_chunk_emits_error() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"error":{"message":"rate limited by provider","code":429}}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("openai-completions", "openai", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_openai(&model, &ctx, &opts);
+        let mut err_msg = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Error { error, .. } = evt { err_msg = Some(error.to_string()); }
+        }
+        assert!(err_msg.unwrap().contains("rate limited"));
+    }
+
+    #[tokio::test]
     async fn test_openai_stream_without_finish_reason_is_error() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

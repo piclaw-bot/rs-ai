@@ -214,6 +214,20 @@ pub fn stream_openai<'a>(
                     Err(_) => continue,
                 };
 
+                if let Some(err) = chunk.get("error") {
+                    let msg = err.get("message").and_then(|v| v.as_str())
+                        .map(|s| s.to_string())
+                        .unwrap_or_else(|| err.to_string());
+                    partial.stop_reason = Some(StopReason::Error);
+                    partial.error_message = Some(msg.clone());
+                    yield Event::Error {
+                        reason: StopReason::Error,
+                        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                        message: Some(partial.clone()),
+                    };
+                    return;
+                }
+
                 if let Some(id) = chunk.get("id").and_then(|v| v.as_str()) {
                     partial.response_id = Some(id.to_string());
                 }
@@ -322,6 +336,9 @@ pub fn stream_openai<'a>(
 
                 if let Some(usage) = chunk.get("usage") {
                     partial.usage = Some(crate::simple_options::parse_openai_usage(usage, model));
+                } else if let Some(choice_usage) = chunk.pointer("/choices/0/usage") {
+                    // Some providers report usage on the choice instead of the chunk.
+                    partial.usage = Some(crate::simple_options::parse_openai_usage(choice_usage, model));
                 }
             }
         }
