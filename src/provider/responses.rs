@@ -274,7 +274,7 @@ fn stream_responses_inner<'a>(
                             yield Event::TextStart;
                         }
                     }
-                    "response.output_text.delta" => {
+                    "response.output_text.delta" | "response.refusal.delta" => {
                         if let Some(delta) = data.get("delta").and_then(|v| v.as_str()) {
                             current_text.push_str(delta);
                             yield Event::TextDelta { delta: delta.to_string() };
