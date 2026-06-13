@@ -1776,6 +1776,29 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_google_function_call_preserves_provided_id() {
+        use crate::provider::google::stream_google;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"candidates\":[{\"content\":{\"parts\":[{\"functionCall\":{\"id\":\"toolu_abc\",\"name\":\"search\",\"args\":{\"q\":\"r\"}}}]},\"finishReason\":\"STOP\"}]}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("google-generative-ai", "google", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_google(&model, &ctx, &opts);
+        let mut id = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::ToolCallEnd { id: i, .. } = evt { id = Some(i); }
+        }
+        // The provider-supplied id is preserved (needed for tool-result pairing).
+        assert_eq!(id.as_deref(), Some("toolu_abc"));
+    }
+
+    #[tokio::test]
     async fn test_google_usage_cache_and_thoughts() {
         use crate::provider::google::stream_google;
         let server = MockServer::start().await;

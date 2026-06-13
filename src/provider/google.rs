@@ -180,9 +180,29 @@ pub fn stream_google<'a>(
                                         }
                                     }
                                 if let Some(fc) = part.get("functionCall") {
+                                    // Close any open text/thinking block before the tool call.
+                                    if text_started {
+                                        yield Event::TextEnd;
+                                        text_started = false;
+                                    }
+                                    if thinking_started {
+                                        yield Event::ThinkingEnd;
+                                        thinking_started = false;
+                                    }
                                     let name = fc.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
                                     let args = fc.get("args").cloned().unwrap_or_else(|| serde_json::json!({}));
-                                    let id = format!("call_{}", tool_calls.len());
+                                    // Preserve the provider-supplied id when present and unique;
+                                    // otherwise synthesize a unique one (mirrors upstream).
+                                    let provided = fc.get("id").and_then(|v| v.as_str()).map(|s| s.to_string());
+                                    let needs_new = match &provided {
+                                        None => true,
+                                        Some(pid) => tool_calls.iter().any(|(eid, _, _, _)| eid == pid),
+                                    };
+                                    let id = if needs_new {
+                                        format!("{}_{}_{}", name, crate::utils::now_millis(), tool_calls.len() + 1)
+                                    } else {
+                                        provided.unwrap()
+                                    };
                                     let sig = part.get("thoughtSignature").and_then(|v| v.as_str()).map(|s| s.to_string());
                                     yield Event::ToolCallStart { id: id.clone(), name: name.clone() };
                                     yield Event::ToolCallDelta { delta: serde_json::to_string(&args).unwrap_or_default() };
