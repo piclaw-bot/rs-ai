@@ -364,6 +364,25 @@ fn stream_responses_inner<'a>(
                                     yield Event::ThinkingEnd;
                                     current_thinking.clear();
                                 }
+                                Some("message") => {
+                                    // Capture the message item id/phase as a text signature so
+                                    // the assistant text block pairs correctly on replay.
+                                    let text = item.get("content").and_then(|v| v.as_array())
+                                        .map(|parts| parts.iter().filter_map(|p| {
+                                            p.get("text").and_then(|v| v.as_str())
+                                                .or_else(|| p.get("refusal").and_then(|v| v.as_str()))
+                                        }).collect::<Vec<_>>().join(""))
+                                        .filter(|s| !s.is_empty())
+                                        .unwrap_or_else(|| std::mem::take(&mut current_text));
+                                    let sig = item.get("id").and_then(|v| v.as_str()).map(|id| {
+                                        encode_text_signature_v1(id, item.get("phase").and_then(|v| v.as_str()))
+                                    });
+                                    partial.content.push(ContentBlock::Text {
+                                        text,
+                                        text_signature: sig,
+                                    });
+                                    current_text.clear();
+                                }
                                 _ => {}
                             }
                         }
@@ -462,6 +481,15 @@ fn stream_responses_inner<'a>(
             }
         }
     })
+}
+
+/// Encode an assistant text item id (+ optional phase) as a v1 text signature
+/// (mirrors encodeTextSignatureV1).
+fn encode_text_signature_v1(id: &str, phase: Option<&str>) -> String {
+    match phase {
+        Some(p) => json!({"v": 1, "id": id, "phase": p}).to_string(),
+        None => json!({"v": 1, "id": id}).to_string(),
+    }
 }
 
 /// Parsed assistant text signature: an item id and an optional phase.

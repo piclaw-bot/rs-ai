@@ -279,6 +279,39 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_responses_captures_message_text_signature() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/responses"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"type\":\"response.created\",\"response\":{\"id\":\"r\",\"model\":\"gpt-5\"}}\n\n\
+                     data: {\"type\":\"response.output_item.added\",\"item\":{\"type\":\"message\",\"id\":\"msg_xyz\"}}\n\n\
+                     data: {\"type\":\"response.output_text.delta\",\"delta\":\"hello\"}\n\n\
+                     data: {\"type\":\"response.output_item.done\",\"item\":{\"type\":\"message\",\"id\":\"msg_xyz\",\"phase\":\"final_answer\",\"content\":[{\"type\":\"output_text\",\"text\":\"hello\"}]}}\n\n\
+                     data: {\"type\":\"response.completed\",\"response\":{\"id\":\"r\",\"model\":\"gpt-5\",\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("openai-responses", "openai", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_responses(&model, &ctx, &opts);
+        let mut msg = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { message, .. } = evt { msg = Some(message); }
+        }
+        let sig = msg.unwrap().content.iter().find_map(|b| match b {
+            ContentBlock::Text { text_signature, .. } => text_signature.clone(),
+            _ => None,
+        }).expect("text signature");
+        // Encoded as {v:1,id,phase}; round-trips through parse on replay.
+        assert!(sig.contains("msg_xyz"));
+        assert!(sig.contains("final_answer"));
+        assert!(sig.contains("\"v\":1"));
+    }
+
+    #[tokio::test]
     async fn test_openai_stream_reasoning_and_final_blocks() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
