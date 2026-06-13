@@ -51,13 +51,34 @@ pub fn is_retryable_status(code: u16) -> bool {
     matches!(code, 429 | 500 | 502 | 503 | 504)
 }
 
-/// Parse Retry-After header value into a Duration.
+/// Parse a `Retry-After` header value (integer/float seconds, or HTTP-date) into a Duration.
 pub fn parse_retry_after(value: &str) -> Option<Duration> {
     let trimmed = value.trim();
-    if let Ok(seconds) = trimmed.parse::<u64>() {
-        return Some(Duration::from_secs(seconds));
+    if let Ok(seconds) = trimmed.parse::<f64>() {
+        if seconds.is_finite() && seconds >= 0.0 {
+            return Some(Duration::from_secs_f64(seconds));
+        }
+        return None;
+    }
+    // HTTP-date form: delay until that instant.
+    if let Ok(when) = httpdate::parse_http_date(trimmed) {
+        return Some(when.duration_since(std::time::SystemTime::now()).unwrap_or(Duration::ZERO));
     }
     None
+}
+
+/// Resolve a retry delay from response headers, preferring `retry-after-ms`
+/// then `retry-after` (mirrors upstream getRetryAfterDelayMs).
+pub fn retry_after_delay(headers: &reqwest::header::HeaderMap) -> Option<Duration> {
+    if let Some(ms) = headers.get("retry-after-ms").and_then(|v| v.to_str().ok())
+        && let Ok(millis) = ms.trim().parse::<f64>()
+        && millis.is_finite() {
+        return Some(Duration::from_millis(millis.max(0.0) as u64));
+    }
+    headers
+        .get(reqwest::header::RETRY_AFTER)
+        .and_then(|v| v.to_str().ok())
+        .and_then(parse_retry_after)
 }
 
 #[cfg(test)]
@@ -86,7 +107,23 @@ mod tests {
     #[test]
     fn test_parse_retry_after() {
         assert_eq!(parse_retry_after("30"), Some(Duration::from_secs(30)));
+        assert_eq!(parse_retry_after("1.5"), Some(Duration::from_secs_f64(1.5)));
         assert_eq!(parse_retry_after("not-a-number"), None);
+        // HTTP-date in the past clamps to zero.
+        assert_eq!(parse_retry_after("Wed, 21 Oct 2015 07:28:00 GMT"), Some(Duration::ZERO));
+    }
+
+    #[test]
+    fn test_retry_after_delay_prefers_ms_header() {
+        use reqwest::header::HeaderMap;
+        let mut h = HeaderMap::new();
+        h.insert("retry-after-ms", "250".parse().unwrap());
+        h.insert(reqwest::header::RETRY_AFTER, "5".parse().unwrap());
+        // retry-after-ms wins over retry-after.
+        assert_eq!(retry_after_delay(&h), Some(Duration::from_millis(250)));
+        let mut h2 = HeaderMap::new();
+        h2.insert(reqwest::header::RETRY_AFTER, "5".parse().unwrap());
+        assert_eq!(retry_after_delay(&h2), Some(Duration::from_secs(5)));
     }
 
     #[test]
@@ -176,11 +213,7 @@ pub async fn do_with_retry(
                     return Ok(resp);
                 }
 
-                let retry_after = resp
-                    .headers()
-                    .get(reqwest::header::RETRY_AFTER)
-                    .and_then(|v| v.to_str().ok())
-                    .and_then(parse_retry_after);
+                let retry_after = retry_after_delay(resp.headers());
                 let mut delay = retry_after.unwrap_or_else(|| compute_backoff(attempt, config));
                 delay = delay.min(Duration::from_millis(config.max_retry_delay_ms));
                 tokio::time::sleep(delay).await;
