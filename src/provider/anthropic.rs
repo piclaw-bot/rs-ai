@@ -324,7 +324,11 @@ pub fn stream_anthropic<'a>(
                                     StopReason::Error
                                 }
                                 "sensitive" => StopReason::Error,
-                                _ => StopReason::Stop,
+                                // Upstream throws on unknown stop reasons; surface as an error.
+                                other => {
+                                    partial.error_message = Some(format!("Unhandled stop reason: {other}"));
+                                    StopReason::Error
+                                }
                             });
                         }
                         // Update usage fields only when present (message_delta), preserving
