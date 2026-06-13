@@ -381,6 +381,22 @@ fn stream_responses_inner<'a>(
                             });
                         }
                     }
+                    "error" | "response.failed" => {
+                        let msg = data.pointer("/message").and_then(|v| v.as_str())
+                            .or_else(|| data.pointer("/error/message").and_then(|v| v.as_str()))
+                            .or_else(|| data.pointer("/response/error/message").and_then(|v| v.as_str()))
+                            .map(|s| s.to_string())
+                            .unwrap_or_else(|| "Responses stream error".to_string());
+                        let code = data.get("code").and_then(|v| v.as_str()).map(|c| format!("Error Code {}: ", c)).unwrap_or_default();
+                        partial.stop_reason = Some(StopReason::Error);
+                        partial.error_message = Some(format!("{}{}", code, msg));
+                        yield Event::Error {
+                            reason: StopReason::Error,
+                            error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(format!("{}{}", code, msg))),
+                            message: Some(partial.clone()),
+                        };
+                        return;
+                    }
                     _ => {}
                 }
             }

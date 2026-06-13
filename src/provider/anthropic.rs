@@ -296,6 +296,19 @@ pub fn stream_anthropic<'a>(
                                 }
                     }
                     "message_stop" => {}
+                    "error" => {
+                        let msg = data.pointer("/error/message").and_then(|v| v.as_str())
+                            .map(|s| s.to_string())
+                            .unwrap_or_else(|| "Anthropic stream error".to_string());
+                        partial.stop_reason = Some(StopReason::Error);
+                        partial.error_message = Some(msg.clone());
+                        yield Event::Error {
+                            reason: StopReason::Error,
+                            error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                            message: Some(partial.clone()),
+                        };
+                        return;
+                    }
                     _ => {}
                 }
             }
