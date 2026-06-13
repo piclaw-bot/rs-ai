@@ -338,8 +338,29 @@ pub fn stream_openai<'a>(
                 return;
             }
 
-        let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
-        yield Event::Done { reason, message: partial };
+        match partial.stop_reason.clone() {
+            Some(StopReason::Error) => {
+                let msg = partial.error_message.clone().unwrap_or_else(|| "Provider returned an error stop reason".to_string());
+                yield Event::Error {
+                    reason: StopReason::Error,
+                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                    message: Some(partial),
+                };
+            }
+            None => {
+                // Upstream treats a stream that ends without a finish_reason as an error.
+                yield Event::Error {
+                    reason: StopReason::Error,
+                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
+                        "Stream ended without finish_reason".to_string(),
+                    )),
+                    message: Some(partial),
+                };
+            }
+            Some(reason) => {
+                yield Event::Done { reason, message: partial };
+            }
+        }
     })
 }
 

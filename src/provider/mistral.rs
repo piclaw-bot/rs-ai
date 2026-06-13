@@ -214,8 +214,28 @@ pub fn stream_mistral<'a>(
                 id, name, arguments, thought_signature: None,
             });
         }
-        let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
-        yield Event::Done { reason, message: partial };
+        match partial.stop_reason.clone() {
+            Some(StopReason::Error) => {
+                let msg = partial.error_message.clone().unwrap_or_else(|| "Provider returned an error stop reason".to_string());
+                yield Event::Error {
+                    reason: StopReason::Error,
+                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                    message: Some(partial),
+                };
+            }
+            None => {
+                yield Event::Error {
+                    reason: StopReason::Error,
+                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
+                        "Stream ended without finish_reason".to_string(),
+                    )),
+                    message: Some(partial),
+                };
+            }
+            Some(reason) => {
+                yield Event::Done { reason, message: partial };
+            }
+        }
     })
 }
 
