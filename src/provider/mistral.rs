@@ -301,13 +301,8 @@ pub fn stream_mistral<'a>(
                 };
             }
             None => {
-                yield Event::Error {
-                    reason: StopReason::Error,
-                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(
-                        "Stream ended without finish_reason".to_string(),
-                    )),
-                    message: Some(partial),
-                };
+                // Mistral defaults to a normal stop when no finish_reason is seen (mirrors createOutput).
+                yield Event::Done { reason: StopReason::Stop, message: partial };
             }
             Some(reason) => {
                 yield Event::Done { reason, message: partial };
