@@ -1592,6 +1592,37 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_anthropic_on_response_hook_invoked() {
+        use std::sync::{Arc, Mutex};
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/messages"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"m\",\"usage\":{\"input_tokens\":1,\"output_tokens\":0}}}\n\n\
+                     event: message_delta\ndata: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\"}}\n\n\
+                     event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n")
+                .insert_header("content-type", "text/event-stream")
+                .insert_header("x-test", "hdr"))
+            .mount(&server)
+            .await;
+        let model = test_model("anthropic-messages", "anthropic", &server.uri());
+        let seen: Arc<Mutex<Option<(u16, String)>>> = Arc::new(Mutex::new(None));
+        let seen2 = seen.clone();
+        let opts = StreamOptions {
+            on_response: Some(Arc::new(move |status: u16, hdrs: &std::collections::HashMap<String, String>, _m: &Model| {
+                *seen2.lock().unwrap() = Some((status, hdrs.get("x-test").cloned().unwrap_or_default()));
+            })),
+            ..Default::default()
+        };
+        let ctx = test_context();
+        let mut stream = stream_anthropic(&model, &ctx, &opts);
+        while stream.next().await.is_some() {}
+        let got = seen.lock().unwrap().clone();
+        assert_eq!(got, Some((200, "hdr".to_string())));
+    }
+
+    #[tokio::test]
     async fn test_anthropic_truncated_stream_is_error() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

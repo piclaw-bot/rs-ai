@@ -153,6 +153,15 @@ pub fn stream_codex<'a>(
                         return;
                     }
                 };
+                // Invoke the on_response hook (mirrors options.onResponse).
+                if let Some(ref hook) = opts.on_response {
+                    let status = resp.status().as_u16();
+                    let mut hdrs = std::collections::HashMap::new();
+                    for (k, v) in resp.headers().iter() {
+                        hdrs.insert(k.to_string(), v.to_str().unwrap_or("").to_string());
+                    }
+                    hook(status, &hdrs, model);
+                }
                 if !resp.status().is_success() {
                     let status = resp.status().as_u16();
                     let body = resp.text().await.unwrap_or_default();
