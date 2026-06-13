@@ -1206,6 +1206,42 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn test_anthropic_message_delta_updates_cache_usage() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/messages"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"m\",\"usage\":{\"input_tokens\":20,\"output_tokens\":0,\"cache_read_input_tokens\":4}}}\n\n\
+                     event: content_block_start\ndata: {\"type\":\"content_block_start\",\"content_block\":{\"type\":\"text\"}}\n\n\
+                     event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"x\"}}\n\n\
+                     event: content_block_stop\ndata: {\"type\":\"content_block_stop\"}\n\n\
+                     event: message_delta\ndata: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"end_turn\"},\"usage\":{\"output_tokens\":7,\"cache_creation_input_tokens\":9}}\n\n\
+                     event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"
+                )
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+
+        let model = test_model("anthropic-messages", "anthropic", &server.uri());
+        let ctx = test_context();
+        let opts = StreamOptions::default();
+        let mut stream = stream_anthropic(&model, &ctx, &opts);
+        let mut usage = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { message, .. } = evt { usage = message.usage; }
+        }
+        let u = usage.expect("usage");
+        // input preserved from message_start; output + cache_creation from message_delta;
+        // cache_read preserved from message_start.
+        assert_eq!(u.input, 20);
+        assert_eq!(u.output, 7);
+        assert_eq!(u.cache_read, 4);
+        assert_eq!(u.cache_write, 9);
+        assert_eq!(u.total_tokens, 40);
+    }
+
+    #[tokio::test]
     async fn test_anthropic_tool_use_stream() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

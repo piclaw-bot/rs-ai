@@ -327,12 +327,24 @@ pub fn stream_anthropic<'a>(
                                 _ => StopReason::Stop,
                             });
                         }
+                        // Update usage fields only when present (message_delta), preserving
+                        // values from message_start (some proxies omit input_tokens here).
                         if let Some(usage) = data.get("usage")
-                            && let Some(output) = usage.get("output_tokens").and_then(|v| v.as_u64())
-                                && let Some(ref mut u) = partial.usage {
-                                    u.output = output as u32;
-                                    u.total_tokens = u.input + u.output + u.cache_read + u.cache_write;
+                            && let Some(ref mut u) = partial.usage {
+                                if let Some(v) = usage.get("input_tokens").and_then(|v| v.as_u64()) {
+                                    u.input = v as u32;
                                 }
+                                if let Some(v) = usage.get("output_tokens").and_then(|v| v.as_u64()) {
+                                    u.output = v as u32;
+                                }
+                                if let Some(v) = usage.get("cache_read_input_tokens").and_then(|v| v.as_u64()) {
+                                    u.cache_read = v as u32;
+                                }
+                                if let Some(v) = usage.get("cache_creation_input_tokens").and_then(|v| v.as_u64()) {
+                                    u.cache_write = v as u32;
+                                }
+                                u.total_tokens = u.input + u.output + u.cache_read + u.cache_write;
+                            }
                     }
                     "message_stop" => {}
                     "error" => {
