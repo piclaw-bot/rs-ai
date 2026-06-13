@@ -521,6 +521,34 @@ mod tests {
         assert!(saw_error);
     }
 
+    #[tokio::test]
+    async fn test_github_copilot_dynamic_headers() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .and(header("X-Initiator", "user"))
+            .and(header("Openai-Intent", "conversation-edits"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"id":"c1","choices":[{"delta":{"content":"hi"},"index":0}]}"#,
+                    r#"{"id":"c1","choices":[{"delta":{},"finish_reason":"stop","index":0}]}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+
+        let model = test_model("openai-completions", "github-copilot", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_openai(&model, &ctx, &opts);
+        let mut text = String::new();
+        while let Some(evt) = stream.next().await {
+            if let Event::TextDelta { delta } = evt { text.push_str(&delta); }
+        }
+        // If headers were missing, the mock wouldn't match and we'd get no text.
+        assert_eq!(text, "hi");
+    }
+
     // --- Anthropic Tests ---
 
     #[tokio::test]

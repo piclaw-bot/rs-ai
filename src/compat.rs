@@ -17,6 +17,7 @@ pub struct OpenAICompletionsCompat {
     pub thinking_format: Option<String>,
     pub supports_strict_mode: Option<bool>,
     pub supports_long_cache_retention: Option<bool>,
+    pub supports_session_affinity_headers: Option<bool>,
 }
 
 /// Auto-detect compatibility flags from a model's provider/URL.
@@ -40,6 +41,7 @@ pub fn detect_compat_for_model(model: &Model, overrides: Option<&OpenAICompletio
         if o.thinking_format.is_some() { c.thinking_format = o.thinking_format.clone(); }
         if o.supports_strict_mode.is_some() { c.supports_strict_mode = o.supports_strict_mode; }
         if o.supports_long_cache_retention.is_some() { c.supports_long_cache_retention = o.supports_long_cache_retention; }
+        if o.supports_session_affinity_headers.is_some() { c.supports_session_affinity_headers = o.supports_session_affinity_headers; }
     }
     c
 }
@@ -69,6 +71,10 @@ fn detect_compat_inner(provider: &str, model_id: &str, base_url: &str) -> OpenAI
         || base_url.contains("api.moonshot.");
     let is_cloudflare_aigw = provider == "cloudflare-ai-gateway"
         || base_url.contains("gateway.ai.cloudflare.com");
+    let is_fireworks = provider == "fireworks" || base_url.contains("fireworks.ai");
+    if is_fireworks || is_cloudflare_aigw {
+        c.supports_session_affinity_headers = Some(true);
+    }
 
     let is_non_standard = provider == "cerebras" || provider == "xai"
         || base_url.contains("chutes.ai") || is_deepseek || is_zai || is_moonshot

@@ -39,6 +39,18 @@ pub fn stream_anthropic<'a>(
     headers.insert("anthropic-version", HeaderValue::from_static("2023-06-01"));
     headers.insert("anthropic-beta", HeaderValue::from_static("prompt-caching-2024-07-31"));
 
+    // Session affinity header for providers that require it (Fireworks / Cloudflare AI Gateway).
+    if let Some(ref session_id) = opts.session_id {
+        let needs_affinity = model.provider == "fireworks"
+            || model.base_url.contains("fireworks.ai")
+            || model.base_url.contains("gateway.ai.cloudflare.com");
+        if needs_affinity {
+            if let Ok(val) = HeaderValue::from_str(session_id) {
+                headers.insert("x-session-affinity", val);
+            }
+        }
+    }
+
     if let Some(ref model_headers) = model.headers {
         for (k, v) in model_headers {
             if let (Ok(name), Ok(val)) = (
