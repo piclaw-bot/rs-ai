@@ -231,7 +231,7 @@ pub fn stream_anthropic<'a>(
                                 });
                             }
                             "tool_use" => {
-                                let parsed: Value = serde_json::from_str(&current_tool_args).unwrap_or_else(|_| serde_json::json!({}));
+                                let parsed: Value = crate::jsonparse::parse_streaming_json(&current_tool_args);
                                 let parsed_map = match &parsed {
                                     Value::Object(map) => map.clone().into_iter().collect(),
                                     _ => std::collections::HashMap::new(),

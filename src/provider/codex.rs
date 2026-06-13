@@ -233,7 +233,7 @@ impl CodexWsState {
                             let id = item.get("call_id").and_then(|v| v.as_str()).map(|s| s.to_string()).or_else(|| self.current_tool_call_id.clone()).unwrap_or_default();
                             let name = item.get("name").and_then(|v| v.as_str()).map(|s| s.to_string()).or_else(|| self.current_tool_name.clone()).unwrap_or_default();
                             let final_args = item.get("arguments").and_then(|v| v.as_str()).unwrap_or(&self.current_tool_args);
-                            let parsed: Value = serde_json::from_str(final_args).unwrap_or_else(|_| serde_json::json!({}));
+                            let parsed: Value = crate::jsonparse::parse_streaming_json(final_args);
                             let parsed_map = match &parsed {
                                 Value::Object(map) => map.clone().into_iter().collect(),
                                 _ => std::collections::HashMap::new(),

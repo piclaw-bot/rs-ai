@@ -286,10 +286,10 @@ pub fn stream_openai<'a>(
                             }
                             if partial.content.iter().all(|b| !matches!(b, ContentBlock::ToolCall { .. })) {
                                 for (_idx, (id, name, args_json)) in &tool_calls {
-                                    let arguments = serde_json::from_str::<serde_json::Value>(args_json)
-                                        .ok()
-                                        .and_then(|v| match v { serde_json::Value::Object(map) => Some(map.into_iter().collect()), _ => None })
-                                        .unwrap_or_default();
+                                    let arguments = match crate::jsonparse::parse_streaming_json(args_json) {
+                                        serde_json::Value::Object(map) => map.into_iter().collect(),
+                                        _ => std::collections::HashMap::new(),
+                                    };
                                     partial.content.push(ContentBlock::ToolCall {
                                         id: id.clone(),
                                         name: name.clone(),

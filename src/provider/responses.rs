@@ -271,7 +271,7 @@ pub fn stream_responses<'a>(
                                         .or_else(|| current_tool_name.clone())
                                         .unwrap_or_default();
                                     let final_args = item.get("arguments").and_then(|v| v.as_str()).unwrap_or(&current_tool_args);
-                                    let parsed: serde_json::Value = serde_json::from_str(final_args).unwrap_or_else(|_| serde_json::json!({}));
+                                    let parsed: serde_json::Value = crate::jsonparse::parse_streaming_json(final_args);
                                     let parsed_map = match &parsed {
                                         serde_json::Value::Object(map) => map.clone().into_iter().collect(),
                                         _ => std::collections::HashMap::new(),
