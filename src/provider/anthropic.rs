@@ -255,10 +255,23 @@ pub fn stream_anthropic<'a>(
                     }
                     "message_delta" => {
                         if let Some(reason) = data.pointer("/delta/stop_reason").and_then(|v| v.as_str()) {
+                            let stop_details = data.pointer("/delta/stop_details");
                             partial.stop_reason = Some(match reason {
                                 "end_turn" => StopReason::Stop,
                                 "max_tokens" => StopReason::Length,
                                 "tool_use" => StopReason::ToolUse,
+                                "pause_turn" => StopReason::Stop,
+                                "stop_sequence" => StopReason::Stop,
+                                "refusal" => {
+                                    let explanation = stop_details
+                                        .and_then(|d| d.get("explanation"))
+                                        .and_then(|v| v.as_str())
+                                        .map(|s| s.to_string())
+                                        .unwrap_or_else(|| "The model refused to complete the request".to_string());
+                                    partial.error_message = Some(explanation);
+                                    StopReason::Error
+                                }
+                                "sensitive" => StopReason::Error,
                                 _ => StopReason::Stop,
                             });
                         }

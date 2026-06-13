@@ -614,6 +614,34 @@ mod tests {
         assert_eq!(block["content"][0]["text"], "42");
     }
 
+    #[tokio::test]
+    async fn test_anthropic_refusal_stop_reason() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/messages"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg-9\",\"usage\":{\"input_tokens\":5,\"output_tokens\":0}}}\n\n\
+                     event: message_delta\ndata: {\"type\":\"message_delta\",\"delta\":{\"stop_reason\":\"refusal\",\"stop_details\":{\"explanation\":\"nope\"}}}\n\n\
+                     event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n"
+                )
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+
+        let model = test_model("anthropic-messages", "anthropic", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_anthropic(&model, &ctx, &opts);
+        let mut done: Option<Message> = None;
+        let mut reason = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { reason: r, message } = evt { reason = Some(r); done = Some(message); }
+        }
+        assert_eq!(reason, Some(StopReason::Error));
+        assert_eq!(done.unwrap().error_message.as_deref(), Some("nope"));
+    }
+
     // --- Mistral Tests ---
 
     #[tokio::test]
