@@ -392,6 +392,30 @@ mod tests {
     }
 
     #[test]
+    fn test_openrouter_anthropic_cache_control() {
+        // OpenRouter anthropic/* models get Anthropic-style cache_control on system,
+        // last conversation message, and last tool.
+        let model = test_model("openai-completions", "openrouter", "https://openrouter.ai/api/v1");
+        let model = Model { id: "anthropic/claude-sonnet-4".into(), ..model };
+        let ctx = Context {
+            system_prompt: Some("sys".into()),
+            messages: vec![user_message("hi")],
+            tools: vec![Tool { name: "t".into(), description: "d".into(), parameters: serde_json::json!({"type":"object"}) }],
+        };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &StreamOptions::default(), &crate::compat::detect_compat(&model));
+        let msgs = payload["messages"].as_array().unwrap();
+        // system/developer message got cache_control on its text part.
+        let sys = msgs.iter().find(|m| m["role"] == "system" || m["role"] == "developer").unwrap();
+        assert_eq!(sys["content"][0]["cache_control"]["type"], "ephemeral");
+        // last user message text part got cache_control.
+        let last = &msgs[msgs.len() - 1];
+        assert_eq!(last["content"][0]["cache_control"]["type"], "ephemeral");
+        // last tool got cache_control.
+        let tools = payload["tools"].as_array().unwrap();
+        assert_eq!(tools.last().unwrap()["cache_control"]["type"], "ephemeral");
+    }
+
+    #[test]
     fn test_openai_empty_tools_when_tool_history_present() {
         // No current tools, but the conversation has a prior tool call -> send tools: [].
         let model = test_model("openai-completions", "openai", "https://example.com");

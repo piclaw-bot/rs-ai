@@ -695,7 +695,69 @@ pub(crate) fn build_payload(
         payload["tool_choice"] = tool_choice.clone();
     }
 
+    // OpenRouter Anthropic models use Anthropic-style cache_control on system/last-message/last-tool.
+    if compat.cache_control_format.as_deref() == Some("anthropic") && retention != CacheRetention::None {
+        let ttl_long = retention == CacheRetention::Long && compat.supports_long_cache_retention != Some(false);
+        let cc = if ttl_long {
+            json!({"type": "ephemeral", "ttl": "1h"})
+        } else {
+            json!({"type": "ephemeral"})
+        };
+        apply_anthropic_cache_control(&mut payload, &cc);
+    }
+
     payload
+}
+
+/// Apply Anthropic-style cache_control to the system prompt, last tool, and last
+/// conversation message of an OpenAI-completions payload (mirrors applyAnthropicCacheControl).
+fn apply_anthropic_cache_control(payload: &mut Value, cc: &Value) {
+    if let Some(messages) = payload.get_mut("messages").and_then(|m| m.as_array_mut()) {
+        // System/developer prompt: first such message.
+        if let Some(msg) = messages.iter_mut().find(|m| {
+            matches!(m.get("role").and_then(|r| r.as_str()), Some("system") | Some("developer"))
+        }) {
+            add_cache_control_to_text(msg, cc);
+        }
+        // Last user/assistant message (from the end) whose text content accepts it.
+        for msg in messages.iter_mut().rev() {
+            if matches!(msg.get("role").and_then(|r| r.as_str()), Some("user") | Some("assistant"))
+                && add_cache_control_to_text(msg, cc) {
+                break;
+            }
+        }
+    }
+    // Last tool definition.
+    if let Some(tools) = payload.get_mut("tools").and_then(|t| t.as_array_mut())
+        && let Some(last) = tools.last_mut() {
+        last["cache_control"] = cc.clone();
+    }
+}
+
+/// Stamp cache_control on a message's last text part (converting string content to an
+/// array when needed). Returns true when applied (mirrors addCacheControlToTextContent).
+fn add_cache_control_to_text(msg: &mut Value, cc: &Value) -> bool {
+    match msg.get("content").cloned() {
+        Some(Value::String(s)) => {
+            if s.is_empty() {
+                return false;
+            }
+            msg["content"] = json!([{ "type": "text", "text": s, "cache_control": cc }]);
+            true
+        }
+        Some(Value::Array(_)) => {
+            if let Some(parts) = msg.get_mut("content").and_then(|c| c.as_array_mut()) {
+                for part in parts.iter_mut().rev() {
+                    if part.get("type").and_then(|t| t.as_str()) == Some("text") {
+                        part["cache_control"] = cc.clone();
+                        return true;
+                    }
+                }
+            }
+            false
+        }
+        _ => false,
+    }
 }
 
 /// Whether the conversation already contains tool calls or tool results
