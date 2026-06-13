@@ -1840,13 +1840,23 @@ mod tests {
         let opts = StreamOptions::default();
         let ctx = test_context();
         let mut stream = stream_anthropic(&model, &ctx, &opts);
-        let mut done: Option<Message> = None;
-        let mut reason = None;
+        let mut err_msg: Option<String> = None;
+        let mut err_reason = None;
+        let mut saw_done = false;
         while let Some(evt) = stream.next().await {
-            if let Event::Done { reason: r, message } = evt { reason = Some(r); done = Some(message); }
+            match evt {
+                Event::Error { reason, message, .. } => {
+                    err_reason = Some(reason);
+                    err_msg = message.and_then(|m| m.error_message);
+                }
+                Event::Done { .. } => saw_done = true,
+                _ => {}
+            }
         }
-        assert_eq!(reason, Some(StopReason::Error));
-        assert_eq!(done.unwrap().error_message.as_deref(), Some("nope"));
+        // A refusal surfaces as an Error event (not Done) carrying the explanation.
+        assert_eq!(err_reason, Some(StopReason::Error));
+        assert_eq!(err_msg.as_deref(), Some("nope"));
+        assert!(!saw_done);
     }
 
     // --- Mistral Tests ---

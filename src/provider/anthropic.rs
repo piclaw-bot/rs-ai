@@ -384,7 +384,16 @@ pub fn stream_anthropic<'a>(
         }
 
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
-        yield Event::Done { reason, message: partial };
+        if matches!(reason, StopReason::Error | StopReason::Aborted) {
+            let msg = partial.error_message.clone().unwrap_or_else(|| "Provider returned an error stop reason".to_string());
+            yield Event::Error {
+                reason,
+                error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                message: Some(partial),
+            };
+        } else {
+            yield Event::Done { reason, message: partial };
+        }
     })
 }
 
