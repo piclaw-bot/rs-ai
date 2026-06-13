@@ -365,7 +365,7 @@ pub fn stream_bedrock<'a>(
             Err(e) => {
                 yield Event::Error {
                     reason: StopReason::Error,
-                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(format_bedrock_error(&e.to_string()))),
+                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(format_bedrock_sdk_error(&e))),
                     message: None,
                 };
                 return;
@@ -564,6 +564,32 @@ pub(crate) fn format_bedrock_error(message: &str) -> String {
         format!("{} See {} for supported data retention modes.", message, BEDROCK_DATA_RETENTION_DOCS_URL)
     } else {
         message.to_string()
+    }
+}
+
+/// Format a Bedrock converse-stream SdkError, prepending a human-readable prefix for
+/// known service exceptions (mirrors formatBedrockError + BEDROCK_ERROR_PREFIXES).
+fn format_bedrock_sdk_error<R>(
+    e: &aws_sdk_bedrockruntime::error::SdkError<
+        aws_sdk_bedrockruntime::operation::converse_stream::ConverseStreamError,
+        R,
+    >,
+) -> String {
+    use aws_sdk_bedrockruntime::operation::converse_stream::ConverseStreamError as Cse;
+    use aws_smithy_types::error::metadata::ProvideErrorMetadata;
+    let base = format_bedrock_error(&e.to_string());
+    let prefix: Option<String> = match e.as_service_error() {
+        Some(Cse::InternalServerException(_)) => Some("Internal server error".to_string()),
+        Some(Cse::ModelStreamErrorException(_)) => Some("Model stream error".to_string()),
+        Some(Cse::ValidationException(_)) => Some("Validation error".to_string()),
+        Some(Cse::ThrottlingException(_)) => Some("Throttling error".to_string()),
+        Some(Cse::ServiceUnavailableException(_)) => Some("Service unavailable".to_string()),
+        Some(other) => other.code().map(|c| c.to_string()),
+        None => None,
+    };
+    match prefix {
+        Some(p) => format!("{p}: {base}"),
+        None => base,
     }
 }
 
