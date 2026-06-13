@@ -172,12 +172,11 @@ pub fn stream_mistral<'a>(
                                 yield Event::TextEnd;
                                 text_started = false;
                             }
-                            partial.stop_reason = Some(match reason {
-                                "stop" => StopReason::Stop,
-                                "length" => StopReason::Length,
-                                "tool_calls" => StopReason::ToolUse,
-                                _ => StopReason::Stop,
-                            });
+                            let (stop, err_msg) = crate::simple_options::map_openai_finish_reason(reason);
+                            if let Some(msg) = err_msg {
+                                partial.error_message = Some(msg);
+                            }
+                            partial.stop_reason = Some(stop);
                         }
                     }
                 }

@@ -123,6 +123,22 @@ mod tests {
     }
 
     #[test]
+    fn test_map_openai_finish_reason() {
+        use crate::types::StopReason;
+        assert_eq!(map_openai_finish_reason("stop").0, StopReason::Stop);
+        assert_eq!(map_openai_finish_reason("end").0, StopReason::Stop);
+        assert_eq!(map_openai_finish_reason("length").0, StopReason::Length);
+        assert_eq!(map_openai_finish_reason("function_call").0, StopReason::ToolUse);
+        assert_eq!(map_openai_finish_reason("tool_calls").0, StopReason::ToolUse);
+        let (r, msg) = map_openai_finish_reason("content_filter");
+        assert_eq!(r, StopReason::Error);
+        assert!(msg.unwrap().contains("content_filter"));
+        let (r2, msg2) = map_openai_finish_reason("some_unknown");
+        assert_eq!(r2, StopReason::Error);
+        assert!(msg2.unwrap().contains("some_unknown"));
+    }
+
+    #[test]
     fn test_parse_openai_usage_subtracts_cache_and_computes_cost() {
         let model = reasoning_model(None);
         let model = Model { cost: ModelCost { input: 3.0, output: 15.0, cache_read: 0.3, cache_write: 0.0 }, ..model };

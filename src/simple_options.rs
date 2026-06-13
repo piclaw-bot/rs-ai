@@ -123,6 +123,20 @@ pub fn calculate_cost(model: &Model, usage: &crate::types::Usage) -> crate::type
     }
 }
 
+/// Map an OpenAI-style `finish_reason` to a stop reason plus optional error message
+/// (mirrors upstream `mapStopReason`).
+pub fn map_openai_finish_reason(reason: &str) -> (crate::types::StopReason, Option<String>) {
+    use crate::types::StopReason;
+    match reason {
+        "stop" | "end" => (StopReason::Stop, None),
+        "length" => (StopReason::Length, None),
+        "function_call" | "tool_calls" => (StopReason::ToolUse, None),
+        "content_filter" => (StopReason::Error, Some("Provider finish_reason: content_filter".to_string())),
+        "network_error" => (StopReason::Error, Some("Provider finish_reason: network_error".to_string())),
+        other => (StopReason::Error, Some(format!("Provider finish_reason: {}", other))),
+    }
+}
+
 /// Parse OpenAI-style chunk usage, accounting for cache read/write tokens and cost
 /// (mirrors upstream `parseChunkUsage`).
 pub fn parse_openai_usage(raw: &serde_json::Value, model: &Model) -> crate::types::Usage {
