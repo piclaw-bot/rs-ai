@@ -4,10 +4,10 @@ use std::sync::Arc;
 
 use aws_config::BehaviorVersion;
 use aws_sdk_bedrockruntime::types::{
-    ContentBlock as BedrockContent, ConversationRole, ImageBlock, ImageFormat, ImageSource,
-    Message as BedrockMessage, ReasoningContentBlock, ReasoningTextBlock, SystemContentBlock, Tool,
-    ToolConfiguration, ToolInputSchema, ToolResultBlock, ToolResultContentBlock, ToolResultStatus,
-    ToolSpecification, ToolUseBlock,
+    AnyToolChoice, AutoToolChoice, ContentBlock as BedrockContent, ConversationRole, ImageBlock,
+    ImageFormat, ImageSource, Message as BedrockMessage, ReasoningContentBlock, ReasoningTextBlock,
+    SpecificToolChoice, SystemContentBlock, Tool, ToolChoice, ToolConfiguration, ToolInputSchema,
+    ToolResultBlock, ToolResultContentBlock, ToolResultStatus, ToolSpecification, ToolUseBlock,
 };
 use aws_sdk_bedrockruntime::Client as BedrockClient;
 use aws_smithy_types::{Document, Number};
@@ -86,6 +86,42 @@ fn convert_tool_result_content(content: &[ContentBlock]) -> Vec<ToolResultConten
         result.push(ToolResultContentBlock::Text(EMPTY_TEXT_PLACEHOLDER.to_string()));
     }
     result
+}
+
+/// Build the Bedrock `additionalModelRequestFields` thinking config for Anthropic
+/// Claude models (mirrors buildAdditionalModelRequestFields).
+fn bedrock_thinking_fields(model: &Model, opts: &StreamOptions) -> Option<serde_json::Value> {
+    if !model.reasoning || !is_anthropic_claude_model(model) {
+        return None;
+    }
+    let level = opts.reasoning.as_ref()?;
+    let key = format!("{level:?}").to_lowercase();
+    if model.compat.force_adaptive_thinking == Some(true) {
+        // Adaptive-thinking models: effort-based config, no interleaved beta.
+        let default_effort = match key.as_str() {
+            "minimal" | "low" => "low",
+            "medium" => "medium",
+            _ => "high",
+        };
+        let effort = model.thinking_level_map.as_ref()
+            .and_then(|m| m.get(&key)).and_then(|v| v.clone())
+            .unwrap_or_else(|| default_effort.to_string());
+        Some(serde_json::json!({
+            "thinking": { "type": "adaptive", "display": "summarized" },
+            "output_config": { "effort": effort },
+        }))
+    } else {
+        let default_budget = match key.as_str() {
+            "minimal" => 1024, "low" => 2048, "medium" => 8192, _ => 16384,
+        };
+        let budget = opts.thinking_budgets.as_ref().and_then(|b| match key.as_str() {
+            "minimal" => b.minimal, "low" => b.low, "medium" => b.medium, _ => b.high,
+        }).unwrap_or(default_budget);
+        Some(serde_json::json!({
+            "thinking": { "type": "enabled", "budget_tokens": budget, "display": "summarized" },
+            "anthropic_beta": ["interleaved-thinking-2025-05-14"],
+        }))
+    }
 }
 
 /// Convert a serde_json::Value into an AWS smithy Document.
@@ -225,7 +261,9 @@ pub fn stream_bedrock<'a>(
             req = req.system(SystemContentBlock::Text(prompt.clone()));
         }
 
-        if !context.tools.is_empty() {
+        // Tool config: skip entirely when toolChoice is "none" (mirrors convertToolConfig).
+        let tool_choice_none = opts.tool_choice.as_ref().and_then(|v| v.as_str()) == Some("none");
+        if !context.tools.is_empty() && !tool_choice_none {
             let mut tool_list = Vec::new();
             for t in &context.tools {
                 if let Ok(spec) = ToolSpecification::builder()
@@ -237,26 +275,28 @@ pub fn stream_bedrock<'a>(
                     tool_list.push(Tool::ToolSpec(spec));
                 }
             }
-            if let Ok(tc) = ToolConfiguration::builder().set_tools(Some(tool_list)).build() {
+            let mut tc_builder = ToolConfiguration::builder().set_tools(Some(tool_list));
+            // Map tool choice: auto/any/{type:tool,name}.
+            if let Some(choice) = opts.tool_choice.as_ref() {
+                if let Some(s) = choice.as_str() {
+                    match s {
+                        "auto" => tc_builder = tc_builder.tool_choice(ToolChoice::Auto(AutoToolChoice::builder().build())),
+                        "any" | "required" => tc_builder = tc_builder.tool_choice(ToolChoice::Any(AnyToolChoice::builder().build())),
+                        _ => {}
+                    }
+                } else if choice.get("type").and_then(|v| v.as_str()) == Some("tool")
+                    && let Some(name) = choice.get("name").and_then(|v| v.as_str())
+                    && let Ok(spec) = SpecificToolChoice::builder().name(name).build() {
+                    tc_builder = tc_builder.tool_choice(ToolChoice::Tool(spec));
+                }
+            }
+            if let Ok(tc) = tc_builder.build() {
                 req = req.tool_config(tc);
             }
         }
 
         // Enable thinking for Anthropic Claude models on Bedrock (additionalModelRequestFields).
-        if model.reasoning
-            && (model.id.contains("claude") || model.id.contains("anthropic"))
-            && let Some(level) = opts.reasoning.as_ref() {
-            let key = format!("{:?}", level).to_lowercase();
-            let default_budget = match key.as_str() {
-                "minimal" => 1024, "low" => 2048, "medium" => 8192, _ => 16384,
-            };
-            let budget = opts.thinking_budgets.as_ref().and_then(|b| match key.as_str() {
-                "minimal" => b.minimal, "low" => b.low, "medium" => b.medium, _ => b.high,
-            }).unwrap_or(default_budget);
-            let fields = serde_json::json!({
-                "thinking": { "type": "enabled", "budget_tokens": budget, "display": "summarized" },
-                "anthropic_beta": ["interleaved-thinking-2025-05-14"],
-            });
+        if let Some(fields) = bedrock_thinking_fields(model, opts) {
             req = req.additional_model_request_fields(json_to_document(&fields));
         }
 
@@ -537,5 +577,38 @@ mod tests {
         assert_eq!(normalize_bedrock_tool_call_id("call:1|x"), "call_1_x");
         assert_eq!(normalize_bedrock_tool_call_id("abc-123_OK"), "abc-123_OK");
         assert_eq!(normalize_bedrock_tool_call_id(&"a".repeat(80)).len(), 64);
+    }
+
+    #[test]
+    fn test_bedrock_thinking_fields() {
+        use super::bedrock_thinking_fields;
+        use crate::types::{Model, ModelCost, StreamOptions, ThinkingLevel};
+        let mk = |id: &str, adaptive: bool| {
+            let mut m = Model {
+                id: id.into(), name: String::new(), api: "bedrock-converse-stream".into(),
+                provider: "bedrock".into(), base_url: String::new(), reasoning: true,
+                thinking_level_map: None, input: vec!["text".into()], cost: ModelCost::default(),
+                context_window: 0, max_tokens: 0, headers: None, api_key: None, compat: Default::default(),
+            };
+            if adaptive { m.compat.force_adaptive_thinking = Some(true); }
+            m
+        };
+        // Budget-based (non-adaptive) Claude: enabled + interleaved beta.
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
+        let f = bedrock_thinking_fields(&mk("anthropic.claude-3", false), &opts).unwrap();
+        assert_eq!(f["thinking"]["type"], "enabled");
+        assert_eq!(f["thinking"]["budget_tokens"], 16384);
+        assert!(f["anthropic_beta"].is_array());
+        // Adaptive Claude: adaptive + output_config, no interleaved beta.
+        let f = bedrock_thinking_fields(&mk("anthropic.claude-opus-4-6", true), &opts).unwrap();
+        assert_eq!(f["thinking"]["type"], "adaptive");
+        assert_eq!(f["output_config"]["effort"], "high");
+        assert!(f.get("anthropic_beta").is_none());
+        // Non-Claude model: no thinking fields.
+        let f = bedrock_thinking_fields(&mk("meta.llama3", false), &opts);
+        assert!(f.is_none());
+        // No reasoning requested: none.
+        let f = bedrock_thinking_fields(&mk("anthropic.claude-3", false), &StreamOptions::default());
+        assert!(f.is_none());
     }
 }
