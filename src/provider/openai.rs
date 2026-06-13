@@ -473,6 +473,17 @@ pub(crate) fn build_payload(
         if msg.role == Role::Assistant {
             if !tool_call_blocks.is_empty() {
                 m["tool_calls"] = json!(tool_call_blocks);
+                // Replay per-tool-call reasoning: each thoughtSignature is JSON that
+                // upstream collects into `reasoning_details` (e.g. OpenRouter).
+                let reasoning_details: Vec<Value> = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::ToolCall { thought_signature: Some(sig), .. } if !sig.is_empty() => {
+                        serde_json::from_str::<Value>(sig).ok()
+                    }
+                    _ => None,
+                }).collect();
+                if !reasoning_details.is_empty() {
+                    m["reasoning_details"] = json!(reasoning_details);
+                }
             }
             // When not sending thinking-as-text, replay thinking via its signature field
             // (e.g. reasoning_content for llama.cpp / gpt-oss).
@@ -483,8 +494,14 @@ pub(crate) fn build_payload(
                 }).collect();
                 if let Some((_, Some(sig))) = thinking_blocks.first()
                     && !sig.is_empty() {
+                        // opencode-go uses `reasoning_content` as the replay key.
+                        let key = if model.provider == "opencode-go" && sig.as_str() == "reasoning" {
+                            "reasoning_content"
+                        } else {
+                            sig.as_str()
+                        };
                         let joined = thinking_blocks.iter().map(|(t, _)| t.as_str()).collect::<Vec<_>>().join("\n");
-                        m[sig.as_str()] = json!(joined);
+                        m[key] = json!(joined);
                     }
             }
             // DeepSeek-style providers require reasoning_content on assistant messages.

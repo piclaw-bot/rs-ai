@@ -351,6 +351,33 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_tool_call_reasoning_details_replay() {
+        let model = Model { reasoning: true, ..test_model("openai-completions", "openrouter", "https://openrouter.ai/api/v1") };
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![ContentBlock::ToolCall {
+                    id: "tc1".into(),
+                    name: "search".into(),
+                    arguments: serde_json::json!({"q": "rust"}),
+                    thought_signature: Some("{\"type\":\"reasoning.text\",\"text\":\"why\"}".into()),
+                }],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::ToolUse), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &StreamOptions::default(), &crate::compat::detect_compat(&model));
+        let details = &payload["messages"][0]["reasoning_details"];
+        assert_eq!(details[0]["type"], "reasoning.text");
+        assert_eq!(details[0]["text"], "why");
+    }
+
+    #[test]
     fn test_openai_thinking_as_text() {
         let model = Model { reasoning: true, ..test_model("openai-completions", "openai", "https://example.com") };
         let overrides = crate::compat::OpenAICompletionsCompat { requires_thinking_as_text: Some(true), ..Default::default() };
