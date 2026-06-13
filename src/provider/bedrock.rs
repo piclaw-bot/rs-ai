@@ -4,10 +4,11 @@ use std::sync::Arc;
 
 use aws_config::BehaviorVersion;
 use aws_sdk_bedrockruntime::types::{
-    AnyToolChoice, AutoToolChoice, ContentBlock as BedrockContent, ConversationRole, ImageBlock,
-    ImageFormat, ImageSource, Message as BedrockMessage, ReasoningContentBlock, ReasoningTextBlock,
-    SpecificToolChoice, SystemContentBlock, Tool, ToolChoice, ToolConfiguration, ToolInputSchema,
-    ToolResultBlock, ToolResultContentBlock, ToolResultStatus, ToolSpecification, ToolUseBlock,
+    AnyToolChoice, AutoToolChoice, CachePointBlock, CachePointType, CacheTtl,
+    ContentBlock as BedrockContent, ConversationRole, ImageBlock, ImageFormat, ImageSource,
+    Message as BedrockMessage, ReasoningContentBlock, ReasoningTextBlock, SpecificToolChoice,
+    SystemContentBlock, Tool, ToolChoice, ToolConfiguration, ToolInputSchema, ToolResultBlock,
+    ToolResultContentBlock, ToolResultStatus, ToolSpecification, ToolUseBlock,
 };
 use aws_sdk_bedrockruntime::Client as BedrockClient;
 use aws_smithy_types::{Document, Number};
@@ -16,6 +17,27 @@ use crate::events::Event;
 use crate::types::*;
 
 const EMPTY_TEXT_PLACEHOLDER: &str = "<empty>";
+
+/// Whether the Bedrock model supports prompt caching (mirrors supportsPromptCaching).
+fn supports_bedrock_prompt_caching(model: &Model) -> bool {
+    let id = model.id.to_lowercase();
+    let name = model.name.to_lowercase();
+    let has_claude = id.contains("claude") || name.contains("claude");
+    if !has_claude {
+        return std::env::var("AWS_BEDROCK_FORCE_CACHE").ok().as_deref() == Some("1");
+    }
+    let m = |needle: &str| id.contains(needle) || name.contains(needle);
+    m("-4-") || m("claude-3-7-sonnet") || m("claude-3-5-haiku")
+}
+
+/// Build a Bedrock cache-point block with an optional 1h TTL for long retention.
+fn bedrock_cache_point(long: bool) -> CachePointBlock {
+    let mut b = CachePointBlock::builder().r#type(CachePointType::Default);
+    if long {
+        b = b.ttl(CacheTtl::OneHour);
+    }
+    b.build().unwrap()
+}
 
 /// True for Anthropic Claude models on Bedrock (id or name), which support the
 /// reasoningContent signature field (mirrors isAnthropicClaudeModel).
@@ -252,6 +274,22 @@ pub fn stream_bedrock<'a>(
             }
         }
 
+        // Prompt caching: add cache points to the last user message and the system prompt
+        // for supported Claude models (mirrors the cachePoint logic).
+        let cache_long = matches!(opts.cache_retention, Some(CacheRetention::Long));
+        let cache_enabled = !matches!(opts.cache_retention, Some(CacheRetention::None) | None)
+            && supports_bedrock_prompt_caching(model);
+        if cache_enabled
+            && let Some(last) = messages.pop() {
+            if last.role() == &ConversationRole::User {
+                let mut content = last.content().to_vec();
+                content.push(BedrockContent::CachePoint(bedrock_cache_point(cache_long)));
+                messages.push(BedrockMessage::builder().role(ConversationRole::User).set_content(Some(content)).build().unwrap());
+            } else {
+                messages.push(last);
+            }
+        }
+
         let mut req = client
             .converse_stream()
             .model_id(&model.id)
@@ -259,6 +297,9 @@ pub fn stream_bedrock<'a>(
 
         if let Some(ref prompt) = context.system_prompt {
             req = req.system(SystemContentBlock::Text(prompt.clone()));
+            if cache_enabled {
+                req = req.system(SystemContentBlock::CachePoint(bedrock_cache_point(cache_long)));
+            }
         }
 
         // Inference config: max output tokens (defaults to the model cap for Claude) and
@@ -626,5 +667,22 @@ mod tests {
         // No reasoning requested: none.
         let f = bedrock_thinking_fields(&mk("anthropic.claude-3", false), &StreamOptions::default());
         assert!(f.is_none());
+    }
+
+    #[test]
+    fn test_supports_bedrock_prompt_caching() {
+        use super::supports_bedrock_prompt_caching;
+        use crate::types::{Model, ModelCost};
+        let mk = |id: &str, name: &str| Model {
+            id: id.into(), name: name.into(), api: "bedrock-converse-stream".into(),
+            provider: "bedrock".into(), base_url: String::new(), reasoning: false,
+            thinking_level_map: None, input: vec!["text".into()], cost: ModelCost::default(),
+            context_window: 0, max_tokens: 0, headers: None, api_key: None, compat: Default::default(),
+        };
+        assert!(supports_bedrock_prompt_caching(&mk("anthropic.claude-sonnet-4-5", "")));
+        assert!(supports_bedrock_prompt_caching(&mk("anthropic.claude-3-7-sonnet", "")));
+        assert!(supports_bedrock_prompt_caching(&mk("anthropic.claude-3-5-haiku", "")));
+        assert!(!supports_bedrock_prompt_caching(&mk("anthropic.claude-3-sonnet", "")));
+        assert!(!supports_bedrock_prompt_caching(&mk("meta.llama3", "Llama")));
     }
 }
