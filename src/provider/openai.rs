@@ -530,6 +530,19 @@ pub(crate) fn build_payload(
             Some("qwen") => {
                 payload["enable_thinking"] = json!(clamped_effort.is_some());
             }
+            Some("qwen-chat-template") => {
+                payload["chat_template_kwargs"] = json!({
+                    "enable_thinking": clamped_effort.is_some(),
+                    "preserve_thinking": true,
+                });
+            }
+            Some("string-thinking") => {
+                if let Some(ref level) = clamped_effort {
+                    payload["thinking"] = json!(map_effort(level));
+                } else if let Some(off) = off_value() {
+                    payload["thinking"] = json!(off);
+                }
+            }
             Some("together") => {
                 payload["reasoning"] = json!({"enabled": clamped_effort.is_some()});
                 if let Some(ref level) = clamped_effort

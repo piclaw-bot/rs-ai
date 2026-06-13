@@ -396,6 +396,29 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_qwen_chat_template_thinking() {
+        let model = Model { reasoning: true, ..test_model("openai-completions", "openai", "https://example.com") };
+        let overrides = crate::compat::OpenAICompletionsCompat { thinking_format: Some("qwen-chat-template".into()), ..Default::default() };
+        let compat = crate::compat::detect_compat_for_model(&model, Some(&overrides));
+        let ctx = test_context();
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &opts, &compat);
+        assert_eq!(payload["chat_template_kwargs"]["enable_thinking"], true);
+        assert_eq!(payload["chat_template_kwargs"]["preserve_thinking"], true);
+    }
+
+    #[test]
+    fn test_openai_string_thinking_format() {
+        let model = Model { reasoning: true, ..test_model("openai-completions", "openai", "https://example.com") };
+        let overrides = crate::compat::OpenAICompletionsCompat { thinking_format: Some("string-thinking".into()), ..Default::default() };
+        let compat = crate::compat::detect_compat_for_model(&model, Some(&overrides));
+        let ctx = test_context();
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::Medium), ..Default::default() };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &opts, &compat);
+        assert_eq!(payload["thinking"], "medium");
+    }
+
+    #[test]
     fn test_openai_zai_thinking_format() {
         let model = Model { reasoning: true, ..test_model("openai-completions", "zai", "https://z.ai/api") };
         let ctx = test_context();
