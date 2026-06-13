@@ -120,4 +120,20 @@ mod tests {
         assert_eq!(c.supports_temperature, Some(false));
         assert_eq!(c.supports_developer_role, Some(true)); // base preserved
     }
+
+    #[test]
+    fn test_model_compat_overrides_detection() {
+        // A model declaring compat flags must override URL/provider detection,
+        // mirroring upstream getCompat overlaying model.compat onto detected defaults.
+        let mut m = model_with("openai", "https://api.openai.com/v1", "gpt-4o");
+        m.compat.max_tokens_field = Some("max_tokens".into());
+        m.compat.supports_reasoning_effort = Some(false);
+        m.compat.thinking_format = Some("deepseek".into());
+        let c = detect_compat(&m);
+        assert_eq!(c.max_tokens_field.as_deref(), Some("max_tokens"));
+        assert_eq!(c.supports_reasoning_effort, Some(false));
+        assert_eq!(c.thinking_format.as_deref(), Some("deepseek"));
+        // Untouched flag still comes from detection.
+        assert_eq!(c.supports_developer_role, Some(true));
+    }
 }

@@ -20,9 +20,34 @@ pub struct OpenAICompletionsCompat {
     pub supports_session_affinity_headers: Option<bool>,
 }
 
-/// Auto-detect compatibility flags from a model's provider/URL.
+/// Auto-detect compatibility flags from a model's provider/URL, then overlay any
+/// explicit per-model `compat` overrides (mirrors upstream `getCompat`).
 pub fn detect_compat(model: &Model) -> OpenAICompletionsCompat {
-    detect_compat_inner(&model.provider, &model.id, &model.base_url)
+    let overrides = model_compat_overrides(model);
+    detect_compat_for_model(model, overrides.as_ref())
+}
+
+/// Convert a model's declared `compat` flags into completions-compat overrides.
+fn model_compat_overrides(model: &Model) -> Option<OpenAICompletionsCompat> {
+    let mc = &model.compat;
+    if mc.is_empty() {
+        return None;
+    }
+    Some(OpenAICompletionsCompat {
+        supports_store: mc.supports_store,
+        supports_developer_role: mc.supports_developer_role,
+        supports_reasoning_effort: mc.supports_reasoning_effort,
+        supports_usage_in_streaming: None,
+        supports_temperature: mc.supports_temperature,
+        max_tokens_field: mc.max_tokens_field.clone(),
+        requires_tool_result_name: None,
+        requires_thinking_as_text: None,
+        requires_reasoning_content_on_assistant_messages: mc.requires_reasoning_content_on_assistant_messages,
+        thinking_format: mc.thinking_format.clone(),
+        supports_strict_mode: mc.supports_strict_mode,
+        supports_long_cache_retention: mc.supports_long_cache_retention,
+        supports_session_affinity_headers: mc.send_session_affinity_headers,
+    })
 }
 
 /// Detect and merge model-specific compat overrides (mirrors Go's DetectCompatForModel).
