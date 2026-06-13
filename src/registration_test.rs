@@ -20,6 +20,7 @@ mod tests {
             max_tokens: 4096,
             headers: None,
             api_key: Some("test-key".into()),
+            compat: Default::default(),
         }
     }
 

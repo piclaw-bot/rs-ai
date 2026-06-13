@@ -284,6 +284,7 @@ mod tests {
             thinking_level_map: None, input: vec!["text".into()],
             cost: ModelCost::default(), context_window: 128000, max_tokens: 4096,
             headers: None, api_key: None,
+            compat: Default::default(),
         }
     }
 

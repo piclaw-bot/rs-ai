@@ -61,6 +61,38 @@ def gen_model(m) -> str:
         lines.append("            headers: None,")
     
     lines.append("            api_key: None,")
+    compat = m.get("compat") or {}
+    compat_fields = {
+        "forceAdaptiveThinking": ("force_adaptive_thinking", "bool"),
+        "maxTokensField": ("max_tokens_field", "str"),
+        "requiresReasoningContentOnAssistantMessages": ("requires_reasoning_content_on_assistant_messages", "bool"),
+        "sendSessionAffinityHeaders": ("send_session_affinity_headers", "bool"),
+        "supportsCacheControlOnTools": ("supports_cache_control_on_tools", "bool"),
+        "supportsDeveloperRole": ("supports_developer_role", "bool"),
+        "supportsEagerToolInputStreaming": ("supports_eager_tool_input_streaming", "bool"),
+        "supportsLongCacheRetention": ("supports_long_cache_retention", "bool"),
+        "supportsReasoningEffort": ("supports_reasoning_effort", "bool"),
+        "supportsStore": ("supports_store", "bool"),
+        "supportsStrictMode": ("supports_strict_mode", "bool"),
+        "supportsTemperature": ("supports_temperature", "bool"),
+        "thinkingFormat": ("thinking_format", "str"),
+        "zaiToolStream": ("zai_tool_stream", "bool"),
+    }
+    compat_lines = []
+    for js_key, (rs_key, kind) in compat_fields.items():
+        if js_key in compat and compat[js_key] is not None:
+            v = compat[js_key]
+            if kind == "bool":
+                compat_lines.append(f"                {rs_key}: Some({str(v).lower()}),")
+            else:
+                compat_lines.append(f"                {rs_key}: Some({rust_string(v)}.into()),")
+    if compat_lines:
+        lines.append("            compat: ModelCompat {")
+        lines.extend(compat_lines)
+        lines.append("                ..Default::default()")
+        lines.append("            },")
+    else:
+        lines.append("            compat: ModelCompat::default(),")
     lines.append("        }")
     return "\n".join(lines)
 
@@ -90,7 +122,7 @@ def main():
     out.append("#![allow(clippy::approx_constant)]")
     out.append("")
     out.append("use std::collections::HashMap;")
-    out.append("use crate::types::{Model, ModelCost};")
+    out.append("use crate::types::{Model, ModelCost, ModelCompat};")
     out.append("")
     out.append("/// Returns all built-in models from the upstream pi-ai registry.")
     out.append("pub fn builtin_models() -> Vec<Model> {")

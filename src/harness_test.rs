@@ -30,6 +30,7 @@ mod tests {
             thinking_level_map: None, input: vec!["text".into()],
             cost: ModelCost::default(), context_window: 4096, max_tokens: 1024,
             headers: None, api_key: None,
+            compat: Default::default(),
         }
     }
 

@@ -280,6 +280,50 @@ pub struct Model {
     pub headers: Option<HashMap<String, String>>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub api_key: Option<String>,
+    #[serde(default, skip_serializing_if = "ModelCompat::is_empty")]
+    pub compat: ModelCompat,
+}
+
+/// Per-model compatibility flags that drive provider request behavior.
+/// Mirrors upstream OpenAICompletionsCompat / OpenAIResponsesCompat / AnthropicMessagesCompat.
+#[derive(Debug, Clone, Default, PartialEq, serde::Serialize, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ModelCompat {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub force_adaptive_thinking: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub max_tokens_field: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub requires_reasoning_content_on_assistant_messages: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub send_session_affinity_headers: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supports_cache_control_on_tools: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supports_developer_role: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supports_eager_tool_input_streaming: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supports_long_cache_retention: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supports_reasoning_effort: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supports_store: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supports_strict_mode: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub supports_temperature: Option<bool>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub thinking_format: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub zai_tool_stream: Option<bool>,
+}
+
+impl ModelCompat {
+    /// True when no compat flags are set (used to skip serialization).
+    pub fn is_empty(&self) -> bool {
+        *self == ModelCompat::default()
+    }
 }
 
 /// Stream options for a single request.

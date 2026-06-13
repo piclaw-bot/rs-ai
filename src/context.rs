@@ -74,6 +74,7 @@ mod tests {
             max_tokens: 1024,
             headers: None,
             api_key: None,
+            compat: Default::default(),
         }
     }
 

@@ -91,6 +91,7 @@ mod tests {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: Default::default(),
         }
     }
 

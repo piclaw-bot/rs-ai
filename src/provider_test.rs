@@ -28,6 +28,7 @@ mod tests {
             max_tokens: 4096,
             headers: None,
             api_key: Some("test-key".into()),
+            compat: Default::default(),
         }
     }
 
@@ -1182,6 +1183,43 @@ mod tests {
         let block = &payload["messages"][0]["content"][0];
         assert_eq!(block["type"], "redacted_thinking");
         assert_eq!(block["data"], "opaque-blob");
+    }
+
+    #[test]
+    fn test_anthropic_adaptive_thinking_uses_effort_not_budget() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        // Adaptive-thinking models (forceAdaptiveThinking) send an effort, not a token budget.
+        let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        model.reasoning = true;
+        model.compat.force_adaptive_thinking = Some(true);
+        // xhigh maps to "max" on Opus 4.6 via thinkingLevelMap.
+        model.thinking_level_map = Some(std::collections::HashMap::from([
+            ("xhigh".to_string(), Some("max".to_string())),
+        ]));
+        let ctx = Context { system_prompt: None, messages: vec![user_message("hi")], tools: vec![] };
+
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
+        let payload = build_anthropic_payload(&model, &ctx, &opts);
+        assert_eq!(payload["thinking"]["type"], "enabled");
+        assert_eq!(payload["thinking"]["effort"], "high");
+        assert!(payload["thinking"].get("budget_tokens").is_none());
+
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::XHigh), ..Default::default() };
+        let payload = build_anthropic_payload(&model, &ctx, &opts);
+        assert_eq!(payload["thinking"]["effort"], "max");
+    }
+
+    #[test]
+    fn test_anthropic_budget_thinking_for_non_adaptive() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        model.reasoning = true;
+        let ctx = Context { system_prompt: None, messages: vec![user_message("hi")], tools: vec![] };
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
+        let payload = build_anthropic_payload(&model, &ctx, &opts);
+        assert_eq!(payload["thinking"]["type"], "enabled");
+        assert!(payload["thinking"].get("budget_tokens").is_some());
+        assert!(payload["thinking"].get("effort").is_none());
     }
 
     #[test]

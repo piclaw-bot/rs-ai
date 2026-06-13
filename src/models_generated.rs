@@ -1,12 +1,12 @@
 //! Auto-generated model registry from @earendil-works/pi-ai. DO NOT EDIT.
 //!
 //! Source: models.generated.js (966 models, 35 providers)
-//! Generated: 2026-06-13T09:51:27.408193Z
+//! Generated: 2026-06-13T09:57:25.573329Z
 
 #![allow(clippy::approx_constant)]
 
 use std::collections::HashMap;
-use crate::types::{Model, ModelCost};
+use crate::types::{Model, ModelCost, ModelCompat};
 
 /// Returns all built-in models from the upstream pi-ai registry.
 pub fn builtin_models() -> Vec<Model> {
@@ -25,6 +25,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "amazon.nova-lite-v1:0".into(),
@@ -40,6 +41,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "amazon.nova-micro-v1:0".into(),
@@ -55,6 +57,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "amazon.nova-pro-v1:0".into(),
@@ -70,6 +73,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic.claude-haiku-4-5-20251001-v1:0".into(),
@@ -85,6 +89,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic.claude-opus-4-1-20250805-v1:0".into(),
@@ -100,6 +105,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic.claude-opus-4-5-20251101-v1:0".into(),
@@ -115,6 +121,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic.claude-opus-4-6-v1".into(),
@@ -132,6 +139,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic.claude-opus-4-7".into(),
@@ -149,6 +157,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic.claude-opus-4-8".into(),
@@ -166,6 +175,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic.claude-sonnet-4-5-20250929-v1:0".into(),
@@ -181,6 +191,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic.claude-sonnet-4-6".into(),
@@ -196,6 +207,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "au.anthropic.claude-haiku-4-5-20251001-v1:0".into(),
@@ -211,6 +223,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "au.anthropic.claude-opus-4-6-v1".into(),
@@ -228,6 +241,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "au.anthropic.claude-opus-4-8".into(),
@@ -245,6 +259,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "au.anthropic.claude-sonnet-4-5-20250929-v1:0".into(),
@@ -260,6 +275,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "au.anthropic.claude-sonnet-4-6".into(),
@@ -275,6 +291,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek.r1-v1:0".into(),
@@ -290,6 +307,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek.v3-v1:0".into(),
@@ -305,6 +323,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 81920,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek.v3.2".into(),
@@ -320,6 +339,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 81920,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "eu.anthropic.claude-fable-5".into(),
@@ -338,6 +358,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "eu.anthropic.claude-haiku-4-5-20251001-v1:0".into(),
@@ -353,6 +374,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "eu.anthropic.claude-opus-4-5-20251101-v1:0".into(),
@@ -368,6 +390,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "eu.anthropic.claude-opus-4-6-v1".into(),
@@ -385,6 +408,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "eu.anthropic.claude-opus-4-7".into(),
@@ -402,6 +426,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "eu.anthropic.claude-opus-4-8".into(),
@@ -419,6 +444,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "eu.anthropic.claude-sonnet-4-5-20250929-v1:0".into(),
@@ -434,6 +460,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "eu.anthropic.claude-sonnet-4-6".into(),
@@ -449,6 +476,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "global.anthropic.claude-fable-5".into(),
@@ -467,6 +495,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "global.anthropic.claude-haiku-4-5-20251001-v1:0".into(),
@@ -482,6 +511,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "global.anthropic.claude-opus-4-5-20251101-v1:0".into(),
@@ -497,6 +527,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "global.anthropic.claude-opus-4-6-v1".into(),
@@ -514,6 +545,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "global.anthropic.claude-opus-4-7".into(),
@@ -531,6 +563,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "global.anthropic.claude-opus-4-8".into(),
@@ -548,6 +581,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "global.anthropic.claude-sonnet-4-5-20250929-v1:0".into(),
@@ -563,6 +597,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "global.anthropic.claude-sonnet-4-6".into(),
@@ -578,6 +613,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google.gemma-3-27b-it".into(),
@@ -593,6 +629,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google.gemma-3-4b-it".into(),
@@ -608,6 +645,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "jp.anthropic.claude-opus-4-7".into(),
@@ -625,6 +663,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "jp.anthropic.claude-opus-4-8".into(),
@@ -642,6 +681,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "jp.anthropic.claude-sonnet-4-5-20250929-v1:0".into(),
@@ -657,6 +697,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "jp.anthropic.claude-sonnet-4-6".into(),
@@ -672,6 +713,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta.llama3-1-70b-instruct-v1:0".into(),
@@ -687,6 +729,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta.llama3-1-8b-instruct-v1:0".into(),
@@ -702,6 +745,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta.llama3-3-70b-instruct-v1:0".into(),
@@ -717,6 +761,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta.llama4-maverick-17b-instruct-v1:0".into(),
@@ -732,6 +777,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta.llama4-scout-17b-instruct-v1:0".into(),
@@ -747,6 +793,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax.minimax-m2".into(),
@@ -762,6 +809,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax.minimax-m2.1".into(),
@@ -777,6 +825,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax.minimax-m2.5".into(),
@@ -792,6 +841,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 98304,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.devstral-2-123b".into(),
@@ -807,6 +857,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.magistral-small-2509".into(),
@@ -822,6 +873,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 40000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.ministral-3-14b-instruct".into(),
@@ -837,6 +889,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.ministral-3-3b-instruct".into(),
@@ -852,6 +905,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.ministral-3-8b-instruct".into(),
@@ -867,6 +921,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.mistral-large-3-675b-instruct".into(),
@@ -882,6 +937,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.pixtral-large-2502-v1:0".into(),
@@ -897,6 +953,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.voxtral-mini-3b-2507".into(),
@@ -912,6 +969,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral.voxtral-small-24b-2507".into(),
@@ -927,6 +985,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshot.kimi-k2-thinking".into(),
@@ -942,6 +1001,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai.kimi-k2.5".into(),
@@ -957,6 +1017,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia.nemotron-nano-12b-v2".into(),
@@ -972,6 +1033,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia.nemotron-nano-3-30b".into(),
@@ -987,6 +1049,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia.nemotron-nano-9b-v2".into(),
@@ -1002,6 +1065,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia.nemotron-super-3-120b".into(),
@@ -1017,6 +1081,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai.gpt-5.4".into(),
@@ -1034,6 +1099,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai.gpt-5.5".into(),
@@ -1051,6 +1117,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai.gpt-oss-120b".into(),
@@ -1066,6 +1133,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai.gpt-oss-120b-1:0".into(),
@@ -1081,6 +1149,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai.gpt-oss-20b".into(),
@@ -1096,6 +1165,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai.gpt-oss-20b-1:0".into(),
@@ -1111,6 +1181,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai.gpt-oss-safeguard-120b".into(),
@@ -1126,6 +1197,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai.gpt-oss-safeguard-20b".into(),
@@ -1141,6 +1213,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen.qwen3-235b-a22b-2507-v1:0".into(),
@@ -1156,6 +1229,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen.qwen3-32b-v1:0".into(),
@@ -1171,6 +1245,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen.qwen3-coder-30b-a3b-v1:0".into(),
@@ -1186,6 +1261,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen.qwen3-coder-480b-a35b-v1:0".into(),
@@ -1201,6 +1277,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen.qwen3-coder-next".into(),
@@ -1216,6 +1293,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen.qwen3-next-80b-a3b".into(),
@@ -1231,6 +1309,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen.qwen3-vl-235b-a22b".into(),
@@ -1246,6 +1325,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-fable-5".into(),
@@ -1264,6 +1344,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-haiku-4-5-20251001-v1:0".into(),
@@ -1279,6 +1360,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-opus-4-1-20250805-v1:0".into(),
@@ -1294,6 +1376,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-opus-4-5-20251101-v1:0".into(),
@@ -1309,6 +1392,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-opus-4-6-v1".into(),
@@ -1326,6 +1410,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-opus-4-7".into(),
@@ -1343,6 +1428,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-opus-4-8".into(),
@@ -1360,6 +1446,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-sonnet-4-5-20250929-v1:0".into(),
@@ -1375,6 +1462,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.anthropic.claude-sonnet-4-6".into(),
@@ -1390,6 +1478,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.deepseek.r1-v1:0".into(),
@@ -1405,6 +1494,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.meta.llama4-maverick-17b-instruct-v1:0".into(),
@@ -1420,6 +1510,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "us.meta.llama4-scout-17b-instruct-v1:0".into(),
@@ -1435,6 +1526,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "writer.palmyra-x4-v1:0".into(),
@@ -1450,6 +1542,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "writer.palmyra-x5-v1:0".into(),
@@ -1465,6 +1558,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai.glm-4.7".into(),
@@ -1480,6 +1574,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai.glm-4.7-flash".into(),
@@ -1495,6 +1590,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai.glm-5".into(),
@@ -1510,6 +1606,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 101376,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "Ling-2.6-1T".into(),
@@ -1525,6 +1622,14 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Ling-2.6-flash".into(),
@@ -1540,6 +1645,14 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Ring-2.6-1T".into(),
@@ -1562,6 +1675,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                thinking_format: Some("ant-ling".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-3-5-haiku-20241022".into(),
@@ -1577,6 +1699,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-5-haiku-latest".into(),
@@ -1592,6 +1715,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-5-sonnet-20240620".into(),
@@ -1607,6 +1731,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-5-sonnet-20241022".into(),
@@ -1622,6 +1747,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-7-sonnet-20250219".into(),
@@ -1637,6 +1763,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-haiku-20240307".into(),
@@ -1652,6 +1779,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-opus-20240229".into(),
@@ -1667,6 +1795,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-sonnet-20240229".into(),
@@ -1682,6 +1811,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-fable-5".into(),
@@ -1700,6 +1830,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-haiku-4-5".into(),
@@ -1715,6 +1849,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-haiku-4-5-20251001".into(),
@@ -1730,6 +1865,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-0".into(),
@@ -1745,6 +1881,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-1".into(),
@@ -1760,6 +1897,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-1-20250805".into(),
@@ -1775,6 +1913,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-20250514".into(),
@@ -1790,6 +1929,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-5".into(),
@@ -1805,6 +1945,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-5-20251101".into(),
@@ -1820,6 +1961,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-6".into(),
@@ -1837,6 +1979,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4-7".into(),
@@ -1854,6 +2000,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4-8".into(),
@@ -1871,6 +2022,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-sonnet-4-0".into(),
@@ -1886,6 +2042,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-sonnet-4-20250514".into(),
@@ -1901,6 +2058,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-sonnet-4-5".into(),
@@ -1916,6 +2074,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-sonnet-4-5-20250929".into(),
@@ -1931,6 +2090,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-sonnet-4-6".into(),
@@ -1946,6 +2106,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "gpt-4".into(),
@@ -1961,6 +2125,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4-turbo".into(),
@@ -1976,6 +2141,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4.1".into(),
@@ -1991,6 +2157,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4.1-mini".into(),
@@ -2006,6 +2173,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4.1-nano".into(),
@@ -2021,6 +2189,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o".into(),
@@ -2036,6 +2205,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-2024-05-13".into(),
@@ -2051,6 +2221,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-2024-08-06".into(),
@@ -2066,6 +2237,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-2024-11-20".into(),
@@ -2081,6 +2253,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-mini".into(),
@@ -2096,6 +2269,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5".into(),
@@ -2113,6 +2287,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-chat-latest".into(),
@@ -2130,6 +2305,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-codex".into(),
@@ -2147,6 +2323,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-mini".into(),
@@ -2164,6 +2341,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-nano".into(),
@@ -2181,6 +2359,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-pro".into(),
@@ -2198,6 +2377,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1".into(),
@@ -2215,6 +2395,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-chat-latest".into(),
@@ -2232,6 +2413,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex".into(),
@@ -2249,6 +2431,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex-max".into(),
@@ -2266,6 +2449,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex-mini".into(),
@@ -2283,6 +2467,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2".into(),
@@ -2301,6 +2486,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-chat-latest".into(),
@@ -2319,6 +2505,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-codex".into(),
@@ -2337,6 +2524,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-pro".into(),
@@ -2355,6 +2543,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-chat-latest".into(),
@@ -2373,6 +2562,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-codex".into(),
@@ -2391,6 +2581,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-codex-spark".into(),
@@ -2409,6 +2600,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4".into(),
@@ -2427,6 +2619,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-mini".into(),
@@ -2445,6 +2638,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-nano".into(),
@@ -2463,6 +2657,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-pro".into(),
@@ -2481,6 +2676,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5".into(),
@@ -2499,6 +2695,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5-pro".into(),
@@ -2519,6 +2716,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o1".into(),
@@ -2534,6 +2732,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o1-pro".into(),
@@ -2549,6 +2748,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3".into(),
@@ -2564,6 +2764,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3-deep-research".into(),
@@ -2579,6 +2780,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3-mini".into(),
@@ -2594,6 +2796,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3-pro".into(),
@@ -2609,6 +2812,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o4-mini".into(),
@@ -2624,6 +2828,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o4-mini-deep-research".into(),
@@ -2639,6 +2844,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-oss-120b".into(),
@@ -2654,6 +2860,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 40960,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai-glm-4.7".into(),
@@ -2669,6 +2876,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 40960,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-5-haiku".into(),
@@ -2684,6 +2892,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-haiku".into(),
@@ -2699,6 +2908,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-opus".into(),
@@ -2714,6 +2924,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3-sonnet".into(),
@@ -2729,6 +2940,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3.5-haiku".into(),
@@ -2744,6 +2956,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-3.5-sonnet".into(),
@@ -2759,6 +2972,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-fable-5".into(),
@@ -2777,6 +2991,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-haiku-4-5".into(),
@@ -2792,6 +3010,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4".into(),
@@ -2807,6 +3026,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-1".into(),
@@ -2822,6 +3042,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-5".into(),
@@ -2837,6 +3058,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-6".into(),
@@ -2854,6 +3076,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4-7".into(),
@@ -2871,6 +3097,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4-8".into(),
@@ -2888,6 +3119,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-sonnet-4".into(),
@@ -2903,6 +3139,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-sonnet-4-5".into(),
@@ -2918,6 +3155,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-sonnet-4-6".into(),
@@ -2933,6 +3171,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "gpt-4".into(),
@@ -2948,6 +3190,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4-turbo".into(),
@@ -2963,6 +3206,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o".into(),
@@ -2978,6 +3222,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-mini".into(),
@@ -2993,6 +3238,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1".into(),
@@ -3010,6 +3256,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex".into(),
@@ -3027,6 +3274,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2".into(),
@@ -3045,6 +3293,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-codex".into(),
@@ -3063,6 +3312,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-codex".into(),
@@ -3081,6 +3331,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4".into(),
@@ -3099,6 +3350,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5".into(),
@@ -3117,6 +3369,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o1".into(),
@@ -3132,6 +3385,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3".into(),
@@ -3147,6 +3401,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3-mini".into(),
@@ -3162,6 +3417,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3-pro".into(),
@@ -3177,6 +3433,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o4-mini".into(),
@@ -3192,6 +3449,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "workers-ai/@cf/moonshotai/kimi-k2.5".into(),
@@ -3207,6 +3465,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "workers-ai/@cf/moonshotai/kimi-k2.6".into(),
@@ -3222,6 +3484,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "workers-ai/@cf/nvidia/nemotron-3-120b-a12b".into(),
@@ -3237,6 +3503,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "workers-ai/@cf/zai-org/glm-4.7-flash".into(),
@@ -3252,6 +3522,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/google/gemma-4-26b-a4b-it".into(),
@@ -3267,6 +3541,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/ibm-granite/granite-4.0-h-micro".into(),
@@ -3282,6 +3560,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/meta/llama-3.3-70b-instruct-fp8-fast".into(),
@@ -3297,6 +3579,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 24000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/meta/llama-4-scout-17b-16e-instruct".into(),
@@ -3312,6 +3598,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/mistralai/mistral-small-3.1-24b-instruct".into(),
@@ -3327,6 +3617,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/moonshotai/kimi-k2.6".into(),
@@ -3342,6 +3636,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/moonshotai/kimi-k2.7-code".into(),
@@ -3357,6 +3655,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/nvidia/nemotron-3-120b-a12b".into(),
@@ -3372,6 +3674,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/openai/gpt-oss-120b".into(),
@@ -3387,6 +3693,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/openai/gpt-oss-20b".into(),
@@ -3402,6 +3712,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/qwen/qwen3-30b-a3b-fp8".into(),
@@ -3417,6 +3731,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "@cf/zai-org/glm-4.7-flash".into(),
@@ -3432,6 +3750,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-v4-flash".into(),
@@ -3453,6 +3775,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-v4-pro".into(),
@@ -3474,6 +3801,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/deepseek-v4-flash".into(),
@@ -3489,6 +3821,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/deepseek-v4-pro".into(),
@@ -3504,6 +3843,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/glm-5p1".into(),
@@ -3519,6 +3865,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/gpt-oss-120b".into(),
@@ -3534,6 +3887,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/gpt-oss-20b".into(),
@@ -3549,6 +3909,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/kimi-k2p6".into(),
@@ -3564,6 +3931,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/kimi-k2p7-code".into(),
@@ -3579,6 +3953,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/minimax-m2p7".into(),
@@ -3594,6 +3975,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 196608,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/minimax-m3".into(),
@@ -3609,6 +3997,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 512000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/models/qwen3p7-plus".into(),
@@ -3624,6 +4019,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/routers/glm-5p1-fast".into(),
@@ -3639,6 +4041,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/routers/kimi-k2p6-fast".into(),
@@ -3654,6 +4063,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/routers/kimi-k2p6-turbo".into(),
@@ -3669,6 +4085,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "accounts/fireworks/routers/kimi-k2p7-code-fast".into(),
@@ -3684,6 +4107,13 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                send_session_affinity_headers: Some(true),
+                supports_cache_control_on_tools: Some(false),
+                supports_eager_tool_input_streaming: Some(false),
+                supports_long_cache_retention: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-fable-5".into(),
@@ -3699,6 +4129,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-haiku-4.5".into(),
@@ -3714,6 +4150,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_eager_tool_input_streaming: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4.5".into(),
@@ -3729,6 +4169,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4.6".into(),
@@ -3746,6 +4187,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4.7".into(),
@@ -3763,6 +4208,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4.8".into(),
@@ -3780,6 +4230,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-sonnet-4".into(),
@@ -3795,6 +4250,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_eager_tool_input_streaming: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-sonnet-4.5".into(),
@@ -3810,6 +4269,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_eager_tool_input_streaming: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-sonnet-4.6".into(),
@@ -3825,6 +4288,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "gemini-2.5-pro".into(),
@@ -3840,6 +4307,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "gemini-3-flash-preview".into(),
@@ -3855,6 +4328,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "gemini-3.1-pro-preview".into(),
@@ -3870,6 +4349,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "gemini-3.5-flash".into(),
@@ -3885,6 +4370,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "gpt-4.1".into(),
@@ -3900,6 +4391,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "gpt-5-mini".into(),
@@ -3918,6 +4415,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2".into(),
@@ -3937,6 +4435,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-codex".into(),
@@ -3956,6 +4455,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-codex".into(),
@@ -3975,6 +4475,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4".into(),
@@ -3994,6 +4495,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-mini".into(),
@@ -4013,6 +4515,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-nano".into(),
@@ -4032,6 +4535,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5".into(),
@@ -4051,6 +4555,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "raptor-mini".into(),
@@ -4066,6 +4571,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: Some(HashMap::from([("User-Agent".into(), "GitHubCopilotChat/0.35.0".into()), ("Editor-Version".into(), "vscode/1.107.0".into()), ("Editor-Plugin-Version".into(), "copilot-chat/0.35.0".into()), ("Copilot-Integration-Id".into(), "vscode-chat".into())])),
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "gemini-2.0-flash".into(),
@@ -4081,6 +4592,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.0-flash-lite".into(),
@@ -4096,6 +4608,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.5-flash".into(),
@@ -4111,6 +4624,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.5-flash-lite".into(),
@@ -4126,6 +4640,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.5-pro".into(),
@@ -4141,6 +4656,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3-flash-preview".into(),
@@ -4158,6 +4674,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3-pro-preview".into(),
@@ -4179,6 +4696,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.1-flash-lite".into(),
@@ -4196,6 +4714,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.1-flash-lite-preview".into(),
@@ -4213,6 +4732,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.1-pro-preview".into(),
@@ -4234,6 +4754,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.1-pro-preview-customtools".into(),
@@ -4255,6 +4776,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.5-flash".into(),
@@ -4272,6 +4794,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-flash-latest".into(),
@@ -4287,6 +4810,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-flash-lite-latest".into(),
@@ -4302,6 +4826,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemma-4-26b-a4b-it".into(),
@@ -4323,6 +4848,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemma-4-31b-it".into(),
@@ -4344,6 +4870,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-1.5-flash".into(),
@@ -4359,6 +4886,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-1.5-flash-8b".into(),
@@ -4374,6 +4902,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-1.5-pro".into(),
@@ -4389,6 +4918,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.0-flash".into(),
@@ -4404,6 +4934,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.0-flash-lite".into(),
@@ -4419,6 +4950,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.5-flash".into(),
@@ -4434,6 +4966,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.5-flash-lite".into(),
@@ -4449,6 +4982,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.5-flash-lite-preview-09-2025".into(),
@@ -4464,6 +4998,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-2.5-pro".into(),
@@ -4479,6 +5014,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3-flash-preview".into(),
@@ -4496,6 +5032,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3-pro-preview".into(),
@@ -4517,6 +5054,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.1-pro-preview".into(),
@@ -4538,6 +5076,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.1-pro-preview-customtools".into(),
@@ -4559,6 +5098,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "llama-3.1-8b-instant".into(),
@@ -4574,6 +5114,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "llama-3.3-70b-versatile".into(),
@@ -4589,6 +5130,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta-llama/llama-4-scout-17b-16e-instruct".into(),
@@ -4604,6 +5146,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-120b".into(),
@@ -4619,6 +5162,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-20b".into(),
@@ -4634,6 +5178,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-safeguard-20b".into(),
@@ -4649,6 +5194,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-32b".into(),
@@ -4669,6 +5215,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 40960,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "MiniMaxAI/MiniMax-M2.1".into(),
@@ -4684,6 +5231,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "MiniMaxAI/MiniMax-M2.5".into(),
@@ -4699,6 +5250,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "MiniMaxAI/MiniMax-M2.7".into(),
@@ -4714,6 +5269,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3-235B-A22B-Thinking-2507".into(),
@@ -4729,6 +5288,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3-Coder-480B-A35B-Instruct".into(),
@@ -4744,6 +5307,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 66536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3-Coder-Next".into(),
@@ -4759,6 +5326,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3-Next-80B-A3B-Instruct".into(),
@@ -4774,6 +5345,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 66536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3-Next-80B-A3B-Thinking".into(),
@@ -4789,6 +5364,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3.5-397B-A17B".into(),
@@ -4804,6 +5383,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "XiaomiMiMo/MiMo-V2-Flash".into(),
@@ -4819,6 +5402,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-ai/DeepSeek-R1-0528".into(),
@@ -4834,6 +5421,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 163840,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-ai/DeepSeek-V3.2".into(),
@@ -4849,6 +5440,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-ai/DeepSeek-V4-Pro".into(),
@@ -4864,6 +5459,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 393216,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "moonshotai/Kimi-K2-Instruct".into(),
@@ -4879,6 +5478,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "moonshotai/Kimi-K2-Instruct-0905".into(),
@@ -4894,6 +5497,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "moonshotai/Kimi-K2-Thinking".into(),
@@ -4909,6 +5516,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "moonshotai/Kimi-K2.5".into(),
@@ -4924,6 +5535,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "moonshotai/Kimi-K2.6".into(),
@@ -4939,6 +5554,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "zai-org/GLM-4.7".into(),
@@ -4954,6 +5573,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "zai-org/GLM-4.7-Flash".into(),
@@ -4969,6 +5592,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "zai-org/GLM-5".into(),
@@ -4984,6 +5611,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "zai-org/GLM-5.1".into(),
@@ -4999,6 +5630,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "k2p7".into(),
@@ -5014,6 +5649,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: Some(HashMap::from([("User-Agent".into(), "KimiCLI/1.5".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "kimi-for-coding".into(),
@@ -5029,6 +5665,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: Some(HashMap::from([("User-Agent".into(), "KimiCLI/1.5".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "kimi-k2-thinking".into(),
@@ -5044,6 +5681,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: Some(HashMap::from([("User-Agent".into(), "KimiCLI/1.5".into())])),
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "MiniMax-M2.7".into(),
@@ -5059,6 +5697,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "MiniMax-M2.7-highspeed".into(),
@@ -5074,6 +5713,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "MiniMax-M3".into(),
@@ -5089,6 +5729,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "MiniMax-M2.7".into(),
@@ -5104,6 +5745,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "MiniMax-M2.7-highspeed".into(),
@@ -5119,6 +5761,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "MiniMax-M3".into(),
@@ -5134,6 +5777,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "codestral-latest".into(),
@@ -5149,6 +5793,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "devstral-2512".into(),
@@ -5164,6 +5809,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "devstral-latest".into(),
@@ -5179,6 +5825,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "devstral-medium-2507".into(),
@@ -5194,6 +5841,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "devstral-medium-latest".into(),
@@ -5209,6 +5857,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "devstral-small-2505".into(),
@@ -5224,6 +5873,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "devstral-small-2507".into(),
@@ -5239,6 +5889,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "labs-devstral-small-2512".into(),
@@ -5254,6 +5905,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "magistral-medium-latest".into(),
@@ -5269,6 +5921,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "magistral-small".into(),
@@ -5284,6 +5937,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "ministral-3b-latest".into(),
@@ -5299,6 +5953,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "ministral-8b-latest".into(),
@@ -5314,6 +5969,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-large-2411".into(),
@@ -5329,6 +5985,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-large-2512".into(),
@@ -5344,6 +6001,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-large-latest".into(),
@@ -5359,6 +6017,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-medium-2505".into(),
@@ -5374,6 +6033,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-medium-2508".into(),
@@ -5389,6 +6049,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-medium-2604".into(),
@@ -5404,6 +6065,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-medium-3.5".into(),
@@ -5419,6 +6081,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-medium-latest".into(),
@@ -5434,6 +6097,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-nemo".into(),
@@ -5449,6 +6113,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-small-2506".into(),
@@ -5464,6 +6129,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-small-2603".into(),
@@ -5479,6 +6145,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral-small-latest".into(),
@@ -5494,6 +6161,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "open-mistral-7b".into(),
@@ -5509,6 +6177,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "open-mistral-nemo".into(),
@@ -5524,6 +6193,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "open-mixtral-8x22b".into(),
@@ -5539,6 +6209,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "open-mixtral-8x7b".into(),
@@ -5554,6 +6225,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "pixtral-12b".into(),
@@ -5569,6 +6241,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "pixtral-large-latest".into(),
@@ -5584,6 +6257,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "kimi-k2-0711-preview".into(),
@@ -5599,6 +6273,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-0905-preview".into(),
@@ -5614,6 +6297,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-thinking".into(),
@@ -5629,6 +6321,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-thinking-turbo".into(),
@@ -5644,6 +6345,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-turbo-preview".into(),
@@ -5659,6 +6369,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.5".into(),
@@ -5674,6 +6393,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.6".into(),
@@ -5689,6 +6417,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.7-code".into(),
@@ -5704,6 +6441,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-0711-preview".into(),
@@ -5719,6 +6465,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-0905-preview".into(),
@@ -5734,6 +6489,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-thinking".into(),
@@ -5749,6 +6513,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-thinking-turbo".into(),
@@ -5764,6 +6537,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2-turbo-preview".into(),
@@ -5779,6 +6561,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.5".into(),
@@ -5794,6 +6585,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.6".into(),
@@ -5809,6 +6609,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "meta/llama-3.1-70b-instruct".into(),
@@ -5824,6 +6633,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "meta/llama-3.1-8b-instruct".into(),
@@ -5839,6 +6657,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "meta/llama-3.2-11b-vision-instruct".into(),
@@ -5854,6 +6681,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "meta/llama-3.2-90b-vision-instruct".into(),
@@ -5869,6 +6705,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "meta/llama-3.3-70b-instruct".into(),
@@ -5884,6 +6729,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "mistralai/mistral-large-3-675b-instruct-2512".into(),
@@ -5899,6 +6753,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "mistralai/mistral-small-4-119b-2603".into(),
@@ -5914,6 +6777,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "moonshotai/kimi-k2.6".into(),
@@ -5929,6 +6801,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "nvidia/nemotron-3-nano-30b-a3b".into(),
@@ -5944,6 +6825,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning".into(),
@@ -5959,6 +6849,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "nvidia/nemotron-3-super-120b-a12b".into(),
@@ -5974,6 +6873,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "nvidia/nemotron-3-ultra-550b-a55b".into(),
@@ -5989,6 +6897,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "nvidia/nvidia-nemotron-nano-9b-v2".into(),
@@ -6004,6 +6921,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "openai/gpt-oss-120b".into(),
@@ -6019,6 +6945,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "openai/gpt-oss-20b".into(),
@@ -6034,6 +6969,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "qwen/qwen3.5-122b-a10b".into(),
@@ -6049,6 +6993,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "stepfun-ai/step-3.5-flash".into(),
@@ -6064,6 +7017,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "stepfun-ai/step-3.7-flash".into(),
@@ -6079,6 +7041,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "z-ai/glm-5.1".into(),
@@ -6094,6 +7065,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: Some(HashMap::from([("NVCF-POLL-SECONDS".into(), "3600".into())])),
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "gpt-4".into(),
@@ -6109,6 +7089,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4-turbo".into(),
@@ -6124,6 +7105,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4.1".into(),
@@ -6139,6 +7121,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4.1-mini".into(),
@@ -6154,6 +7137,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4.1-nano".into(),
@@ -6169,6 +7153,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o".into(),
@@ -6184,6 +7169,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-2024-05-13".into(),
@@ -6199,6 +7185,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-2024-08-06".into(),
@@ -6214,6 +7201,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-2024-11-20".into(),
@@ -6229,6 +7217,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-4o-mini".into(),
@@ -6244,6 +7233,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5".into(),
@@ -6261,6 +7251,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-chat-latest".into(),
@@ -6278,6 +7269,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-codex".into(),
@@ -6295,6 +7287,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-mini".into(),
@@ -6312,6 +7305,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-nano".into(),
@@ -6329,6 +7323,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-pro".into(),
@@ -6346,6 +7341,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1".into(),
@@ -6363,6 +7359,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-chat-latest".into(),
@@ -6380,6 +7377,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex".into(),
@@ -6397,6 +7395,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex-max".into(),
@@ -6414,6 +7413,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex-mini".into(),
@@ -6431,6 +7431,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2".into(),
@@ -6449,6 +7450,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-chat-latest".into(),
@@ -6467,6 +7469,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-codex".into(),
@@ -6485,6 +7488,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-pro".into(),
@@ -6503,6 +7507,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-chat-latest".into(),
@@ -6521,6 +7526,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-codex".into(),
@@ -6539,6 +7545,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-codex-spark".into(),
@@ -6557,6 +7564,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4".into(),
@@ -6575,6 +7583,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-mini".into(),
@@ -6593,6 +7602,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-nano".into(),
@@ -6611,6 +7621,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-pro".into(),
@@ -6629,6 +7640,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5".into(),
@@ -6648,6 +7660,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5-pro".into(),
@@ -6668,6 +7681,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o1".into(),
@@ -6683,6 +7697,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o1-pro".into(),
@@ -6698,6 +7713,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3".into(),
@@ -6713,6 +7729,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3-deep-research".into(),
@@ -6728,6 +7745,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3-mini".into(),
@@ -6743,6 +7761,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o3-pro".into(),
@@ -6758,6 +7777,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o4-mini".into(),
@@ -6773,6 +7793,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "o4-mini-deep-research".into(),
@@ -6788,6 +7809,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-codex-spark".into(),
@@ -6806,6 +7828,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4".into(),
@@ -6824,6 +7847,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-mini".into(),
@@ -6842,6 +7866,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5".into(),
@@ -6860,6 +7885,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "big-pickle".into(),
@@ -6875,6 +7901,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-haiku-4-5".into(),
@@ -6890,6 +7920,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-1".into(),
@@ -6905,6 +7936,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-5".into(),
@@ -6920,6 +7952,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-opus-4-6".into(),
@@ -6937,6 +7970,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4-7".into(),
@@ -6954,6 +7991,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-opus-4-8".into(),
@@ -6971,6 +8013,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "claude-sonnet-4".into(),
@@ -6986,6 +8033,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-sonnet-4-5".into(),
@@ -7001,6 +8049,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "claude-sonnet-4-6".into(),
@@ -7016,6 +8065,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-v4-flash".into(),
@@ -7037,6 +8090,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-v4-flash-free".into(),
@@ -7058,6 +8117,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-v4-pro".into(),
@@ -7079,6 +8144,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "gemini-3-flash".into(),
@@ -7096,6 +8167,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.1-pro".into(),
@@ -7117,6 +8189,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gemini-3.5-flash".into(),
@@ -7134,6 +8207,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "glm-5".into(),
@@ -7149,6 +8223,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5.1".into(),
@@ -7164,6 +8242,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "gpt-5".into(),
@@ -7181,6 +8263,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-codex".into(),
@@ -7198,6 +8281,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5-nano".into(),
@@ -7215,6 +8299,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1".into(),
@@ -7232,6 +8317,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex".into(),
@@ -7249,6 +8335,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex-max".into(),
@@ -7266,6 +8353,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.1-codex-mini".into(),
@@ -7283,6 +8371,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2".into(),
@@ -7301,6 +8390,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.2-codex".into(),
@@ -7319,6 +8409,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.3-codex".into(),
@@ -7337,6 +8428,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4".into(),
@@ -7355,6 +8447,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-mini".into(),
@@ -7373,6 +8466,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-nano".into(),
@@ -7391,6 +8485,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.4-pro".into(),
@@ -7409,6 +8504,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5".into(),
@@ -7427,6 +8523,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "gpt-5.5-pro".into(),
@@ -7447,6 +8544,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "grok-build-0.1".into(),
@@ -7467,6 +8565,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_reasoning_effort: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.5".into(),
@@ -7482,6 +8585,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.6".into(),
@@ -7497,6 +8604,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_reasoning_effort: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-free".into(),
@@ -7512,6 +8625,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "minimax-m2.5".into(),
@@ -7527,6 +8644,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "minimax-m2.7".into(),
@@ -7542,6 +8663,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "nemotron-3-ultra-free".into(),
@@ -7557,6 +8682,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "north-mini-code-free".into(),
@@ -7572,6 +8701,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "qwen3.5-plus".into(),
@@ -7587,6 +8720,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen3.6-plus".into(),
@@ -7602,6 +8736,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek-v4-flash".into(),
@@ -7623,6 +8758,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-v4-pro".into(),
@@ -7644,6 +8785,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5".into(),
@@ -7659,6 +8806,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5.1".into(),
@@ -7674,6 +8825,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.6".into(),
@@ -7693,6 +8848,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_reasoning_effort: Some(false),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "kimi-k2.7-code".into(),
@@ -7708,6 +8869,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5".into(),
@@ -7723,6 +8888,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro".into(),
@@ -7738,6 +8907,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "minimax-m2.7".into(),
@@ -7753,6 +8926,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "minimax-m3".into(),
@@ -7768,6 +8945,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen3.6-plus".into(),
@@ -7783,6 +8961,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                thinking_format: Some("qwen".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "qwen3.7-max".into(),
@@ -7798,6 +8981,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen3.7-plus".into(),
@@ -7813,6 +8997,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "ai21/jamba-large-1.7".into(),
@@ -7828,6 +9013,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "amazon/nova-2-lite-v1".into(),
@@ -7843,6 +9029,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65535,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "amazon/nova-lite-v1".into(),
@@ -7858,6 +9045,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 5120,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "amazon/nova-micro-v1".into(),
@@ -7873,6 +9061,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 5120,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "amazon/nova-premier-v1".into(),
@@ -7888,6 +9077,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "amazon/nova-pro-v1".into(),
@@ -7903,6 +9093,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 5120,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-3-haiku".into(),
@@ -7918,6 +9109,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-3.5-haiku".into(),
@@ -7933,6 +9125,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-fable-5".into(),
@@ -7948,6 +9141,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-haiku-4.5".into(),
@@ -7963,6 +9157,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4".into(),
@@ -7978,6 +9173,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.1".into(),
@@ -7993,6 +9189,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.5".into(),
@@ -8008,6 +9205,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.6".into(),
@@ -8025,6 +9223,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.6-fast".into(),
@@ -8042,6 +9241,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.7".into(),
@@ -8059,6 +9259,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.7-fast".into(),
@@ -8076,6 +9277,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.8".into(),
@@ -8093,6 +9295,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.8-fast".into(),
@@ -8110,6 +9313,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-sonnet-4".into(),
@@ -8125,6 +9329,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-sonnet-4.5".into(),
@@ -8140,6 +9345,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-sonnet-4.6".into(),
@@ -8155,6 +9361,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "arcee-ai/trinity-large-thinking".into(),
@@ -8170,6 +9377,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "arcee-ai/trinity-mini".into(),
@@ -8185,6 +9393,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "arcee-ai/virtuoso-large".into(),
@@ -8200,6 +9409,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "auto".into(),
@@ -8215,6 +9425,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 30000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "bytedance-seed/seed-1.6".into(),
@@ -8230,6 +9441,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "bytedance-seed/seed-1.6-flash".into(),
@@ -8245,6 +9457,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "bytedance-seed/seed-2.0-lite".into(),
@@ -8260,6 +9473,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "bytedance-seed/seed-2.0-mini".into(),
@@ -8275,6 +9489,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "cohere/command-r-08-2024".into(),
@@ -8290,6 +9505,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "cohere/command-r-plus-08-2024".into(),
@@ -8305,6 +9521,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-chat".into(),
@@ -8320,6 +9537,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-chat-v3-0324".into(),
@@ -8335,6 +9553,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-chat-v3.1".into(),
@@ -8350,6 +9569,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-r1".into(),
@@ -8365,6 +9585,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-r1-0528".into(),
@@ -8380,6 +9601,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v3.1-terminus".into(),
@@ -8395,6 +9617,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v3.2".into(),
@@ -8410,6 +9633,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v3.2-exp".into(),
@@ -8425,6 +9649,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v4-flash".into(),
@@ -8446,6 +9671,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek/deepseek-v4-pro".into(),
@@ -8467,6 +9696,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "essentialai/rnj-1-instruct".into(),
@@ -8482,6 +9715,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-flash".into(),
@@ -8497,6 +9731,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65535,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-flash-lite".into(),
@@ -8512,6 +9747,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65535,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-flash-lite-preview-09-2025".into(),
@@ -8527,6 +9763,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65535,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-pro".into(),
@@ -8542,6 +9779,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-pro-preview".into(),
@@ -8557,6 +9795,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-pro-preview-05-06".into(),
@@ -8572,6 +9811,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65535,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3-flash-preview".into(),
@@ -8587,6 +9827,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.1-flash-lite".into(),
@@ -8602,6 +9843,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.1-flash-lite-preview".into(),
@@ -8617,6 +9859,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.1-pro-preview".into(),
@@ -8632,6 +9875,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.1-pro-preview-customtools".into(),
@@ -8647,6 +9891,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.5-flash".into(),
@@ -8662,6 +9907,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemma-3-12b-it".into(),
@@ -8677,6 +9923,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemma-3-27b-it".into(),
@@ -8692,6 +9939,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemma-4-26b-a4b-it".into(),
@@ -8707,6 +9955,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemma-4-26b-a4b-it:free".into(),
@@ -8722,6 +9971,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemma-4-31b-it".into(),
@@ -8737,6 +9987,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemma-4-31b-it:free".into(),
@@ -8752,6 +10003,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "ibm-granite/granite-4.1-8b".into(),
@@ -8767,6 +10019,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "inception/mercury-2".into(),
@@ -8784,6 +10037,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 50000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "inclusionai/ling-2.6-1t".into(),
@@ -8799,6 +10053,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "inclusionai/ling-2.6-flash".into(),
@@ -8814,6 +10069,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "inclusionai/ring-2.6-1t".into(),
@@ -8829,6 +10085,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "kwaipilot/kat-coder-pro-v2".into(),
@@ -8844,6 +10101,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 80000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta-llama/llama-3.1-70b-instruct".into(),
@@ -8859,6 +10117,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta-llama/llama-3.1-8b-instruct".into(),
@@ -8874,6 +10133,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta-llama/llama-3.3-70b-instruct".into(),
@@ -8889,6 +10149,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta-llama/llama-3.3-70b-instruct:free".into(),
@@ -8904,6 +10165,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta-llama/llama-4-maverick".into(),
@@ -8919,6 +10181,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta-llama/llama-4-scout".into(),
@@ -8934,6 +10197,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m1".into(),
@@ -8949,6 +10213,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 40000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2".into(),
@@ -8964,6 +10229,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 196608,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.1".into(),
@@ -8979,6 +10245,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 196608,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.5".into(),
@@ -8994,6 +10261,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 196608,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.7".into(),
@@ -9009,6 +10277,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m3".into(),
@@ -9024,6 +10293,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 512000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/codestral-2508".into(),
@@ -9039,6 +10309,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/devstral-2512".into(),
@@ -9054,6 +10325,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/ministral-14b-2512".into(),
@@ -9069,6 +10341,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/ministral-3b-2512".into(),
@@ -9084,6 +10357,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/ministral-8b-2512".into(),
@@ -9099,6 +10373,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-large".into(),
@@ -9114,6 +10389,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-large-2407".into(),
@@ -9129,6 +10405,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-large-2512".into(),
@@ -9144,6 +10421,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-medium-3".into(),
@@ -9159,6 +10437,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-medium-3-5".into(),
@@ -9174,6 +10453,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-medium-3.1".into(),
@@ -9189,6 +10469,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-nemo".into(),
@@ -9204,6 +10485,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-saba".into(),
@@ -9219,6 +10501,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-small-2603".into(),
@@ -9234,6 +10517,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mistral-small-3.2-24b-instruct".into(),
@@ -9249,6 +10533,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/mixtral-8x22b-instruct".into(),
@@ -9264,6 +10549,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistralai/voxtral-small-24b-2507".into(),
@@ -9279,6 +10565,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2".into(),
@@ -9294,6 +10581,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2-0905".into(),
@@ -9309,6 +10597,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2-thinking".into(),
@@ -9324,6 +10613,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2.5".into(),
@@ -9339,6 +10629,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2.6".into(),
@@ -9354,6 +10645,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262142,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                supports_developer_role: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "moonshotai/kimi-k2.7-code".into(),
@@ -9369,6 +10665,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nex-agi/nex-n2-pro:free".into(),
@@ -9384,6 +10681,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/llama-3.3-nemotron-super-49b-v1.5".into(),
@@ -9399,6 +10697,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-nano-30b-a3b".into(),
@@ -9414,6 +10713,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 228000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-nano-30b-a3b:free".into(),
@@ -9429,6 +10729,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free".into(),
@@ -9444,6 +10745,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-super-120b-a12b".into(),
@@ -9459,6 +10761,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-super-120b-a12b:free".into(),
@@ -9474,6 +10777,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-ultra-550b-a55b".into(),
@@ -9489,6 +10793,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-ultra-550b-a55b:free".into(),
@@ -9504,6 +10809,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-nano-12b-v2-vl:free".into(),
@@ -9519,6 +10825,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-nano-9b-v2:free".into(),
@@ -9534,6 +10841,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-3.5-turbo".into(),
@@ -9549,6 +10857,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-3.5-turbo-0613".into(),
@@ -9564,6 +10873,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-3.5-turbo-16k".into(),
@@ -9579,6 +10889,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4".into(),
@@ -9594,6 +10905,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4-turbo".into(),
@@ -9609,6 +10921,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4-turbo-preview".into(),
@@ -9624,6 +10937,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4.1".into(),
@@ -9639,6 +10953,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4.1-mini".into(),
@@ -9654,6 +10969,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4.1-nano".into(),
@@ -9669,6 +10985,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4o".into(),
@@ -9684,6 +11001,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4o-2024-05-13".into(),
@@ -9699,6 +11017,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4o-2024-08-06".into(),
@@ -9714,6 +11033,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4o-2024-11-20".into(),
@@ -9729,6 +11049,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4o-mini".into(),
@@ -9744,6 +11065,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4o-mini-2024-07-18".into(),
@@ -9759,6 +11081,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5".into(),
@@ -9774,6 +11097,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-codex".into(),
@@ -9789,6 +11113,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-mini".into(),
@@ -9804,6 +11129,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-nano".into(),
@@ -9819,6 +11145,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-pro".into(),
@@ -9834,6 +11161,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1".into(),
@@ -9849,6 +11177,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-chat".into(),
@@ -9864,6 +11193,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-codex".into(),
@@ -9879,6 +11209,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-codex-max".into(),
@@ -9894,6 +11225,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-codex-mini".into(),
@@ -9909,6 +11241,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.2".into(),
@@ -9926,6 +11259,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.2-chat".into(),
@@ -9943,6 +11277,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.2-codex".into(),
@@ -9960,6 +11295,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.2-pro".into(),
@@ -9977,6 +11313,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.3-chat".into(),
@@ -9994,6 +11331,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.3-codex".into(),
@@ -10011,6 +11349,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.4".into(),
@@ -10028,6 +11367,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.4-mini".into(),
@@ -10045,6 +11385,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.4-nano".into(),
@@ -10062,6 +11403,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.4-pro".into(),
@@ -10079,6 +11421,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.5".into(),
@@ -10096,6 +11439,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.5-pro".into(),
@@ -10116,6 +11460,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-audio".into(),
@@ -10131,6 +11476,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-audio-mini".into(),
@@ -10146,6 +11492,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-chat-latest".into(),
@@ -10161,6 +11508,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-120b".into(),
@@ -10176,6 +11524,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-120b:free".into(),
@@ -10191,6 +11540,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-20b".into(),
@@ -10206,6 +11556,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-20b:free".into(),
@@ -10221,6 +11572,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-safeguard-20b".into(),
@@ -10236,6 +11588,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o1".into(),
@@ -10251,6 +11604,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3".into(),
@@ -10266,6 +11620,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3-deep-research".into(),
@@ -10281,6 +11636,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3-mini".into(),
@@ -10296,6 +11652,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3-mini-high".into(),
@@ -10311,6 +11668,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3-pro".into(),
@@ -10326,6 +11684,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o4-mini".into(),
@@ -10341,6 +11700,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o4-mini-deep-research".into(),
@@ -10356,6 +11716,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o4-mini-high".into(),
@@ -10371,6 +11732,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openrouter/auto".into(),
@@ -10386,6 +11748,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openrouter/free".into(),
@@ -10401,6 +11764,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openrouter/owl-alpha".into(),
@@ -10416,6 +11780,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "poolside/laguna-m.1:free".into(),
@@ -10431,6 +11796,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "poolside/laguna-xs.2:free".into(),
@@ -10446,6 +11812,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "prime-intellect/intellect-3".into(),
@@ -10461,6 +11828,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen-2.5-72b-instruct".into(),
@@ -10476,6 +11844,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen-plus".into(),
@@ -10491,6 +11860,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen-plus-2025-07-28".into(),
@@ -10506,6 +11876,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen-plus-2025-07-28:thinking".into(),
@@ -10521,6 +11892,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-14b".into(),
@@ -10536,6 +11908,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 40960,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-235b-a22b".into(),
@@ -10551,6 +11924,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-235b-a22b-2507".into(),
@@ -10566,6 +11940,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-235b-a22b-thinking-2507".into(),
@@ -10581,6 +11956,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-30b-a3b".into(),
@@ -10596,6 +11972,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-30b-a3b-instruct-2507".into(),
@@ -10611,6 +11988,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-30b-a3b-thinking-2507".into(),
@@ -10626,6 +12004,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-32b".into(),
@@ -10641,6 +12020,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-8b".into(),
@@ -10656,6 +12036,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-coder".into(),
@@ -10671,6 +12052,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-coder-30b-a3b-instruct".into(),
@@ -10686,6 +12068,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-coder-flash".into(),
@@ -10701,6 +12084,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-coder-next".into(),
@@ -10716,6 +12100,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-coder-plus".into(),
@@ -10731,6 +12116,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-coder:free".into(),
@@ -10746,6 +12132,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-max".into(),
@@ -10761,6 +12148,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-max-thinking".into(),
@@ -10776,6 +12164,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-next-80b-a3b-instruct".into(),
@@ -10791,6 +12180,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-next-80b-a3b-instruct:free".into(),
@@ -10806,6 +12196,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-next-80b-a3b-thinking".into(),
@@ -10821,6 +12212,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-vl-235b-a22b-instruct".into(),
@@ -10836,6 +12228,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-vl-235b-a22b-thinking".into(),
@@ -10851,6 +12244,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-vl-30b-a3b-instruct".into(),
@@ -10866,6 +12260,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-vl-30b-a3b-thinking".into(),
@@ -10881,6 +12276,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-vl-32b-instruct".into(),
@@ -10896,6 +12292,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-vl-8b-instruct".into(),
@@ -10911,6 +12308,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3-vl-8b-thinking".into(),
@@ -10926,6 +12324,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.5-122b-a10b".into(),
@@ -10941,6 +12340,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.5-27b".into(),
@@ -10956,6 +12356,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.5-35b-a3b".into(),
@@ -10971,6 +12372,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.5-397b-a17b".into(),
@@ -10986,6 +12388,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.5-9b".into(),
@@ -11001,6 +12404,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.5-flash-02-23".into(),
@@ -11016,6 +12420,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.5-plus-02-15".into(),
@@ -11031,6 +12436,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.5-plus-20260420".into(),
@@ -11046,6 +12452,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.6-27b".into(),
@@ -11061,6 +12468,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262140,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.6-35b-a3b".into(),
@@ -11076,6 +12484,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.6-flash".into(),
@@ -11091,6 +12500,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.6-max-preview".into(),
@@ -11106,6 +12516,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.6-plus".into(),
@@ -11121,6 +12532,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.7-max".into(),
@@ -11136,6 +12548,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "qwen/qwen3.7-plus".into(),
@@ -11151,6 +12564,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "rekaai/reka-edge".into(),
@@ -11166,6 +12580,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "relace/relace-search".into(),
@@ -11181,6 +12596,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "sao10k/l3.1-euryale-70b".into(),
@@ -11196,6 +12612,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "stepfun/step-3.5-flash".into(),
@@ -11211,6 +12628,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "stepfun/step-3.7-flash".into(),
@@ -11226,6 +12644,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "tencent/hy3-preview".into(),
@@ -11241,6 +12660,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "thedrummer/rocinante-12b".into(),
@@ -11256,6 +12676,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "thedrummer/unslopnemo-12b".into(),
@@ -11271,6 +12692,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "upstage/solar-pro-3".into(),
@@ -11286,6 +12708,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "x-ai/grok-4.20".into(),
@@ -11301,6 +12724,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "x-ai/grok-4.3".into(),
@@ -11316,6 +12740,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "x-ai/grok-build-0.1".into(),
@@ -11331,6 +12756,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xiaomi/mimo-v2-flash".into(),
@@ -11346,6 +12772,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xiaomi/mimo-v2.5".into(),
@@ -11361,6 +12788,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xiaomi/mimo-v2.5-pro".into(),
@@ -11376,6 +12804,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-4.5".into(),
@@ -11391,6 +12820,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 98304,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-4.5-air".into(),
@@ -11406,6 +12836,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131070,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-4.5v".into(),
@@ -11421,6 +12852,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-4.6".into(),
@@ -11436,6 +12868,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-4.6v".into(),
@@ -11451,6 +12884,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-4.7".into(),
@@ -11466,6 +12900,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-4.7-flash".into(),
@@ -11481,6 +12916,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-5".into(),
@@ -11496,6 +12932,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-5-turbo".into(),
@@ -11511,6 +12948,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "z-ai/glm-5.1".into(),
@@ -11526,6 +12964,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~anthropic/claude-fable-latest".into(),
@@ -11541,6 +12980,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~anthropic/claude-haiku-latest".into(),
@@ -11556,6 +12996,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~anthropic/claude-opus-latest".into(),
@@ -11571,6 +13012,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~anthropic/claude-sonnet-latest".into(),
@@ -11586,6 +13028,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~google/gemini-flash-latest".into(),
@@ -11601,6 +13044,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~google/gemini-pro-latest".into(),
@@ -11616,6 +13060,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~moonshotai/kimi-latest".into(),
@@ -11631,6 +13076,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262142,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~openai/gpt-latest".into(),
@@ -11646,6 +13092,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "~openai/gpt-mini-latest".into(),
@@ -11661,6 +13108,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "MiniMaxAI/MiniMax-M2.7".into(),
@@ -11681,6 +13129,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "MiniMaxAI/MiniMax-M3".into(),
@@ -11700,6 +13157,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 250000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen2.5-7B-Instruct-Turbo".into(),
@@ -11715,6 +13182,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3-235B-A22B-Instruct-2507-tput".into(),
@@ -11730,6 +13206,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262144,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3.5-397B-A17B".into(),
@@ -11749,6 +13234,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 130000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3.5-9B".into(),
@@ -11768,6 +13263,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3.6-Plus".into(),
@@ -11787,6 +13292,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 500000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "Qwen/Qwen3.7-Max".into(),
@@ -11802,6 +13317,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 500000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "deepseek-ai/DeepSeek-V4-Pro".into(),
@@ -11823,6 +13347,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(true),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "essentialai/Rnj-1-Instruct".into(),
@@ -11838,6 +13372,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "google/gemma-4-31B-it".into(),
@@ -11857,6 +13400,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "meta-llama/Llama-3.3-70B-Instruct-Turbo".into(),
@@ -11872,6 +13425,15 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "moonshotai/Kimi-K2.6".into(),
@@ -11891,6 +13453,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "nvidia/nemotron-3-ultra-550b-a55b".into(),
@@ -11910,6 +13482,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 512300,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "openai/gpt-oss-120b".into(),
@@ -11928,6 +13510,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(true),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("openai".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "openai/gpt-oss-20b".into(),
@@ -11946,6 +13538,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(true),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("openai".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "zai-org/GLM-5".into(),
@@ -11965,6 +13567,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "zai-org/GLM-5.1".into(),
@@ -11984,6 +13596,16 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                max_tokens_field: Some("max_tokens".into()),
+                supports_developer_role: Some(false),
+                supports_long_cache_retention: Some(false),
+                supports_reasoning_effort: Some(false),
+                supports_store: Some(false),
+                supports_strict_mode: Some(false),
+                thinking_format: Some("together".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "alibaba/qwen-3-14b".into(),
@@ -11999,6 +13621,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen-3-235b".into(),
@@ -12014,6 +13637,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen-3-30b".into(),
@@ -12029,6 +13653,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen-3-32b".into(),
@@ -12044,6 +13669,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen-3.6-max-preview".into(),
@@ -12059,6 +13685,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-235b-a22b-thinking".into(),
@@ -12074,6 +13701,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-coder".into(),
@@ -12089,6 +13717,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-coder-30b-a3b".into(),
@@ -12104,6 +13733,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-coder-next".into(),
@@ -12119,6 +13749,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-coder-plus".into(),
@@ -12134,6 +13765,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-max".into(),
@@ -12149,6 +13781,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-max-preview".into(),
@@ -12164,6 +13797,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-max-thinking".into(),
@@ -12179,6 +13813,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-next-80b-a3b-instruct".into(),
@@ -12194,6 +13829,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-next-80b-a3b-thinking".into(),
@@ -12209,6 +13845,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3-vl-thinking".into(),
@@ -12224,6 +13861,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3.5-flash".into(),
@@ -12239,6 +13877,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3.5-plus".into(),
@@ -12254,6 +13893,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3.6-27b".into(),
@@ -12269,6 +13909,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3.6-plus".into(),
@@ -12284,6 +13925,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3.7-max".into(),
@@ -12299,6 +13941,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "alibaba/qwen3.7-plus".into(),
@@ -12314,6 +13957,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-3-haiku".into(),
@@ -12329,6 +13973,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-3.5-haiku".into(),
@@ -12344,6 +13989,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-haiku-4.5".into(),
@@ -12359,6 +14005,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4".into(),
@@ -12374,6 +14021,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.1".into(),
@@ -12389,6 +14037,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.5".into(),
@@ -12404,6 +14053,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-opus-4.6".into(),
@@ -12421,6 +14071,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "anthropic/claude-opus-4.7".into(),
@@ -12438,6 +14092,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "anthropic/claude-opus-4.8".into(),
@@ -12455,6 +14114,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                supports_temperature: Some(false),
+                ..Default::default()
+            },
         },
         Model {
             id: "anthropic/claude-sonnet-4".into(),
@@ -12470,6 +14134,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-sonnet-4.5".into(),
@@ -12485,6 +14150,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "anthropic/claude-sonnet-4.6".into(),
@@ -12500,6 +14166,10 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                force_adaptive_thinking: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "arcee-ai/trinity-large-preview".into(),
@@ -12515,6 +14185,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "arcee-ai/trinity-large-thinking".into(),
@@ -12530,6 +14201,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 80000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "bytedance/seed-1.6".into(),
@@ -12545,6 +14217,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "cohere/command-a".into(),
@@ -12560,6 +14233,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-r1".into(),
@@ -12575,6 +14249,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v3".into(),
@@ -12590,6 +14265,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 163840,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v3.1".into(),
@@ -12605,6 +14281,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v3.1-terminus".into(),
@@ -12620,6 +14297,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v3.2".into(),
@@ -12635,6 +14313,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v3.2-thinking".into(),
@@ -12650,6 +14329,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v4-flash".into(),
@@ -12665,6 +14345,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "deepseek/deepseek-v4-pro".into(),
@@ -12680,6 +14361,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 384000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-flash".into(),
@@ -12695,6 +14377,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-flash-lite".into(),
@@ -12710,6 +14393,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-2.5-pro".into(),
@@ -12725,6 +14409,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3-flash".into(),
@@ -12740,6 +14425,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3-pro-preview".into(),
@@ -12755,6 +14441,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.1-flash-lite".into(),
@@ -12770,6 +14457,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.1-flash-lite-preview".into(),
@@ -12785,6 +14473,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.1-pro-preview".into(),
@@ -12800,6 +14489,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemini-3.5-flash".into(),
@@ -12815,6 +14505,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemma-4-26b-a4b-it".into(),
@@ -12830,6 +14521,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "google/gemma-4-31b-it".into(),
@@ -12845,6 +14537,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "inception/mercury-2".into(),
@@ -12860,6 +14553,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "inception/mercury-coder-small".into(),
@@ -12875,6 +14569,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "kwaipilot/kat-coder-pro-v2".into(),
@@ -12890,6 +14585,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meituan/longcat-flash-chat".into(),
@@ -12905,6 +14601,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta/llama-3.1-70b".into(),
@@ -12920,6 +14617,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta/llama-3.1-8b".into(),
@@ -12935,6 +14633,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta/llama-3.2-11b".into(),
@@ -12950,6 +14649,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta/llama-3.2-90b".into(),
@@ -12965,6 +14665,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta/llama-3.3-70b".into(),
@@ -12980,6 +14681,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta/llama-4-maverick".into(),
@@ -12995,6 +14697,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "meta/llama-4-scout".into(),
@@ -13010,6 +14713,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2".into(),
@@ -13025,6 +14729,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 205000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.1".into(),
@@ -13040,6 +14745,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.1-lightning".into(),
@@ -13055,6 +14761,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.5".into(),
@@ -13070,6 +14777,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.5-highspeed".into(),
@@ -13085,6 +14793,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.7".into(),
@@ -13100,6 +14809,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m2.7-highspeed".into(),
@@ -13115,6 +14825,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131100,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "minimax/minimax-m3".into(),
@@ -13130,6 +14841,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 1000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/codestral".into(),
@@ -13145,6 +14857,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/devstral-2".into(),
@@ -13160,6 +14873,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/devstral-small".into(),
@@ -13175,6 +14889,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/devstral-small-2".into(),
@@ -13190,6 +14905,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/ministral-3b".into(),
@@ -13205,6 +14921,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/ministral-8b".into(),
@@ -13220,6 +14937,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/mistral-medium".into(),
@@ -13235,6 +14953,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/mistral-medium-3.5".into(),
@@ -13250,6 +14969,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/mistral-nemo".into(),
@@ -13265,6 +14985,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/mistral-small".into(),
@@ -13280,6 +15001,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/pixtral-12b".into(),
@@ -13295,6 +15017,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mistral/pixtral-large".into(),
@@ -13310,6 +15033,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2".into(),
@@ -13325,6 +15049,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2-thinking".into(),
@@ -13340,6 +15065,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262114,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2.5".into(),
@@ -13355,6 +15081,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262114,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2.6".into(),
@@ -13370,6 +15097,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "moonshotai/kimi-k2.7-code".into(),
@@ -13385,6 +15113,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-super-120b-a12b".into(),
@@ -13400,6 +15129,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-3-ultra-550b-a55b".into(),
@@ -13415,6 +15145,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-nano-12b-v2-vl".into(),
@@ -13430,6 +15161,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "nvidia/nemotron-nano-9b-v2".into(),
@@ -13445,6 +15177,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4-turbo".into(),
@@ -13460,6 +15193,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 4096,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4.1".into(),
@@ -13475,6 +15209,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4.1-mini".into(),
@@ -13490,6 +15225,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4.1-nano".into(),
@@ -13505,6 +15241,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32768,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4o".into(),
@@ -13520,6 +15257,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-4o-mini".into(),
@@ -13535,6 +15273,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5".into(),
@@ -13550,6 +15289,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-chat".into(),
@@ -13565,6 +15305,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-codex".into(),
@@ -13580,6 +15321,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-mini".into(),
@@ -13595,6 +15337,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-nano".into(),
@@ -13610,6 +15353,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5-pro".into(),
@@ -13625,6 +15369,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 272000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-codex".into(),
@@ -13640,6 +15385,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-codex-max".into(),
@@ -13655,6 +15401,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-codex-mini".into(),
@@ -13670,6 +15417,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-instant".into(),
@@ -13685,6 +15433,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.1-thinking".into(),
@@ -13700,6 +15449,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.2".into(),
@@ -13717,6 +15467,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.2-chat".into(),
@@ -13734,6 +15485,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.2-codex".into(),
@@ -13751,6 +15503,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.2-pro".into(),
@@ -13768,6 +15521,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.3-chat".into(),
@@ -13785,6 +15539,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16384,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.3-codex".into(),
@@ -13802,6 +15557,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.4".into(),
@@ -13819,6 +15575,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.4-mini".into(),
@@ -13836,6 +15593,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.4-nano".into(),
@@ -13853,6 +15611,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.4-pro".into(),
@@ -13870,6 +15629,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.5".into(),
@@ -13887,6 +15647,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-5.5-pro".into(),
@@ -13907,6 +15668,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-120b".into(),
@@ -13922,6 +15684,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-20b".into(),
@@ -13937,6 +15700,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/gpt-oss-safeguard-20b".into(),
@@ -13952,6 +15716,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o1".into(),
@@ -13967,6 +15732,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3".into(),
@@ -13982,6 +15748,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3-deep-research".into(),
@@ -13997,6 +15764,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3-mini".into(),
@@ -14012,6 +15780,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o3-pro".into(),
@@ -14027,6 +15796,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "openai/o4-mini".into(),
@@ -14042,6 +15812,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 100000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "perplexity/sonar".into(),
@@ -14057,6 +15828,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "perplexity/sonar-pro".into(),
@@ -14072,6 +15844,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "stepfun/step-3.5-flash".into(),
@@ -14087,6 +15860,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 262114,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "stepfun/step-3.7-flash".into(),
@@ -14102,6 +15876,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.1-fast-non-reasoning".into(),
@@ -14117,6 +15892,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 1000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.1-fast-reasoning".into(),
@@ -14132,6 +15908,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 1000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.20-multi-agent".into(),
@@ -14147,6 +15924,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 2000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.20-multi-agent-beta".into(),
@@ -14162,6 +15940,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 2000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.20-non-reasoning".into(),
@@ -14177,6 +15956,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 2000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.20-non-reasoning-beta".into(),
@@ -14192,6 +15972,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 2000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.20-reasoning".into(),
@@ -14207,6 +15988,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 2000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.20-reasoning-beta".into(),
@@ -14222,6 +16004,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 2000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-4.3".into(),
@@ -14237,6 +16020,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 1000000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xai/grok-build-0.1".into(),
@@ -14252,6 +16036,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xiaomi/mimo-v2-flash".into(),
@@ -14267,6 +16052,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 32000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xiaomi/mimo-v2-pro".into(),
@@ -14282,6 +16068,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xiaomi/mimo-v2.5".into(),
@@ -14297,6 +16084,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131100,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "xiaomi/mimo-v2.5-pro".into(),
@@ -14312,6 +16100,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.5".into(),
@@ -14327,6 +16116,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 96000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.5-air".into(),
@@ -14342,6 +16132,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 96000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.5v".into(),
@@ -14357,6 +16148,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 16000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.6".into(),
@@ -14372,6 +16164,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 96000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.6v".into(),
@@ -14387,6 +16180,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 24000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.6v-flash".into(),
@@ -14402,6 +16196,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 24000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.7".into(),
@@ -14417,6 +16212,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 40000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.7-flash".into(),
@@ -14432,6 +16228,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-4.7-flashx".into(),
@@ -14447,6 +16244,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-5".into(),
@@ -14462,6 +16260,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131100,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-5-turbo".into(),
@@ -14477,6 +16276,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131100,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-5.1".into(),
@@ -14492,6 +16292,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 64000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "zai/glm-5v-turbo".into(),
@@ -14507,6 +16308,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 128000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "grok-3".into(),
@@ -14522,6 +16324,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "grok-3-fast".into(),
@@ -14537,6 +16340,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "grok-4.20-0309-non-reasoning".into(),
@@ -14552,6 +16356,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 30000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "grok-4.20-0309-reasoning".into(),
@@ -14567,6 +16372,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 30000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "grok-4.3".into(),
@@ -14582,6 +16388,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 30000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "grok-build-0.1".into(),
@@ -14597,6 +16404,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 256000,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "grok-code-fast-1".into(),
@@ -14612,6 +16420,7 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 8192,
             headers: None,
             api_key: None,
+            compat: ModelCompat::default(),
         },
         Model {
             id: "mimo-v2-flash".into(),
@@ -14627,6 +16436,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 65536,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2-omni".into(),
@@ -14642,6 +16456,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2-pro".into(),
@@ -14657,6 +16476,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5".into(),
@@ -14672,6 +16496,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro".into(),
@@ -14687,6 +16516,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro-ultraspeed".into(),
@@ -14702,6 +16536,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2-omni".into(),
@@ -14717,6 +16556,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2-pro".into(),
@@ -14732,6 +16576,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5".into(),
@@ -14747,6 +16596,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro".into(),
@@ -14762,6 +16616,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro-ultraspeed".into(),
@@ -14777,6 +16636,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2-omni".into(),
@@ -14792,6 +16656,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2-pro".into(),
@@ -14807,6 +16676,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5".into(),
@@ -14822,6 +16696,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro".into(),
@@ -14837,6 +16716,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro-ultraspeed".into(),
@@ -14852,6 +16736,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2-omni".into(),
@@ -14867,6 +16756,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2-pro".into(),
@@ -14882,6 +16776,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5".into(),
@@ -14897,6 +16796,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro".into(),
@@ -14912,6 +16816,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "mimo-v2.5-pro-ultraspeed".into(),
@@ -14927,6 +16836,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                requires_reasoning_content_on_assistant_messages: Some(true),
+                thinking_format: Some("deepseek".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-4.5-air".into(),
@@ -14942,6 +16856,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 98304,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-4.7".into(),
@@ -14957,6 +16876,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                zai_tool_stream: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5-turbo".into(),
@@ -14972,6 +16897,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                zai_tool_stream: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5.1".into(),
@@ -14987,6 +16918,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                zai_tool_stream: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5v-turbo".into(),
@@ -15002,6 +16939,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                zai_tool_stream: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-4.5-air".into(),
@@ -15017,6 +16960,11 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 98304,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-4.7".into(),
@@ -15032,6 +16980,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                zai_tool_stream: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5-turbo".into(),
@@ -15047,6 +17001,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                zai_tool_stream: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5.1".into(),
@@ -15062,6 +17022,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                zai_tool_stream: Some(true),
+                ..Default::default()
+            },
         },
         Model {
             id: "glm-5v-turbo".into(),
@@ -15077,6 +17043,12 @@ pub fn builtin_models() -> Vec<Model> {
             max_tokens: 131072,
             headers: None,
             api_key: None,
+            compat: ModelCompat {
+                supports_developer_role: Some(false),
+                thinking_format: Some("zai".into()),
+                zai_tool_stream: Some(true),
+                ..Default::default()
+            },
         },
     ]
 }

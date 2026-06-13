@@ -376,6 +376,25 @@ pub fn stream_anthropic<'a>(
     })
 }
 
+/// Map a requested thinking level to an Anthropic adaptive-thinking effort string,
+/// honoring any per-model `thinkingLevelMap` override (mirrors mapThinkingLevelToEffort).
+fn map_anthropic_effort(model: &Model, level: Option<&ThinkingLevel>) -> String {
+    if let Some(level) = level {
+        let key = format!("{level:?}").to_lowercase();
+        if let Some(map) = &model.thinking_level_map
+            && let Some(Some(mapped)) = map.get(&key) {
+            return mapped.clone();
+        }
+        match key.as_str() {
+            "minimal" | "low" => "low".to_string(),
+            "medium" => "medium".to_string(),
+            _ => "high".to_string(),
+        }
+    } else {
+        "high".to_string()
+    }
+}
+
 pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let mut messages: Vec<Value> = Vec::new();
 
@@ -496,8 +515,14 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
 
     // Thinking/reasoning support
     if thinking_enabled {
-        let budget = opts.thinking_budgets.as_ref().and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)).unwrap_or(1024);
-        payload["thinking"] = json!({"type": "enabled", "budget_tokens": budget});
+        if model.compat.force_adaptive_thinking == Some(true) {
+            // Adaptive-thinking models use an effort level, not a token budget.
+            let effort = map_anthropic_effort(model, opts.reasoning.as_ref());
+            payload["thinking"] = json!({"type": "enabled", "effort": effort});
+        } else {
+            let budget = opts.thinking_budgets.as_ref().and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)).unwrap_or(1024);
+            payload["thinking"] = json!({"type": "enabled", "budget_tokens": budget});
+        }
     }
 
     if !context.tools.is_empty() {
