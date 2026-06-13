@@ -228,7 +228,7 @@ pub fn stream_mistral<'a>(
     })
 }
 
-fn build_mistral_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
+pub(crate) fn build_mistral_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let mut messages = Vec::new();
 
     if let Some(ref prompt) = context.system_prompt {
@@ -236,28 +236,73 @@ fn build_mistral_payload(model: &Model, context: &Context, opts: &StreamOptions)
     }
 
     let transformed_messages = crate::transform::transform_messages(&context.messages, model);
+    let supports_images = model.input.iter().any(|i| i == "image");
 
     for msg in &transformed_messages {
-        let role_str = match msg.role {
-            Role::User => "user",
-            Role::Assistant => "assistant",
-            Role::ToolResult => "tool",
-        };
-        let content: Value = if msg.content.len() == 1 {
-            match &msg.content[0] {
-                ContentBlock::Text { text, .. } => json!(text),
-                _ => json!(msg.content.iter().map(|b| match b {
-                    ContentBlock::Text { text, .. } => json!({"type": "text", "text": text}),
-                    _ => json!({"type": "text", "text": "[unsupported]"}),
-                }).collect::<Vec<_>>()),
+        match msg.role {
+            Role::User => {
+                let text_only: Vec<&str> = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::Text { text, .. } => Some(text.as_str()),
+                    _ => None,
+                }).collect();
+                if msg.content.len() == 1 && text_only.len() == 1 {
+                    messages.push(json!({"role": "user", "content": text_only[0]}));
+                } else {
+                    let parts: Vec<Value> = msg.content.iter().filter_map(|b| match b {
+                        ContentBlock::Text { text, .. } => Some(json!({"type": "text", "text": text})),
+                        ContentBlock::Image { data, mime_type } if supports_images => Some(json!({
+                            "type": "image_url", "image_url": format!("data:{};base64,{}", mime_type, data)
+                        })),
+                        _ => None,
+                    }).collect();
+                    if !parts.is_empty() {
+                        messages.push(json!({"role": "user", "content": parts}));
+                    }
+                }
             }
-        } else {
-            json!(msg.content.iter().map(|b| match b {
-                ContentBlock::Text { text, .. } => json!({"type": "text", "text": text}),
-                _ => json!({"type": "text", "text": "[unsupported]"}),
-            }).collect::<Vec<_>>())
-        };
-        messages.push(json!({"role": role_str, "content": content}));
+            Role::Assistant => {
+                let text = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::Text { text, .. } if !text.trim().is_empty() => Some(text.clone()),
+                    _ => None,
+                }).collect::<Vec<_>>().join("");
+                let tool_calls: Vec<Value> = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::ToolCall { id, name, arguments, .. } => Some(json!({
+                        "id": id,
+                        "type": "function",
+                        "function": {"name": name, "arguments": serde_json::to_string(arguments).unwrap_or_else(|_| "{}".to_string())}
+                    })),
+                    _ => None,
+                }).collect();
+                if text.is_empty() && tool_calls.is_empty() { continue; }
+                let mut m = json!({"role": "assistant"});
+                if !text.is_empty() {
+                    m["content"] = json!(text);
+                }
+                if !tool_calls.is_empty() {
+                    m["tool_calls"] = json!(tool_calls);
+                }
+                messages.push(m);
+            }
+            Role::ToolResult => {
+                let text_result = msg.content.iter().filter_map(|b| match b {
+                    ContentBlock::Text { text, .. } => Some(text.clone()),
+                    _ => None,
+                }).collect::<Vec<_>>().join("\n");
+                let has_images = msg.content.iter().any(|b| matches!(b, ContentBlock::Image { .. }));
+                let tool_text = build_tool_result_text(&text_result, has_images, supports_images, msg.is_error);
+                let mut m = json!({
+                    "role": "tool",
+                    "content": tool_text,
+                });
+                if let Some(ref id) = msg.tool_call_id {
+                    m["tool_call_id"] = json!(id);
+                }
+                if let Some(ref name) = msg.tool_name {
+                    m["name"] = json!(name);
+                }
+                messages.push(m);
+            }
+        }
     }
 
     let mut payload = json!({
@@ -286,4 +331,29 @@ fn build_mistral_payload(model: &Model, context: &Context, opts: &StreamOptions)
     }
 
     payload
+}
+
+/// Build the text body for a Mistral tool-result message (mirrors upstream buildToolResultText).
+fn build_tool_result_text(text: &str, has_images: bool, supports_images: bool, is_error: bool) -> String {
+    let trimmed = text.trim();
+    let error_prefix = if is_error { "[tool error] " } else { "" };
+    if !trimmed.is_empty() {
+        let image_suffix = if has_images && !supports_images {
+            "\n[tool image omitted: model does not support images]"
+        } else {
+            ""
+        };
+        return format!("{}{}{}", error_prefix, trimmed, image_suffix);
+    }
+    if has_images {
+        if supports_images {
+            return if is_error { "[tool error] (see attached image)".to_string() } else { "(see attached image)".to_string() };
+        }
+        return if is_error {
+            "[tool error] (image omitted: model does not support images)".to_string()
+        } else {
+            "(image omitted: model does not support images)".to_string()
+        };
+    }
+    if is_error { "[tool error] (no tool output)".to_string() } else { "(no tool output)".to_string() }
 }

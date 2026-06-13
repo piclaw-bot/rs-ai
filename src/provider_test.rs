@@ -1004,4 +1004,46 @@ mod tests {
         assert_eq!(reason, Some(StopReason::ToolUse));
         assert!(msg.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { name, .. } if name == "search")));
     }
+
+    #[test]
+    fn test_mistral_payload_serializes_tool_history() {
+        use crate::provider::mistral::build_mistral_payload;
+        let model = test_model("mistral-conversations", "mistral", "https://example.com");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![
+                Message {
+                    role: Role::Assistant,
+                    content: vec![ContentBlock::ToolCall {
+                        id: "tc1".into(), name: "search".into(),
+                        arguments: std::collections::HashMap::from([("q".into(), serde_json::json!("r"))]),
+                        thought_signature: None,
+                    }],
+                    timestamp: 0,
+                    api: None, provider: None, model: None, response_id: None,
+                    response_model: None, diagnostics: Vec::new(), usage: None,
+                    stop_reason: Some(StopReason::ToolUse), error_message: None,
+                    tool_call_id: None, tool_name: None, is_error: false, details: None,
+                },
+                Message {
+                    role: Role::ToolResult,
+                    content: vec![ContentBlock::Text { text: "found".into(), text_signature: None }],
+                    timestamp: 0,
+                    api: None, provider: None, model: None, response_id: None,
+                    response_model: None, diagnostics: Vec::new(), usage: None,
+                    stop_reason: None, error_message: None,
+                    tool_call_id: Some("tc1".into()), tool_name: Some("search".into()),
+                    is_error: false, details: None,
+                },
+            ],
+            tools: vec![],
+        };
+        let payload = build_mistral_payload(&model, &ctx, &StreamOptions::default());
+        let msgs = payload["messages"].as_array().unwrap();
+        assert_eq!(msgs[0]["tool_calls"][0]["id"], "tc1");
+        assert_eq!(msgs[0]["tool_calls"][0]["function"]["name"], "search");
+        assert_eq!(msgs[1]["role"], "tool");
+        assert_eq!(msgs[1]["tool_call_id"], "tc1");
+        assert_eq!(msgs[1]["content"], "found");
+    }
 }
