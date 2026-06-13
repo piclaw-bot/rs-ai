@@ -60,6 +60,13 @@ impl ApiProvider for GoogleProvider {
 struct GoogleVertexProvider;
 impl ApiProvider for GoogleVertexProvider {
     fn api(&self) -> &str { "google-vertex" }
+    // NOTE: Vertex AI responses use the same @google/genai format as Gemini, so the
+    // shared `stream_google` decoder is correct. However, production Vertex auth
+    // requires GCP Application Default Credentials / service-account token exchange
+    // and a project/location-scoped endpoint (the model `base_url` carries a
+    // `{location}` sentinel the upstream SDK resolves internally). That auth flow is
+    // a known limitation here: only Vertex API-key access via the shared path works;
+    // full ADC support would require a GCP auth dependency.
     fn stream<'a>(&self, model: &'a Model, context: &'a Context, opts: &'a StreamOptions) -> std::pin::Pin<Box<dyn Stream<Item = Event> + Send + 'a>> {
         google::stream_google(model, context, opts)
     }

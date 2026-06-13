@@ -65,6 +65,17 @@ rs-ai/
 | Gemini CLI | ✅ Implemented |
 | OAuth flows | ✅ Framework + PKCE |
 
+## Known limitations
+
+Tracks `@earendil-works/pi-ai` `0.79.2`. Known divergences from upstream:
+
+- **Google Vertex AI auth**: response decoding matches Gemini, but production Vertex
+  auth (GCP Application Default Credentials / service-account token exchange and the
+  project/location-scoped endpoint) is not implemented — it would require a GCP auth
+  dependency. Vertex models fall back to the shared Gemini request path.
+- **Provider SDK retries**: upstream relies on vendor SDK retry behavior; this port
+  exposes `retry::do_with_retry` but does not wrap every provider call in it.
+
 ## Credits
 
 Rust port of [**@earendil-works/pi-ai**](https://www.npmjs.com/package/@earendil-works/pi-ai), originally by [Mario Zechner](https://mariozechner.at).
