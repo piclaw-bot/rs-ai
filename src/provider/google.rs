@@ -211,10 +211,16 @@ pub fn stream_google<'a>(
                 }
 
                 if let Some(usage) = chunk.get("usageMetadata") {
+                    let prompt = usage.get("promptTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                    let cached = usage.get("cachedContentTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                    let candidates = usage.get("candidatesTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
+                    let thoughts = usage.get("thoughtsTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32;
                     partial.usage = Some(Usage {
-                        input: usage.get("promptTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                        output: usage.get("candidatesTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
-                        cache_read: usage.get("cachedContentTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
+                        // promptTokenCount includes cached tokens; subtract to get non-cached input.
+                        input: prompt.saturating_sub(cached),
+                        // candidatesTokenCount excludes reasoning tokens; add thoughtsTokenCount.
+                        output: candidates + thoughts,
+                        cache_read: cached,
                         total_tokens: usage.get("totalTokenCount").and_then(|v| v.as_u64()).unwrap_or(0) as u32,
                         ..Default::default()
                     });

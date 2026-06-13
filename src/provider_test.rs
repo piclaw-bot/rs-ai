@@ -1775,6 +1775,32 @@ mod tests {
         assert!(msg.content.iter().any(|b| matches!(b, ContentBlock::ToolCall { name, .. } if name == "search")));
     }
 
+    #[tokio::test]
+    async fn test_google_usage_cache_and_thoughts() {
+        use crate::provider::google::stream_google;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"hi\"}]},\"finishReason\":\"STOP\"}],\"usageMetadata\":{\"promptTokenCount\":100,\"candidatesTokenCount\":20,\"thoughtsTokenCount\":30,\"cachedContentTokenCount\":40,\"totalTokenCount\":150}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let model = test_model("google-generative-ai", "google", &server.uri());
+        let opts = StreamOptions::default();
+        let ctx = test_context();
+        let mut stream = stream_google(&model, &ctx, &opts);
+        let mut usage = None;
+        while let Some(evt) = stream.next().await {
+            if let Event::Done { message, .. } = evt { usage = message.usage; }
+        }
+        let u = usage.expect("usage");
+        assert_eq!(u.input, 60); // 100 - 40 cached
+        assert_eq!(u.output, 50); // 20 candidates + 30 thoughts
+        assert_eq!(u.cache_read, 40);
+        assert_eq!(u.total_tokens, 150);
+    }
+
     #[test]
     fn test_mistral_reasoning_prompt_mode_and_effort() {
         use crate::provider::mistral::build_mistral_payload;
