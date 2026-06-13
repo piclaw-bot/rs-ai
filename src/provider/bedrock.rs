@@ -4,15 +4,89 @@ use std::sync::Arc;
 
 use aws_config::BehaviorVersion;
 use aws_sdk_bedrockruntime::types::{
-    ContentBlock as BedrockContent, ConversationRole, Message as BedrockMessage,
-    SystemContentBlock, Tool, ToolConfiguration, ToolInputSchema, ToolResultBlock,
-    ToolResultContentBlock, ToolResultStatus, ToolSpecification, ToolUseBlock,
+    ContentBlock as BedrockContent, ConversationRole, ImageBlock, ImageFormat, ImageSource,
+    Message as BedrockMessage, ReasoningContentBlock, ReasoningTextBlock, SystemContentBlock, Tool,
+    ToolConfiguration, ToolInputSchema, ToolResultBlock, ToolResultContentBlock, ToolResultStatus,
+    ToolSpecification, ToolUseBlock,
 };
 use aws_sdk_bedrockruntime::Client as BedrockClient;
 use aws_smithy_types::{Document, Number};
 
 use crate::events::Event;
 use crate::types::*;
+
+const EMPTY_TEXT_PLACEHOLDER: &str = "<empty>";
+
+/// True for Anthropic Claude models on Bedrock (id or name), which support the
+/// reasoningContent signature field (mirrors isAnthropicClaudeModel).
+fn is_anthropic_claude_model(model: &Model) -> bool {
+    let id = model.id.to_lowercase();
+    let name = model.name.to_lowercase();
+    id.contains("anthropic.claude")
+        || id.contains("anthropic/claude")
+        || name.contains("anthropic.claude")
+        || name.contains("anthropic/claude")
+        || name.contains("claude")
+}
+
+/// Sanitize a tool-call id for Bedrock (alnum/_/- only, max 64 chars).
+fn normalize_bedrock_tool_call_id(id: &str) -> String {
+    let sanitized: String = id
+        .chars()
+        .map(|c| if c.is_ascii_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+        .collect();
+    if sanitized.len() > 64 { sanitized[..64].to_string() } else { sanitized }
+}
+
+/// Build a non-blank text content block, or None when blank (mirrors createNonBlankTextBlock).
+fn non_blank_text(text: &str) -> Option<BedrockContent> {
+    if text.trim().is_empty() {
+        None
+    } else {
+        Some(BedrockContent::Text(text.to_string()))
+    }
+}
+
+/// Build a Bedrock image block from a base64 data string.
+fn bedrock_image_block(mime_type: &str, data: &str) -> Option<ImageBlock> {
+    use base64::Engine;
+    let format = match mime_type {
+        "image/jpeg" | "image/jpg" => ImageFormat::Jpeg,
+        "image/png" => ImageFormat::Png,
+        "image/gif" => ImageFormat::Gif,
+        "image/webp" => ImageFormat::Webp,
+        _ => return None,
+    };
+    let bytes = base64::engine::general_purpose::STANDARD.decode(data).ok()?;
+    ImageBlock::builder()
+        .format(format)
+        .source(ImageSource::Bytes(aws_smithy_types::Blob::new(bytes)))
+        .build()
+        .ok()
+}
+
+/// Convert tool-result content into Bedrock tool-result content blocks, mirroring
+/// convertToolResultContent (images + non-blank text, with an empty placeholder fallback).
+fn convert_tool_result_content(content: &[ContentBlock]) -> Vec<ToolResultContentBlock> {
+    let mut result: Vec<ToolResultContentBlock> = Vec::new();
+    for c in content {
+        match c {
+            ContentBlock::Image { data, mime_type } => {
+                if let Some(img) = bedrock_image_block(mime_type, data) {
+                    result.push(ToolResultContentBlock::Image(img));
+                }
+            }
+            ContentBlock::Text { text, .. } if !text.trim().is_empty() => {
+                result.push(ToolResultContentBlock::Text(text.clone()));
+            }
+            _ => {}
+        }
+    }
+    if result.is_empty() {
+        result.push(ToolResultContentBlock::Text(EMPTY_TEXT_PLACEHOLDER.to_string()));
+    }
+    result
+}
 
 /// Convert a serde_json::Value into an AWS smithy Document.
 fn json_to_document(v: &serde_json::Value) -> Document {
@@ -46,66 +120,99 @@ pub fn stream_bedrock<'a>(
         let config = aws_config::defaults(BehaviorVersion::latest()).load().await;
         let client = BedrockClient::new(&config);
 
+        let supports_signature = is_anthropic_claude_model(model);
+        let transformed = crate::transform::transform_messages(&context.messages, model);
         let mut messages = Vec::new();
-        for msg in &context.messages {
-            let role = match msg.role {
-                Role::User | Role::ToolResult => ConversationRole::User,
-                Role::Assistant => ConversationRole::Assistant,
-            };
-            let mut content: Vec<BedrockContent> = Vec::new();
-            if msg.role == Role::ToolResult {
-                let text = msg.content.iter().filter_map(|b| match b {
-                    ContentBlock::Text { text, .. } => Some(text.clone()),
-                    _ => None,
-                }).collect::<Vec<_>>().join("\n");
-                let status = if msg.is_error { ToolResultStatus::Error } else { ToolResultStatus::Success };
-                if let Ok(trb) = ToolResultBlock::builder()
-                    .tool_use_id(msg.tool_call_id.clone().unwrap_or_default())
-                    .content(ToolResultContentBlock::Text(text))
-                    .status(status)
-                    .build()
-                {
-                    content.push(BedrockContent::ToolResult(trb));
-                }
-            } else {
-                for b in &msg.content {
-                    match b {
-                        ContentBlock::Text { text, .. } => {
-                            content.push(BedrockContent::Text(text.clone()));
-                        }
-                        ContentBlock::Thinking { thinking, thinking_signature, redacted } if !redacted && !thinking.trim().is_empty() => {
-                            use aws_sdk_bedrockruntime::types::{ReasoningContentBlock, ReasoningTextBlock};
-                            let mut b = ReasoningTextBlock::builder().text(thinking.clone());
-                            if let Some(sig) = thinking_signature {
-                                b = b.signature(sig.clone());
+        let mut i = 0;
+        while i < transformed.len() {
+            let msg = &transformed[i];
+            match msg.role {
+                Role::User => {
+                    let mut content: Vec<BedrockContent> = Vec::new();
+                    for b in &msg.content {
+                        match b {
+                            ContentBlock::Text { text, .. } => {
+                                if let Some(tb) = non_blank_text(text) {
+                                    content.push(tb);
+                                }
                             }
-                            if let Ok(rt) = b.build() {
-                                content.push(BedrockContent::ReasoningContent(ReasoningContentBlock::ReasoningText(rt)));
+                            ContentBlock::Image { data, mime_type } => {
+                                if let Some(img) = bedrock_image_block(mime_type, data) {
+                                    content.push(BedrockContent::Image(img));
+                                }
                             }
+                            _ => {}
                         }
-                        ContentBlock::ToolCall { id, name, arguments, .. } => {
-                            let args_value = serde_json::to_value(arguments).unwrap_or_else(|_| serde_json::json!({}));
-                            if let Ok(tub) = ToolUseBlock::builder()
-                                .tool_use_id(id.clone())
-                                .name(name.clone())
-                                .input(json_to_document(&args_value))
-                                .build()
-                            {
-                                content.push(BedrockContent::ToolUse(tub));
-                            }
-                        }
-                        _ => {}
                     }
+                    if content.is_empty() {
+                        content.push(BedrockContent::Text(EMPTY_TEXT_PLACEHOLDER.to_string()));
+                    }
+                    messages.push(BedrockMessage::builder().role(ConversationRole::User).set_content(Some(content)).build().unwrap());
+                    i += 1;
                 }
-            }
-            if !content.is_empty() {
-                messages.push(
-                    BedrockMessage::builder()
-                        .role(role)
-                        .set_content(Some(content))
-                        .build()
-                        .unwrap()
-                );
+                Role::Assistant => {
+                    if msg.content.is_empty() { i += 1; continue; }
+                    let mut content: Vec<BedrockContent> = Vec::new();
+                    for b in &msg.content {
+                        match b {
+                            ContentBlock::Text { text, .. } => {
+                                if let Some(tb) = non_blank_text(text) {
+                                    content.push(tb);
+                                }
+                            }
+                            ContentBlock::ToolCall { id, name, arguments, .. } => {
+                                let args_value = serde_json::to_value(arguments).unwrap_or_else(|_| serde_json::json!({}));
+                                if let Ok(tub) = ToolUseBlock::builder()
+                                    .tool_use_id(normalize_bedrock_tool_call_id(id))
+                                    .name(name.clone())
+                                    .input(json_to_document(&args_value))
+                                    .build()
+                                {
+                                    content.push(BedrockContent::ToolUse(tub));
+                                }
+                            }
+                            ContentBlock::Thinking { thinking, thinking_signature, redacted } if !redacted && !thinking.trim().is_empty() => {
+                                // Only Anthropic Claude models accept the reasoning signature.
+                                // For Claude with a missing signature, fall back to plain text
+                                // (Bedrock rejects a replayed reasoning block without a signature).
+                                if supports_signature {
+                                    match thinking_signature.as_ref().filter(|s| !s.trim().is_empty()) {
+                                        Some(sig) => {
+                                            if let Ok(rt) = ReasoningTextBlock::builder().text(thinking.clone()).signature(sig.clone()).build() {
+                                                content.push(BedrockContent::ReasoningContent(ReasoningContentBlock::ReasoningText(rt)));
+                                            }
+                                        }
+                                        None => content.push(BedrockContent::Text(thinking.clone())),
+                                    }
+                                } else if let Ok(rt) = ReasoningTextBlock::builder().text(thinking.clone()).build() {
+                                    content.push(BedrockContent::ReasoningContent(ReasoningContentBlock::ReasoningText(rt)));
+                                }
+                            }
+                            _ => {}
+                        }
+                    }
+                    if content.is_empty() { i += 1; continue; }
+                    messages.push(BedrockMessage::builder().role(ConversationRole::Assistant).set_content(Some(content)).build().unwrap());
+                    i += 1;
+                }
+                Role::ToolResult => {
+                    // Merge consecutive tool results into a single user message.
+                    let mut content: Vec<BedrockContent> = Vec::new();
+                    while i < transformed.len() && transformed[i].role == Role::ToolResult {
+                        let tr = &transformed[i];
+                        let status = if tr.is_error { ToolResultStatus::Error } else { ToolResultStatus::Success };
+                        if let Ok(trb) = ToolResultBlock::builder()
+                            .tool_use_id(normalize_bedrock_tool_call_id(tr.tool_call_id.as_deref().unwrap_or_default()))
+                            .set_content(Some(convert_tool_result_content(&tr.content)))
+                            .status(status)
+                            .build()
+                        {
+                            content.push(BedrockContent::ToolResult(trb));
+                        }
+                        i += 1;
+                    }
+                    messages.push(BedrockMessage::builder().role(ConversationRole::User).set_content(Some(content)).build().unwrap());
+                }
             }
         }
 
@@ -389,5 +496,46 @@ mod tests {
     #[test]
     fn test_format_bedrock_error_passthrough() {
         assert_eq!(format_bedrock_error("some other error"), "some other error");
+    }
+
+    #[test]
+    fn test_is_anthropic_claude_model() {
+        use super::is_anthropic_claude_model;
+        use crate::types::{Model, ModelCost};
+        let mk = |id: &str, name: &str| Model {
+            id: id.into(), name: name.into(), api: "bedrock-converse-stream".into(),
+            provider: "bedrock".into(), base_url: String::new(), reasoning: true,
+            thinking_level_map: None, input: vec!["text".into()], cost: ModelCost::default(),
+            context_window: 0, max_tokens: 0, headers: None, api_key: None, compat: Default::default(),
+        };
+        assert!(is_anthropic_claude_model(&mk("anthropic.claude-sonnet-4", "")));
+        assert!(is_anthropic_claude_model(&mk("some-profile", "Anthropic Claude Sonnet")));
+        assert!(!is_anthropic_claude_model(&mk("meta.llama3", "Llama 3")));
+    }
+
+    #[test]
+    fn test_convert_tool_result_content_empty_and_text() {
+        use super::{convert_tool_result_content, EMPTY_TEXT_PLACEHOLDER};
+        use crate::types::ContentBlock;
+        use aws_sdk_bedrockruntime::types::ToolResultContentBlock;
+        // Empty content -> placeholder.
+        let out = convert_tool_result_content(&[]);
+        assert_eq!(out.len(), 1);
+        assert!(matches!(&out[0], ToolResultContentBlock::Text(t) if t == EMPTY_TEXT_PLACEHOLDER));
+        // Blank text is skipped, real text kept.
+        let out = convert_tool_result_content(&[
+            ContentBlock::Text { text: "   ".into(), text_signature: None },
+            ContentBlock::Text { text: "done".into(), text_signature: None },
+        ]);
+        assert_eq!(out.len(), 1);
+        assert!(matches!(&out[0], ToolResultContentBlock::Text(t) if t == "done"));
+    }
+
+    #[test]
+    fn test_normalize_bedrock_tool_call_id() {
+        use super::normalize_bedrock_tool_call_id;
+        assert_eq!(normalize_bedrock_tool_call_id("call:1|x"), "call_1_x");
+        assert_eq!(normalize_bedrock_tool_call_id("abc-123_OK"), "abc-123_OK");
+        assert_eq!(normalize_bedrock_tool_call_id(&"a".repeat(80)).len(), 64);
     }
 }
