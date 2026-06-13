@@ -261,6 +261,22 @@ pub fn stream_bedrock<'a>(
             req = req.system(SystemContentBlock::Text(prompt.clone()));
         }
 
+        // Inference config: max output tokens (defaults to the model cap for Claude) and
+        // temperature (mirrors inferenceConfig).
+        let inference_max_tokens = opts.max_tokens.or_else(|| {
+            if is_anthropic_claude_model(model) && model.max_tokens > 0 { Some(model.max_tokens) } else { None }
+        });
+        if inference_max_tokens.is_some() || opts.temperature.is_some() {
+            let mut ic = aws_sdk_bedrockruntime::types::InferenceConfiguration::builder();
+            if let Some(mt) = inference_max_tokens {
+                ic = ic.max_tokens(mt as i32);
+            }
+            if let Some(temp) = opts.temperature {
+                ic = ic.temperature(temp as f32);
+            }
+            req = req.inference_config(ic.build());
+        }
+
         // Tool config: skip entirely when toolChoice is "none" (mirrors convertToolConfig).
         let tool_choice_none = opts.tool_choice.as_ref().and_then(|v| v.as_str()) == Some("none");
         if !context.tools.is_empty() && !tool_choice_none {
