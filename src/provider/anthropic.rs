@@ -48,18 +48,7 @@ pub fn stream_anthropic<'a>(
     }
 
     // Beta features (prompt caching is GA and no longer requires a beta header).
-    let mut beta_features: Vec<&str> = Vec::new();
-    if is_oauth {
-        beta_features.push("claude-code-20250219");
-        beta_features.push("oauth-2025-04-20");
-    }
-    let is_fireworks = model.provider == "fireworks" || model.base_url.contains("fireworks.ai");
-    if !context.tools.is_empty() && is_fireworks {
-        beta_features.push("fine-grained-tool-streaming-2025-05-14");
-    }
-    if opts.reasoning.is_some() && model.reasoning {
-        beta_features.push("interleaved-thinking-2025-05-14");
-    }
+    let beta_features = anthropic_beta_features(model, context, is_oauth);
     if !beta_features.is_empty()
         && let Ok(val) = HeaderValue::from_str(&beta_features.join(",")) {
             headers.insert("anthropic-beta", val);
@@ -390,6 +379,27 @@ pub fn stream_anthropic<'a>(
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
         yield Event::Done { reason, message: partial };
     })
+}
+
+/// Compute the Anthropic `anthropic-beta` feature list for a request (mirrors the
+/// upstream createClient beta-header logic).
+pub(crate) fn anthropic_beta_features<'a>(model: &'a Model, context: &Context, is_oauth: bool) -> Vec<&'a str> {
+    let mut beta_features: Vec<&str> = Vec::new();
+    if is_oauth {
+        beta_features.push("claude-code-20250219");
+        beta_features.push("oauth-2025-04-20");
+    }
+    // Fine-grained tool streaming for any model with tools that doesn't support eager
+    // tool-input streaming (mirrors shouldUseFineGrainedToolStreamingBeta).
+    if !context.tools.is_empty() && model.compat.supports_eager_tool_input_streaming != Some(true) {
+        beta_features.push("fine-grained-tool-streaming-2025-05-14");
+    }
+    // Interleaved thinking, except for adaptive-thinking models which have it built in
+    // (mirrors needsInterleavedBeta = interleavedThinking && !forceAdaptiveThinking).
+    if model.compat.force_adaptive_thinking != Some(true) {
+        beta_features.push("interleaved-thinking-2025-05-14");
+    }
+    beta_features
 }
 
 /// Map a requested thinking level to an Anthropic adaptive-thinking effort string,

@@ -1501,6 +1501,38 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_beta_features() {
+        use crate::provider::anthropic::anthropic_beta_features;
+        let tool = Tool { name: "t".into(), description: "d".into(), parameters: serde_json::json!({"type":"object"}) };
+        let ctx_tools = Context { system_prompt: None, messages: vec![], tools: vec![tool] };
+        let ctx_none = Context { system_prompt: None, messages: vec![], tools: vec![] };
+
+        // Regular model with tools: fine-grained + interleaved, no OAuth headers.
+        let model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        let f = anthropic_beta_features(&model, &ctx_tools, false);
+        assert!(f.contains(&"fine-grained-tool-streaming-2025-05-14"));
+        assert!(f.contains(&"interleaved-thinking-2025-05-14"));
+        assert!(!f.contains(&"oauth-2025-04-20"));
+
+        // Adaptive-thinking model: interleaved is omitted (built in).
+        let mut adaptive = model.clone();
+        adaptive.compat.force_adaptive_thinking = Some(true);
+        let f = anthropic_beta_features(&adaptive, &ctx_none, false);
+        assert!(!f.contains(&"interleaved-thinking-2025-05-14"));
+
+        // Eager-tool-input model with tools: no fine-grained.
+        let mut eager = model.clone();
+        eager.compat.supports_eager_tool_input_streaming = Some(true);
+        let f = anthropic_beta_features(&eager, &ctx_tools, false);
+        assert!(!f.contains(&"fine-grained-tool-streaming-2025-05-14"));
+
+        // OAuth: claude-code + oauth betas present.
+        let f = anthropic_beta_features(&model, &ctx_none, true);
+        assert!(f.contains(&"claude-code-20250219"));
+        assert!(f.contains(&"oauth-2025-04-20"));
+    }
+
+    #[test]
     fn test_anthropic_adaptive_thinking_uses_effort_not_budget() {
         use crate::provider::anthropic::build_anthropic_payload;
         // Adaptive-thinking models (forceAdaptiveThinking) send an effort, not a token budget.
