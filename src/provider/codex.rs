@@ -11,6 +11,36 @@ use crate::provider::responses;
 use crate::transports::sse;
 use crate::types::*;
 
+/// Sessions whose Codex WebSocket transport has failed; subsequent requests for
+/// these sessions skip WebSocket and use SSE directly (mirrors upstream
+/// websocketSseFallbackSessions).
+static WS_FALLBACK_SESSIONS: std::sync::LazyLock<std::sync::Mutex<std::collections::HashSet<String>>> =
+    std::sync::LazyLock::new(|| std::sync::Mutex::new(std::collections::HashSet::new()));
+
+fn ws_fallback_active(session_id: Option<&str>) -> bool {
+    match session_id {
+        Some(s) => WS_FALLBACK_SESSIONS.lock().map(|set| set.contains(s)).unwrap_or(false),
+        None => false,
+    }
+}
+
+fn record_ws_fallback(session_id: Option<&str>) {
+    if let Some(s) = session_id
+        && let Ok(mut set) = WS_FALLBACK_SESSIONS.lock() {
+        set.insert(s.to_string());
+    }
+}
+
+/// Clear the recorded WebSocket-fallback state for a session (or all sessions).
+pub fn clear_ws_fallback(session_id: Option<&str>) {
+    if let Ok(mut set) = WS_FALLBACK_SESSIONS.lock() {
+        match session_id {
+            Some(s) => { set.remove(s); }
+            None => set.clear(),
+        }
+    }
+}
+
 /// Start a Codex stream (WebSocket with SSE fallback).
 pub fn stream_codex<'a>(
     model: &'a Model,
@@ -38,30 +68,41 @@ pub fn stream_codex<'a>(
             &model.id
         );
 
-        let ws_result = try_websocket(&ws_url, &api_key, model, context, opts).await;
-        match ws_result {
-            Ok(events) => {
-                for evt in events {
-                    yield evt;
+        // Reuse the SSE transport for the rest of a session once its WebSocket has failed
+        // (mirrors upstream's sticky websocketSseFallbackSessions behavior).
+        let skip_ws = ws_fallback_active(opts.session_id.as_deref());
+        let mut transport_diagnostic: Option<crate::types::AssistantMessageDiagnostic> = None;
+        let mut do_sse = skip_ws;
+        if !skip_ws {
+            match try_websocket(&ws_url, &api_key, model, context, opts).await {
+                Ok(events) => {
+                    for evt in events {
+                        yield evt;
+                    }
+                }
+                Err(ws_err) => {
+                    // WebSocket transport failed; remember the fallback for this session and
+                    // record a diagnostic (mirrors recordWebSocketFailure + appendAssistantMessageDiagnostic).
+                    record_ws_fallback(opts.session_id.as_deref());
+                    transport_diagnostic = Some(crate::types::AssistantMessageDiagnostic {
+                        diagnostic_type: "provider_transport_failure".to_string(),
+                        timestamp: crate::utils::now_millis(),
+                        error: crate::types::DiagnosticError {
+                            name: Some("TransportError".to_string()),
+                            message: ws_err.to_string(),
+                            stack: None,
+                            code: None,
+                        },
+                        details: Some(std::collections::HashMap::from([
+                            ("fallbackTransport".to_string(), serde_json::json!("sse")),
+                            ("phase".to_string(), serde_json::json!("before_message_stream_start")),
+                        ])),
+                    });
+                    do_sse = true;
                 }
             }
-            Err(ws_err) => {
-                // WebSocket transport failed; record a diagnostic and fall back to SSE
-                // (mirrors upstream appendAssistantMessageDiagnostic).
-                let transport_diagnostic = crate::types::AssistantMessageDiagnostic {
-                    diagnostic_type: "provider_transport_failure".to_string(),
-                    timestamp: crate::utils::now_millis(),
-                    error: crate::types::DiagnosticError {
-                        name: Some("TransportError".to_string()),
-                        message: ws_err.to_string(),
-                        stack: None,
-                        code: None,
-                    },
-                    details: Some(std::collections::HashMap::from([
-                        ("fallbackTransport".to_string(), serde_json::json!("sse")),
-                        ("phase".to_string(), serde_json::json!("before_message_stream_start")),
-                    ])),
-                };
+        }
+        if do_sse {
                 // Fallback to SSE using the Codex request body and headers.
                 let payload = build_codex_payload(model, context, opts);
                 let url = format!("{}/responses", model.base_url.trim_end_matches('/'));
@@ -101,7 +142,9 @@ pub fn stream_codex<'a>(
                 let mut parser = sse::SseParser::default();
                 let mut state = CodexWsState::new(model);
                 state.service_tier = opts.service_tier.clone();
-                state.partial.diagnostics.push(transport_diagnostic);
+                if let Some(d) = transport_diagnostic {
+                    state.partial.diagnostics.push(d);
+                }
                 let mut byte_stream = resp.bytes_stream();
                 let mut emitted = 0usize;
                 let mut done = false;
@@ -135,7 +178,6 @@ pub fn stream_codex<'a>(
                     yield final_events[emitted].clone();
                     emitted += 1;
                 }
-            }
         }
     })
 }

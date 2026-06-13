@@ -942,6 +942,47 @@ mod tests {
         assert!(diag_found, "SSE-fallback Done message should carry a transport-failure diagnostic");
     }
 
+    #[tokio::test]
+    async fn test_codex_ws_fallback_is_sticky_per_session() {
+        use crate::provider::codex::{stream_codex, clear_ws_fallback};
+        clear_ws_fallback(Some("sess-sticky"));
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/responses"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(
+                    "data: {\"type\":\"response.created\",\"response\":{\"id\":\"r\",\"model\":\"codex\"}}\n\n\
+                     data: {\"type\":\"response.completed\",\"response\":{\"id\":\"r\",\"model\":\"codex\",\"usage\":{\"input_tokens\":1,\"output_tokens\":1,\"total_tokens\":2}}}\n\n")
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let mut model = test_model("openai-codex-responses", "openai", &server.uri());
+        model.api_key = Some("test-key".into());
+        let opts = StreamOptions { session_id: Some("sess-sticky".into()), ..Default::default() };
+        let ctx = test_context();
+
+        // First request: WS fails -> SSE + diagnostic, and the session is marked.
+        let mut s1 = stream_codex(&model, &ctx, &opts);
+        let mut first_diag = false;
+        while let Some(evt) = s1.next().await {
+            if let Event::Done { message, .. } = evt {
+                first_diag = message.diagnostics.iter().any(|d| d.diagnostic_type == "provider_transport_failure");
+            }
+        }
+        assert!(first_diag);
+
+        // Second request on the same session: WS is skipped, so no transport-failure diagnostic.
+        let mut s2 = stream_codex(&model, &ctx, &opts);
+        let mut second_diag = false;
+        while let Some(evt) = s2.next().await {
+            if let Event::Done { message, .. } = evt {
+                second_diag = message.diagnostics.iter().any(|d| d.diagnostic_type == "provider_transport_failure");
+            }
+        }
+        assert!(!second_diag, "sticky fallback should skip WS without re-recording a diagnostic");
+        clear_ws_fallback(Some("sess-sticky"));
+    }
+
     #[test]
     fn test_codex_ws_event_replay_tool_and_reasoning() {
         let model = test_model("openai-codex-responses", "openai", "https://example.com");
