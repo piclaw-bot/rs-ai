@@ -58,7 +58,8 @@ pub fn get_supported_thinking_levels(model: &Model) -> Vec<ModelThinkingLevel> {
     }
 }
 
-/// Clamp a requested level to the nearest supported level (preferring downgrade).
+/// Clamp a requested level to the nearest supported level (preferring a higher level
+/// first, then a lower one — matching upstream `clampThinkingLevel`).
 pub fn clamp_thinking_level(model: &Model, level: &ModelThinkingLevel) -> ModelThinkingLevel {
     let available = get_supported_thinking_levels(model);
     if available.contains(level) {
@@ -67,21 +68,21 @@ pub fn clamp_thinking_level(model: &Model, level: &ModelThinkingLevel) -> ModelT
     let idx = LEVELS.iter().position(|l| l == level);
     let idx = match idx {
         Some(i) => i,
-        None => return available[0].clone(),
+        None => return available.first().cloned().unwrap_or(ModelThinkingLevel::Off),
     };
-    // Prefer downgrade
+    // Prefer upgrade (search from the requested index upward).
+    for level in LEVELS.iter().skip(idx) {
+        if available.contains(level) {
+            return level.clone();
+        }
+    }
+    // Then downgrade.
     for i in (0..idx).rev() {
         if available.contains(&LEVELS[i]) {
             return LEVELS[i].clone();
         }
     }
-    // Then upgrade
-    for level in LEVELS.iter().skip(idx + 1) {
-        if available.contains(level) {
-            return level.clone();
-        }
-    }
-    available[0].clone()
+    available.first().cloned().unwrap_or(ModelThinkingLevel::Off)
 }
 
 /// Map a thinking level to its provider-specific string value.

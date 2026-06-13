@@ -49,7 +49,7 @@ mod tests {
     }
 
     #[test]
-    fn test_clamp_prefers_downgrade() {
+    fn test_clamp_prefers_upgrade() {
         let map = HashMap::from([
             ("off".into(), None),
             ("low".into(), None),
@@ -57,9 +57,10 @@ mod tests {
             ("high".into(), Some("high".into())),
         ]);
         let model = reasoning_model(Some(map));
-        // Request medium (disabled) → should downgrade to minimal (available)
+        // Request medium (disabled). Available = [minimal, high].
+        // Upstream clamps upward first -> high.
         let result = clamp_thinking_level(&model, &ModelThinkingLevel::Medium);
-        assert_eq!(result, ModelThinkingLevel::Minimal);
+        assert_eq!(result, ModelThinkingLevel::High);
     }
 
     #[test]
