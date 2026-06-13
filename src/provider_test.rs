@@ -268,6 +268,32 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_build_payload_downgrades_images_for_text_model() {
+        let model = test_model("openai-completions", "openai", "https://example.com");
+        // test_model has input = ["text"] only → non-vision.
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::User,
+                content: vec![
+                    ContentBlock::Text { text: "see".into(), text_signature: None },
+                    ContentBlock::Image { data: "abc".into(), mime_type: "image/png".into() },
+                ],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: None, error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &StreamOptions::default(), &crate::compat::detect_compat(&model));
+        let serialized = serde_json::to_string(&payload).unwrap();
+        assert!(!serialized.contains("image_url"), "image must be downgraded for non-vision model");
+        assert!(serialized.contains("omitted"));
+    }
+
+    #[test]
     fn test_openai_build_payload_preserves_assistant_tool_calls() {
         let model = test_model("openai-completions", "openai", "https://example.com");
         let ctx = Context {

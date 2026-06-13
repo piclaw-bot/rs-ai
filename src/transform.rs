@@ -3,7 +3,10 @@
 //! Mirrors the Go `transform.go` which normalizes messages before sending
 //! to different providers (image downgrade, thinking-to-text, etc.)
 
-use crate::types::{ContentBlock, Message, Model};
+use crate::types::{ContentBlock, Message, Model, Role};
+
+const NON_VISION_USER_IMAGE_PLACEHOLDER: &str = "(image omitted: model does not support images)";
+const NON_VISION_TOOL_IMAGE_PLACEHOLDER: &str = "(tool image omitted: model does not support images)";
 
 /// Transform messages for a target model, handling cross-provider differences.
 pub fn transform_messages(messages: &[Message], model: &Model) -> Vec<Message> {
@@ -11,7 +14,32 @@ pub fn transform_messages(messages: &[Message], model: &Model) -> Vec<Message> {
     transformed
 }
 
+/// Replace consecutive image blocks with a single text placeholder, matching
+/// upstream `replaceImagesWithPlaceholder`.
+fn replace_images_with_placeholder(content: &[ContentBlock], placeholder: &str) -> (Vec<ContentBlock>, usize) {
+    let mut result = Vec::with_capacity(content.len());
+    let mut previous_was_placeholder = false;
+    let mut downgrades = 0;
+    for block in content {
+        match block {
+            ContentBlock::Image { .. } => {
+                if !previous_was_placeholder {
+                    result.push(ContentBlock::Text { text: placeholder.to_string(), text_signature: None });
+                }
+                downgrades += 1;
+                previous_was_placeholder = true;
+            }
+            other => {
+                previous_was_placeholder = matches!(other, ContentBlock::Text { text, .. } if text == placeholder);
+                result.push(other.clone());
+            }
+        }
+    }
+    (result, downgrades)
+}
+
 /// Replace image content with text placeholders for non-vision models.
+/// Only user and tool-result messages are downgraded (mirrors upstream).
 fn downgrade_unsupported_images(messages: &[Message], model: &Model) -> (Vec<Message>, usize) {
     let supports_images = model.input.iter().any(|i| i == "image");
     if supports_images {
@@ -22,24 +50,14 @@ fn downgrade_unsupported_images(messages: &[Message], model: &Model) -> (Vec<Mes
     let transformed: Vec<Message> = messages
         .iter()
         .map(|msg| {
-            let new_content: Vec<ContentBlock> = msg
-                .content
-                .iter()
-                .map(|block| match block {
-                    ContentBlock::Image { .. } => {
-                        downgrades += 1;
-                        ContentBlock::Text {
-                            text: "(image omitted: model does not support images)".to_string(),
-                            text_signature: None,
-                        }
-                    }
-                    other => other.clone(),
-                })
-                .collect();
-            Message {
-                content: new_content,
-                ..msg.clone()
-            }
+            let placeholder = match msg.role {
+                Role::User => NON_VISION_USER_IMAGE_PLACEHOLDER,
+                Role::ToolResult => NON_VISION_TOOL_IMAGE_PLACEHOLDER,
+                Role::Assistant => return msg.clone(),
+            };
+            let (new_content, n) = replace_images_with_placeholder(&msg.content, placeholder);
+            downgrades += n;
+            Message { content: new_content, ..msg.clone() }
         })
         .collect();
 

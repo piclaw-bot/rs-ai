@@ -102,11 +102,10 @@ mod tests {
             details: None,
         }];
         let result = transform_messages(&messages, &text_model);
-        assert_eq!(result[0].content.len(), 3);
-        // Both images should be text placeholders
-        for block in &result[0].content[1..] {
-            assert!(matches!(block, ContentBlock::Text { text, .. } if text.contains("omitted")));
-        }
+        // Consecutive images collapse to a single placeholder (matches upstream).
+        assert_eq!(result[0].content.len(), 2);
+        assert!(matches!(&result[0].content[0], ContentBlock::Text { text, .. } if text == "Compare:"));
+        assert!(matches!(&result[0].content[1], ContentBlock::Text { text, .. } if text.contains("omitted")));
     }
 
     // --- Validation Edge Cases ---

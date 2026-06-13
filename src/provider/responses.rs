@@ -371,7 +371,9 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
         input.push(json!({"role": "system", "content": prompt}));
     }
 
-    for msg in &context.messages {
+    let transformed_messages = crate::transform::transform_messages(&context.messages, model);
+
+    for msg in &transformed_messages {
         match msg.role {
             Role::User => {
                 if msg.content.len() == 1 {

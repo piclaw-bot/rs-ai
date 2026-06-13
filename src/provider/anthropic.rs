@@ -311,7 +311,9 @@ pub fn stream_anthropic<'a>(
 pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let mut messages = Vec::new();
 
-    for msg in &context.messages {
+    let transformed_messages = crate::transform::transform_messages(&context.messages, model);
+
+    for msg in &transformed_messages {
         let role_str = match msg.role {
             Role::User => "user",
             Role::Assistant => "assistant",

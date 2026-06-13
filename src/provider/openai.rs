@@ -350,7 +350,8 @@ pub(crate) fn build_payload(
     }
 
     // Conversation messages
-    for msg in &context.messages {
+    let transformed_messages = crate::transform::transform_messages(&context.messages, model);
+    for msg in &transformed_messages {
         let role_str = match msg.role {
             Role::User => "user",
             Role::Assistant => "assistant",

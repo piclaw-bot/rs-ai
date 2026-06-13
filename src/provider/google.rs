@@ -248,7 +248,9 @@ pub fn build_google_payload_public(model: &Model, context: &Context, opts: &Stre
 fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) -> Value {
     let mut contents = Vec::new();
 
-    for msg in &context.messages {
+    let transformed_messages = crate::transform::transform_messages(&context.messages, model);
+
+    for msg in &transformed_messages {
         let role = match msg.role {
             Role::User | Role::ToolResult => "user",
             Role::Assistant => "model",
