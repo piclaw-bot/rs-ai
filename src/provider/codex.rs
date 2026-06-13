@@ -8,6 +8,7 @@ use tokio_tungstenite::tungstenite;
 use crate::env::resolve_api_key;
 use crate::events::Event;
 use crate::provider::responses;
+use crate::transports::sse;
 use crate::types::*;
 
 /// Start a Codex stream (WebSocket with SSE fallback).
@@ -45,12 +46,77 @@ pub fn stream_codex<'a>(
                 }
             }
             Err(_ws_err) => {
-                // Fallback to the richer Responses SSE implementation so Codex keeps
-                // parity with current Responses event/payload handling.
-                let mut fallback = responses::stream_responses(model, context, opts);
+                // Fallback to SSE using the Codex request body and headers.
+                let payload = build_codex_payload(model, context, opts);
+                let url = format!("{}/responses", model.base_url.trim_end_matches('/'));
+                let client = reqwest::Client::new();
+                let resp = client
+                    .post(&url)
+                    .header("content-type", "application/json")
+                    .header("accept", "text/event-stream")
+                    .header("authorization", format!("Bearer {}", api_key))
+                    .header("originator", "pi")
+                    .json(&payload)
+                    .send()
+                    .await;
+                let resp = match resp {
+                    Ok(r) => r,
+                    Err(e) => {
+                        yield Event::Error {
+                            reason: StopReason::Error,
+                            error: Arc::from(Box::new(e) as Box<dyn std::error::Error + Send + Sync>),
+                            message: None,
+                        };
+                        return;
+                    }
+                };
+                if !resp.status().is_success() {
+                    let status = resp.status().as_u16();
+                    let body = resp.text().await.unwrap_or_default();
+                    yield Event::Error {
+                        reason: StopReason::Error,
+                        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(format!("HTTP {}: {}", status, body))),
+                        message: None,
+                    };
+                    return;
+                }
+
                 use futures::StreamExt;
-                while let Some(evt) = fallback.next().await {
-                    yield evt;
+                let mut parser = sse::SseParser::default();
+                let mut state = CodexWsState::new(model);
+                let mut byte_stream = resp.bytes_stream();
+                let mut emitted = 0usize;
+                let mut done = false;
+                while let Some(chunk_result) = byte_stream.next().await {
+                    let chunk = match chunk_result {
+                        Ok(c) => c,
+                        Err(e) => {
+                            yield Event::Error {
+                                reason: StopReason::Error,
+                                error: Arc::from(Box::new(e) as Box<dyn std::error::Error + Send + Sync>),
+                                message: None,
+                            };
+                            return;
+                        }
+                    };
+                    let text = String::from_utf8_lossy(&chunk);
+                    for evt in parser.feed(&text) {
+                        if evt.event == sse::EVENT_ERROR { continue; }
+                        if let Ok(data) = serde_json::from_str::<Value>(&evt.data) {
+                            done = state.process_event(&data);
+                            if done { break; }
+                        }
+                    }
+                    while emitted < state.events.len() {
+                        yield state.events[emitted].clone();
+                        emitted += 1;
+                    }
+                    if done { break; }
+                }
+                let final_events = state.finish();
+                while emitted < final_events.len() {
+                    yield final_events[emitted].clone();
+                    emitted += 1;
                 }
             }
         }
