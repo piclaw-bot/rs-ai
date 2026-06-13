@@ -112,14 +112,14 @@ fn convert_tool_result_content(content: &[ContentBlock]) -> Vec<ToolResultConten
 
 /// Build the Bedrock `additionalModelRequestFields` thinking config for Anthropic
 /// Claude models (mirrors buildAdditionalModelRequestFields).
-fn bedrock_thinking_fields(model: &Model, opts: &StreamOptions) -> Option<serde_json::Value> {
+fn bedrock_thinking_fields(model: &Model, opts: &StreamOptions) -> Option<(serde_json::Value, Option<u32>)> {
     if !model.reasoning || !is_anthropic_claude_model(model) {
         return None;
     }
     let level = opts.reasoning.as_ref()?;
     let key = format!("{level:?}").to_lowercase();
     if model.compat.force_adaptive_thinking == Some(true) {
-        // Adaptive-thinking models: effort-based config, no interleaved beta.
+        // Adaptive-thinking models: effort-based config, no interleaved beta, no max adjustment.
         let default_effort = match key.as_str() {
             "minimal" | "low" => "low",
             "medium" => "medium",
@@ -128,21 +128,26 @@ fn bedrock_thinking_fields(model: &Model, opts: &StreamOptions) -> Option<serde_
         let effort = model.thinking_level_map.as_ref()
             .and_then(|m| m.get(&key)).and_then(|v| v.clone())
             .unwrap_or_else(|| default_effort.to_string());
-        Some(serde_json::json!({
+        Some((serde_json::json!({
             "thinking": { "type": "adaptive", "display": "summarized" },
             "output_config": { "effort": effort },
-        }))
+        }), None))
     } else {
-        let default_budget = match key.as_str() {
-            "minimal" => 1024, "low" => 2048, "medium" => 8192, _ => 16384,
-        };
-        let budget = opts.thinking_budgets.as_ref().and_then(|b| match key.as_str() {
-            "minimal" => b.minimal, "low" => b.low, "medium" => b.medium, _ => b.high,
-        }).unwrap_or(default_budget);
-        Some(serde_json::json!({
+        // Budget-based: select budget by level and adjust max_tokens (adjustMaxTokensForThinking).
+        let mut budgets_map = std::collections::HashMap::new();
+        if let Some(b) = opts.thinking_budgets.as_ref() {
+            if let Some(v) = b.minimal { budgets_map.insert(ThinkingLevel::Minimal, v); }
+            if let Some(v) = b.low { budgets_map.insert(ThinkingLevel::Low, v); }
+            if let Some(v) = b.medium { budgets_map.insert(ThinkingLevel::Medium, v); }
+            if let Some(v) = b.high { budgets_map.insert(ThinkingLevel::High, v); }
+        }
+        let (adj_max, budget) = crate::simple_options::adjust_max_tokens_for_thinking(
+            opts.max_tokens, model.max_tokens, level, &budgets_map,
+        );
+        Some((serde_json::json!({
             "thinking": { "type": "enabled", "budget_tokens": budget, "display": "summarized" },
             "anthropic_beta": ["interleaved-thinking-2025-05-14"],
-        }))
+        }), Some(adj_max)))
     }
 }
 
@@ -303,11 +308,15 @@ pub fn stream_bedrock<'a>(
             }
         }
 
-        // Inference config: max output tokens (defaults to the model cap for Claude) and
-        // temperature (mirrors inferenceConfig).
-        let inference_max_tokens = opts.max_tokens.or_else(|| {
-            if is_anthropic_claude_model(model) && model.max_tokens > 0 { Some(model.max_tokens) } else { None }
-        });
+        // Compute thinking config (and its adjusted max output tokens for the budget path).
+        let thinking = bedrock_thinking_fields(model, opts);
+        // Inference config: max output tokens (adjusted for thinking when applicable, else the
+        // caller cap, else the model cap for Claude) and temperature (mirrors inferenceConfig).
+        let inference_max_tokens = thinking.as_ref().and_then(|(_, m)| *m)
+            .or(opts.max_tokens)
+            .or_else(|| {
+                if is_anthropic_claude_model(model) && model.max_tokens > 0 { Some(model.max_tokens) } else { None }
+            });
         if inference_max_tokens.is_some() || opts.temperature.is_some() {
             let mut ic = aws_sdk_bedrockruntime::types::InferenceConfiguration::builder();
             if let Some(mt) = inference_max_tokens {
@@ -354,7 +363,7 @@ pub fn stream_bedrock<'a>(
         }
 
         // Enable thinking for Anthropic Claude models on Bedrock (additionalModelRequestFields).
-        if let Some(fields) = bedrock_thinking_fields(model, opts) {
+        if let Some((fields, _)) = thinking {
             req = req.additional_model_request_fields(json_to_document(&fields));
         }
 
@@ -702,22 +711,25 @@ mod tests {
                 id: id.into(), name: String::new(), api: "bedrock-converse-stream".into(),
                 provider: "bedrock".into(), base_url: String::new(), reasoning: true,
                 thinking_level_map: None, input: vec!["text".into()], cost: ModelCost::default(),
-                context_window: 0, max_tokens: 0, headers: None, api_key: None, compat: Default::default(),
+                context_window: 0, max_tokens: 64000, headers: None, api_key: None, compat: Default::default(),
             };
             if adaptive { m.compat.force_adaptive_thinking = Some(true); }
             m
         };
-        // Budget-based (non-adaptive) Claude: enabled + interleaved beta.
+        // Budget-based (non-adaptive) Claude: enabled + interleaved beta; budget by level.
         let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
-        let f = bedrock_thinking_fields(&mk("anthropic.claude-3", false), &opts).unwrap();
+        let (f, adj_max) = bedrock_thinking_fields(&mk("anthropic.claude-3", false), &opts).unwrap();
         assert_eq!(f["thinking"]["type"], "enabled");
         assert_eq!(f["thinking"]["budget_tokens"], 16384);
         assert!(f["anthropic_beta"].is_array());
-        // Adaptive Claude: adaptive + output_config, no interleaved beta.
-        let f = bedrock_thinking_fields(&mk("anthropic.claude-opus-4-6", true), &opts).unwrap();
+        // No caller cap -> adjusted max is the model cap.
+        assert_eq!(adj_max, Some(64000));
+        // Adaptive Claude: adaptive + output_config, no interleaved beta, no max adjustment.
+        let (f, adj_max) = bedrock_thinking_fields(&mk("anthropic.claude-opus-4-6", true), &opts).unwrap();
         assert_eq!(f["thinking"]["type"], "adaptive");
         assert_eq!(f["output_config"]["effort"], "high");
         assert!(f.get("anthropic_beta").is_none());
+        assert_eq!(adj_max, None);
         // Non-Claude model: no thinking fields.
         let f = bedrock_thinking_fields(&mk("meta.llama3", false), &opts);
         assert!(f.is_none());
