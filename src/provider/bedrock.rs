@@ -40,7 +40,7 @@ fn json_to_document(v: &serde_json::Value) -> Document {
 pub fn stream_bedrock<'a>(
     model: &'a Model,
     context: &'a Context,
-    _opts: &'a StreamOptions,
+    opts: &'a StreamOptions,
 ) -> std::pin::Pin<Box<dyn futures::Stream<Item = Event> + Send + 'a>> {
     Box::pin(async_stream::stream! {
         let config = aws_config::defaults(BehaviorVersion::latest()).load().await;
@@ -125,6 +125,24 @@ pub fn stream_bedrock<'a>(
             }
         }
 
+        // Enable thinking for Anthropic Claude models on Bedrock (additionalModelRequestFields).
+        if model.reasoning
+            && (model.id.contains("claude") || model.id.contains("anthropic"))
+            && let Some(level) = opts.reasoning.as_ref() {
+            let key = format!("{:?}", level).to_lowercase();
+            let default_budget = match key.as_str() {
+                "minimal" => 1024, "low" => 2048, "medium" => 8192, _ => 16384,
+            };
+            let budget = opts.thinking_budgets.as_ref().and_then(|b| match key.as_str() {
+                "minimal" => b.minimal, "low" => b.low, "medium" => b.medium, _ => b.high,
+            }).unwrap_or(default_budget);
+            let fields = serde_json::json!({
+                "thinking": { "type": "enabled", "budget_tokens": budget, "display": "summarized" },
+                "anthropic_beta": ["interleaved-thinking-2025-05-14"],
+            });
+            req = req.additional_model_request_fields(json_to_document(&fields));
+        }
+
         let result = req.send().await;
 
         let output = match result {
@@ -166,6 +184,9 @@ pub fn stream_bedrock<'a>(
         let mut current_tool_name = String::new();
         let mut current_tool_args = String::new();
         let mut in_tool_block = false;
+        let mut current_thinking = String::new();
+        let mut current_thinking_signature: Option<String> = None;
+        let mut thinking_started = false;
 
         let mut recv = output.stream;
         loop {
@@ -197,6 +218,23 @@ pub fn stream_bedrock<'a>(
                                         current_tool_args.push_str(input);
                                         yield Event::ToolCallDelta { delta: input.to_string() };
                                     }
+                                    aws_sdk_bedrockruntime::types::ContentBlockDelta::ReasoningContent(rc) => {
+                                        use aws_sdk_bedrockruntime::types::ReasoningContentBlockDelta;
+                                        match rc {
+                                            ReasoningContentBlockDelta::Text(t) => {
+                                                if !thinking_started {
+                                                    thinking_started = true;
+                                                    yield Event::ThinkingStart;
+                                                }
+                                                current_thinking.push_str(t);
+                                                yield Event::ThinkingDelta { delta: t.to_string() };
+                                            }
+                                            ReasoningContentBlockDelta::Signature(s) => {
+                                                current_thinking_signature = Some(s.to_string());
+                                            }
+                                            _ => {}
+                                        }
+                                    }
                                     _ => {}
                                 }
                             }
@@ -221,6 +259,14 @@ pub fn stream_bedrock<'a>(
                                     arguments: parsed,
                                 };
                                 current_tool_args.clear();
+                            } else if thinking_started {
+                                thinking_started = false;
+                                partial.content.push(ContentBlock::Thinking {
+                                    thinking: std::mem::take(&mut current_thinking),
+                                    thinking_signature: current_thinking_signature.take(),
+                                    redacted: false,
+                                });
+                                yield Event::ThinkingEnd;
                             } else if text_started {
                                 text_started = false;
                                 yield Event::TextEnd;
