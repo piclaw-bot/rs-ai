@@ -939,6 +939,27 @@ mod tests {
     }
 
     #[test]
+    fn test_google_thinking_and_tool_config() {
+        use crate::provider::google::build_google_payload_public;
+        let model = Model { reasoning: true, ..test_model("google-generative-ai", "google", "https://example.com") };
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![user_message("hi")],
+            tools: vec![Tool { name: "t".into(), description: "d".into(), parameters: serde_json::json!({"type":"object"}) }],
+        };
+        let opts = StreamOptions {
+            reasoning: Some(ThinkingLevel::High),
+            thinking_budgets: Some(ThinkingBudgets { high: Some(2048), ..Default::default() }),
+            tool_choice: Some(serde_json::json!("required")),
+            ..Default::default()
+        };
+        let payload = build_google_payload_public(&model, &ctx, &opts);
+        assert_eq!(payload["generationConfig"]["thinkingConfig"]["includeThoughts"], true);
+        assert_eq!(payload["generationConfig"]["thinkingConfig"]["thinkingBudget"], 2048);
+        assert_eq!(payload["toolConfig"]["functionCallingConfig"]["mode"], "ANY");
+    }
+
+    #[test]
     fn test_google_tool_result_function_response_merging() {
         use crate::provider::google::build_google_payload_public;
         let model = test_model("google-generative-ai", "google", "https://example.com");

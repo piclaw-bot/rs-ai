@@ -341,6 +341,15 @@ fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) 
     if let Some(temp) = opts.temperature {
         config["temperature"] = json!(temp);
     }
+    // Thinking config for reasoning models.
+    if model.reasoning && opts.reasoning.is_some() {
+        let mut thinking_config = json!({"includeThoughts": true});
+        if let Some(budget) = opts.thinking_budgets.as_ref()
+            .and_then(|b| b.medium.or(b.high).or(b.low).or(b.minimal)) {
+            thinking_config["thinkingBudget"] = json!(budget);
+        }
+        config["thinkingConfig"] = thinking_config;
+    }
     if config != json!({}) {
         payload["generationConfig"] = config;
     }
@@ -350,6 +359,17 @@ fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) 
             json!({"name": t.name, "description": t.description, "parameters": t.parameters})
         }).collect();
         payload["tools"] = json!([{"functionDeclarations": decls}]);
+
+        // Tool choice -> functionCallingConfig mode.
+        if let Some(ref tc) = opts.tool_choice {
+            let mode = match tc.as_str() {
+                Some("auto") => "AUTO",
+                Some("any") | Some("required") => "ANY",
+                Some("none") => "NONE",
+                _ => "AUTO",
+            };
+            payload["toolConfig"] = json!({"functionCallingConfig": {"mode": mode}});
+        }
     }
 
     payload
