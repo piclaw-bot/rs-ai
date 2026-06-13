@@ -41,6 +41,17 @@ pub fn stream_google<'a>(
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     headers.insert("accept", HeaderValue::from_static("text/event-stream"));
+    // Merge model-level and option headers (mirrors `{ ...model.headers, ...optionsHeaders }`).
+    for source in [model.headers.as_ref(), opts.headers.as_ref()].into_iter().flatten() {
+        for (k, v) in source {
+            if let (Ok(name), Ok(val)) = (
+                reqwest::header::HeaderName::from_bytes(k.as_bytes()),
+                HeaderValue::from_str(v),
+            ) {
+                headers.insert(name, val);
+            }
+        }
+    }
 
     Box::pin(async_stream::stream! {
         let client = reqwest::Client::new();

@@ -1674,6 +1674,33 @@ mod tests {
     // --- Mistral Tests ---
 
     #[tokio::test]
+    async fn test_mistral_merges_headers_and_affinity() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/chat/completions"))
+            .and(header("x-affinity", "sess-m"))
+            .and(header("x-custom", "cv"))
+            .respond_with(ResponseTemplate::new(200)
+                .set_body_string(sse_response(&[
+                    r#"{"id":"c","choices":[{"delta":{},"finish_reason":"stop","index":0}],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}"#,
+                ]))
+                .insert_header("content-type", "text/event-stream"))
+            .mount(&server)
+            .await;
+        let mut model = test_model("mistral-conversations", "mistral", &server.uri());
+        model.headers = Some(std::collections::HashMap::from([("x-custom".to_string(), "cv".to_string())]));
+        let opts = StreamOptions { session_id: Some("sess-m".into()), ..Default::default() };
+        let ctx = test_context();
+        let mut stream = stream_mistral(&model, &ctx, &opts);
+        let mut done = false;
+        while let Some(evt) = stream.next().await {
+            if matches!(evt, Event::Done { .. }) { done = true; }
+        }
+        // Missing x-affinity / x-custom would fail the wiremock header match.
+        assert!(done);
+    }
+
+    #[tokio::test]
     async fn test_mistral_stream_text() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))

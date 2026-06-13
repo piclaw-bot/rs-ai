@@ -37,6 +37,22 @@ pub fn stream_mistral<'a>(
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
     headers.insert("Accept", HeaderValue::from_static("text/event-stream"));
+    // Merge model-level and option headers, then add session affinity (mirrors upstream).
+    for source in [model.headers.as_ref(), opts.headers.as_ref()].into_iter().flatten() {
+        for (k, v) in source {
+            if let (Ok(name), Ok(val)) = (
+                reqwest::header::HeaderName::from_bytes(k.as_bytes()),
+                HeaderValue::from_str(v),
+            ) {
+                headers.insert(name, val);
+            }
+        }
+    }
+    if let Some(ref session_id) = opts.session_id
+        && !headers.contains_key("x-affinity")
+        && let Ok(val) = HeaderValue::from_str(session_id) {
+        headers.insert("x-affinity", val);
+    }
 
     Box::pin(async_stream::stream! {
         let client = reqwest::Client::new();
