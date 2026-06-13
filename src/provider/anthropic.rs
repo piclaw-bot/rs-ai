@@ -35,6 +35,7 @@ pub fn stream_anthropic<'a>(
 
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert("accept", HeaderValue::from_static("text/event-stream"));
     headers.insert("anthropic-version", HeaderValue::from_static("2023-06-01"));
 
     let is_oauth = api_key.contains("sk-ant-oat");

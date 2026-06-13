@@ -74,6 +74,7 @@ fn stream_responses_inner<'a>(
 
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert("accept", HeaderValue::from_static("text/event-stream"));
     if is_azure {
         if let Ok(val) = HeaderValue::from_str(&api_key) {
             headers.insert("api-key", val);

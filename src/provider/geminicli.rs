@@ -43,6 +43,7 @@ pub fn stream_geminicli<'a>(
 
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert("accept", HeaderValue::from_static("text/event-stream"));
     headers.insert(AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
 
     if let Some(ref model_headers) = model.headers {

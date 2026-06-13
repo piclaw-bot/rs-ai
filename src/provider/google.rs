@@ -40,6 +40,7 @@ pub fn stream_google<'a>(
 
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
+    headers.insert("accept", HeaderValue::from_static("text/event-stream"));
 
     Box::pin(async_stream::stream! {
         let client = reqwest::Client::new();
