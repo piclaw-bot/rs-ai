@@ -73,8 +73,10 @@ Tracks `@earendil-works/pi-ai` `0.79.2`. Known divergences from upstream:
   auth (GCP Application Default Credentials / service-account token exchange and the
   project/location-scoped endpoint) is not implemented — it would require a GCP auth
   dependency. Vertex models fall back to the shared Gemini request path.
-- **Provider SDK retries**: upstream relies on vendor SDK retry behavior; this port
-  exposes `retry::do_with_retry` but does not wrap every provider call in it.
+- **Provider SDK retries**: upstream relies on vendor SDK retry behavior. This port
+  honors `StreamOptions` retry fields (`max_retries`, `max_retry_delay_ms`,
+  `retry_config`) via `retry::do_with_retry` across the HTTP providers; Bedrock uses
+  the AWS SDK's own retry. There is no implicit default retry when no options are set.
 
 ## Credits
 
