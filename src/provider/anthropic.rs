@@ -37,7 +37,20 @@ pub fn stream_anthropic<'a>(
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
     headers.insert("x-api-key", HeaderValue::from_str(&api_key).unwrap());
     headers.insert("anthropic-version", HeaderValue::from_static("2023-06-01"));
-    headers.insert("anthropic-beta", HeaderValue::from_static("prompt-caching-2024-07-31"));
+
+    // Beta features (prompt caching is GA and no longer requires a beta header).
+    let mut beta_features: Vec<&str> = Vec::new();
+    let is_fireworks = model.provider == "fireworks" || model.base_url.contains("fireworks.ai");
+    if !context.tools.is_empty() && is_fireworks {
+        beta_features.push("fine-grained-tool-streaming-2025-05-14");
+    }
+    if opts.reasoning.is_some() && model.reasoning {
+        beta_features.push("interleaved-thinking-2025-05-14");
+    }
+    if !beta_features.is_empty()
+        && let Ok(val) = HeaderValue::from_str(&beta_features.join(",")) {
+            headers.insert("anthropic-beta", val);
+    }
 
     // Session affinity header for providers that require it (Fireworks / Cloudflare AI Gateway).
     if let Some(ref session_id) = opts.session_id {
