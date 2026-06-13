@@ -46,6 +46,7 @@ pub fn parse<R: BufRead>(reader: R) -> Vec<SseEvent> {
 #[derive(Debug, Default, Clone)]
 pub struct SseParser {
     line_buffer: String,
+    utf8_buffer: Vec<u8>,
     event_type: String,
     data_lines: Vec<String>,
     last_id: String,
@@ -55,6 +56,23 @@ pub struct SseParser {
 }
 
 impl SseParser {
+    /// Feed raw bytes, buffering any incomplete trailing UTF-8 sequence so that a
+    /// multibyte character split across network chunks is not corrupted.
+    pub fn feed_bytes(&mut self, bytes: &[u8]) -> Vec<SseEvent> {
+        self.utf8_buffer.extend_from_slice(bytes);
+        let valid_up_to = match std::str::from_utf8(&self.utf8_buffer) {
+            Ok(_) => self.utf8_buffer.len(),
+            Err(e) => e.valid_up_to(),
+        };
+        if valid_up_to == 0 {
+            return Vec::new();
+        }
+        // Safe: bytes [..valid_up_to] are valid UTF-8 by construction.
+        let valid = String::from_utf8(self.utf8_buffer[..valid_up_to].to_vec()).unwrap_or_default();
+        self.utf8_buffer.drain(..valid_up_to);
+        self.feed(&valid)
+    }
+
     pub fn feed(&mut self, chunk: &str) -> Vec<SseEvent> {
         self.line_buffer.push_str(chunk);
         let mut events = Vec::new();
@@ -185,5 +203,19 @@ mod tests {
         events.extend(parser.feed("lo\n\n"));
         assert_eq!(events.len(), 1);
         assert_eq!(events[0].data, "hello");
+    }
+
+    #[test]
+    fn test_feed_bytes_handles_split_multibyte() {
+        // "data: é\n\n" where the 2-byte é is split across two byte chunks.
+        let full = "data: é\n\n".as_bytes().to_vec();
+        // Find a split point in the middle of the multibyte char.
+        let prefix_len = "data: ".len() + 1; // splits the 2-byte 'é'
+        let mut parser = SseParser::default();
+        let mut events = parser.feed_bytes(&full[..prefix_len]);
+        assert!(events.is_empty()); // incomplete char buffered, no full event yet
+        events.extend(parser.feed_bytes(&full[prefix_len..]));
+        assert_eq!(events.len(), 1);
+        assert_eq!(events[0].data, "é");
     }
 }

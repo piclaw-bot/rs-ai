@@ -130,8 +130,7 @@ pub fn stream_geminicli<'a>(
                 }
             };
 
-            let chunk_text = String::from_utf8_lossy(&chunk_bytes);
-            for evt in parser.feed(&chunk_text) {
+            for evt in parser.feed_bytes(&chunk_bytes) {
                 if evt.event == sse::EVENT_ERROR {
                     yield Event::Error {
                         reason: StopReason::Error,

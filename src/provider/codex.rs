@@ -99,8 +99,7 @@ pub fn stream_codex<'a>(
                             return;
                         }
                     };
-                    let text = String::from_utf8_lossy(&chunk);
-                    for evt in parser.feed(&text) {
+                    for evt in parser.feed_bytes(&chunk) {
                         if evt.event == sse::EVENT_ERROR { continue; }
                         if let Ok(data) = serde_json::from_str::<Value>(&evt.data) {
                             done = state.process_event(&data);
