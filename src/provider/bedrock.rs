@@ -61,7 +61,7 @@ pub fn stream_bedrock<'a>(
             Err(e) => {
                 yield Event::Error {
                     reason: StopReason::Error,
-                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(e.to_string())),
+                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(format_bedrock_error(&e.to_string()))),
                     message: None,
                 };
                 return;
@@ -144,7 +144,7 @@ pub fn stream_bedrock<'a>(
                 Err(e) => {
                     yield Event::Error {
                         reason: StopReason::Error,
-                        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(e.to_string())),
+                        error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(format_bedrock_error(&e.to_string()))),
                         message: Some(partial.clone()),
                     };
                     return;
@@ -158,4 +158,35 @@ pub fn stream_bedrock<'a>(
         let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
         yield Event::Done { reason, message: partial };
     })
+}
+
+/// AWS docs explaining how to configure a supported Bedrock data retention mode.
+const BEDROCK_DATA_RETENTION_DOCS_URL: &str =
+    "https://docs.aws.amazon.com/bedrock/latest/userguide/data-retention.html";
+
+/// Append a data-retention docs hint when the error references retention mode
+/// (mirrors upstream pi-ai formatBedrockError).
+pub(crate) fn format_bedrock_error(message: &str) -> String {
+    if message.to_lowercase().contains("data retention mode") {
+        format!("{} See {} for supported data retention modes.", message, BEDROCK_DATA_RETENTION_DOCS_URL)
+    } else {
+        message.to_string()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::format_bedrock_error;
+
+    #[test]
+    fn test_format_bedrock_error_adds_retention_hint() {
+        let msg = "data retention mode 'default' is not available for this model";
+        let out = format_bedrock_error(msg);
+        assert!(out.contains("data-retention.html"));
+    }
+
+    #[test]
+    fn test_format_bedrock_error_passthrough() {
+        assert_eq!(format_bedrock_error("some other error"), "some other error");
+    }
 }
