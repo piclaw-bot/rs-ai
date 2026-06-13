@@ -181,6 +181,7 @@ pub fn stream_openai<'a>(
         let mut current_thinking_signature: Option<String> = None;
         let mut tool_calls: std::collections::BTreeMap<usize, (String, String, String)> = std::collections::BTreeMap::new();
 
+        let mut got_done = false;
         while let Some(chunk_result) = stream.next().await {
             let chunk_bytes = match chunk_result {
                 Ok(c) => c,
@@ -206,6 +207,7 @@ pub fn stream_openai<'a>(
                     return;
                 }
                 if evt.data == "[DONE]" {
+                    got_done = true;
                     break;
                 }
                 let chunk: Value = match serde_json::from_str(&evt.data) {
@@ -339,6 +341,9 @@ pub fn stream_openai<'a>(
                     // Some providers report usage on the choice instead of the chunk.
                     partial.usage = Some(crate::simple_options::parse_openai_usage(choice_usage, model));
                 }
+            }
+            if got_done {
+                break;
             }
         }
 

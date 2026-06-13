@@ -96,6 +96,7 @@ pub fn stream_mistral<'a>(
         let mut text_started = false;
         let mut current_text = String::new();
         let mut tool_calls: std::collections::BTreeMap<usize, (String, String, String)> = std::collections::BTreeMap::new();
+        let mut got_done = false;
 
         while let Some(chunk_result) = byte_stream.next().await {
             let chunk_bytes = match chunk_result {
@@ -122,6 +123,7 @@ pub fn stream_mistral<'a>(
                     return;
                 }
                 if evt.data == "[DONE]" {
+                    got_done = true;
                     break;
                 }
                 let chunk: Value = match serde_json::from_str(&evt.data) {
@@ -183,6 +185,9 @@ pub fn stream_mistral<'a>(
                 if let Some(usage) = chunk.get("usage") {
                     partial.usage = Some(crate::simple_options::parse_openai_usage(usage, model));
                 }
+            }
+            if got_done {
+                break;
             }
         }
 
