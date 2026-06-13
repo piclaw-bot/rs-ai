@@ -273,12 +273,17 @@ pub fn stream_bedrock<'a>(
                             }
                         }
                         ConverseStreamOutput::MessageStop(stop) => {
+                            use aws_sdk_bedrockruntime::types::StopReason as BedrockStop;
                             let reason = stop.stop_reason();
                             partial.stop_reason = Some(match reason {
-                                aws_sdk_bedrockruntime::types::StopReason::EndTurn => StopReason::Stop,
-                                aws_sdk_bedrockruntime::types::StopReason::MaxTokens => StopReason::Length,
-                                aws_sdk_bedrockruntime::types::StopReason::ToolUse => StopReason::ToolUse,
-                                _ => StopReason::Stop,
+                                BedrockStop::EndTurn | BedrockStop::StopSequence => StopReason::Stop,
+                                BedrockStop::MaxTokens | BedrockStop::ModelContextWindowExceeded => StopReason::Length,
+                                BedrockStop::ToolUse => StopReason::ToolUse,
+                                // content_filtered, guardrail_intervened, malformed_tool_use, etc.
+                                other => {
+                                    partial.error_message = Some(format!("Bedrock stop reason: {}", other));
+                                    StopReason::Error
+                                }
                             });
                         }
                         ConverseStreamOutput::Metadata(meta) => {
@@ -314,8 +319,22 @@ pub fn stream_bedrock<'a>(
         if let Some(ref mut u) = partial.usage {
             crate::simple_options::finalize_usage(model, u);
         }
-        let reason = partial.stop_reason.clone().unwrap_or(StopReason::Stop);
-        yield Event::Done { reason, message: partial };
+        match partial.stop_reason.clone() {
+            Some(StopReason::Error) => {
+                let msg = partial.error_message.clone().unwrap_or_else(|| "Provider returned an error stop reason".to_string());
+                yield Event::Error {
+                    reason: StopReason::Error,
+                    error: Arc::from(Box::<dyn std::error::Error + Send + Sync>::from(msg)),
+                    message: Some(partial),
+                };
+            }
+            Some(reason) => {
+                yield Event::Done { reason, message: partial };
+            }
+            None => {
+                yield Event::Done { reason: StopReason::Stop, message: partial };
+            }
+        }
     })
 }
 
