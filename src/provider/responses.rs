@@ -374,7 +374,13 @@ fn stream_responses_inner<'a>(
                                 partial.response_model = Some(model_name.to_string());
                             }
                             if let Some(usage) = response.get("usage") {
-                                partial.usage = Some(crate::simple_options::parse_responses_usage(usage, model));
+                                let mut parsed = crate::simple_options::parse_responses_usage(usage, model);
+                                // Resolve the effective service tier (response value wins) and
+                                // apply its cost multiplier, matching applyServiceTierPricing.
+                                let tier = response.get("service_tier").and_then(|v| v.as_str())
+                                    .or(opts.service_tier.as_deref());
+                                crate::simple_options::apply_service_tier_pricing(model, &mut parsed, tier);
+                                partial.usage = Some(parsed);
                             }
                             // Map response.status, then upgrade to tool-use when tool calls are present.
                             let status = response.get("status").and_then(|v| v.as_str()).unwrap_or("completed");

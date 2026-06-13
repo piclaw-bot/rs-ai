@@ -171,4 +171,30 @@ mod tests {
         assert_eq!(usage.input, 300); // 500 - 200
         assert_eq!(usage.output, 100);
     }
+
+    #[test]
+    fn test_apply_service_tier_pricing() {
+        let mut model = reasoning_model(None);
+        model.cost = ModelCost { input: 1.0, output: 2.0, cache_read: 0.5, cache_write: 0.0 };
+        let base = crate::types::Usage {
+            input: 1_000_000, output: 1_000_000, cache_read: 1_000_000, cache_write: 0,
+            total_tokens: 3_000_000, cost: Default::default(),
+        };
+        // flex halves the cost.
+        let mut u = base.clone();
+        u.cost = calculate_cost(&model, &u);
+        let full_total = u.cost.total;
+        apply_service_tier_pricing(&model, &mut u, Some("flex"));
+        assert!((u.cost.total - full_total * 0.5).abs() < 1e-9);
+        // priority doubles.
+        let mut u = base.clone();
+        u.cost = calculate_cost(&model, &u);
+        apply_service_tier_pricing(&model, &mut u, Some("priority"));
+        assert!((u.cost.total - full_total * 2.0).abs() < 1e-9);
+        // default tier leaves cost unchanged.
+        let mut u = base.clone();
+        u.cost = calculate_cost(&model, &u);
+        apply_service_tier_pricing(&model, &mut u, None);
+        assert!((u.cost.total - full_total).abs() < 1e-9);
+    }
 }

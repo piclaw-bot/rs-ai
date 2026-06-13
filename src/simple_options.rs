@@ -178,6 +178,24 @@ pub fn parse_responses_usage(raw: &serde_json::Value, model: &Model) -> crate::t
     usage
 }
 
+/// Apply OpenAI service-tier cost multipliers to a usage record (mirrors
+/// applyServiceTierPricing): flex 0.5x, priority 2x (2.5x for gpt-5.5).
+pub fn apply_service_tier_pricing(model: &Model, usage: &mut crate::types::Usage, service_tier: Option<&str>) {
+    let multiplier = match service_tier {
+        Some("flex") => 0.5,
+        Some("priority") => if model.id == "gpt-5.5" { 2.5 } else { 2.0 },
+        _ => 1.0,
+    };
+    if multiplier == 1.0 {
+        return;
+    }
+    usage.cost.input *= multiplier;
+    usage.cost.output *= multiplier;
+    usage.cost.cache_read *= multiplier;
+    usage.cost.cache_write *= multiplier;
+    usage.cost.total = usage.cost.input + usage.cost.output + usage.cost.cache_read + usage.cost.cache_write;
+}
+
 /// Recompute cost for a usage record (for providers that build usage incrementally
 /// across events). The provider-supplied `total_tokens` is preserved.
 pub fn finalize_usage(model: &Model, usage: &mut crate::types::Usage) {
