@@ -35,11 +35,23 @@ pub fn stream_anthropic<'a>(
 
     let mut headers = HeaderMap::new();
     headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-    headers.insert("x-api-key", HeaderValue::from_str(&api_key).unwrap());
     headers.insert("anthropic-version", HeaderValue::from_static("2023-06-01"));
+
+    let is_oauth = api_key.contains("sk-ant-oat");
+    if is_oauth {
+        headers.insert(reqwest::header::AUTHORIZATION, HeaderValue::from_str(&format!("Bearer {}", api_key)).unwrap());
+        headers.insert("user-agent", HeaderValue::from_static("claude-cli/2.1.75"));
+        headers.insert("x-app", HeaderValue::from_static("cli"));
+    } else {
+        headers.insert("x-api-key", HeaderValue::from_str(&api_key).unwrap());
+    }
 
     // Beta features (prompt caching is GA and no longer requires a beta header).
     let mut beta_features: Vec<&str> = Vec::new();
+    if is_oauth {
+        beta_features.push("claude-code-20250219");
+        beta_features.push("oauth-2025-04-20");
+    }
     let is_fireworks = model.provider == "fireworks" || model.base_url.contains("fireworks.ai");
     if !context.tools.is_empty() && is_fireworks {
         beta_features.push("fine-grained-tool-streaming-2025-05-14");
@@ -435,13 +447,25 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
         "max_tokens": opts.max_tokens.unwrap_or(model.max_tokens),
     });
 
+    let is_oauth = crate::env::resolve_api_key(model, opts).map(|k| k.contains("sk-ant-oat")).unwrap_or(false);
+    let mut system_blocks: Vec<Value> = Vec::new();
+    if is_oauth {
+        // OAuth tokens require the Claude Code identity as the first system block.
+        let mut identity = json!({"type": "text", "text": "You are Claude Code, Anthropic's official CLI for Claude."});
+        if let Some(ref cc) = cache_control {
+            identity["cache_control"] = cc.clone();
+        }
+        system_blocks.push(identity);
+    }
     if let Some(ref prompt) = context.system_prompt {
-        // Structured system prompt allows attaching cache_control.
         let mut system_block = json!({"type": "text", "text": prompt});
         if let Some(ref cc) = cache_control {
             system_block["cache_control"] = cc.clone();
         }
-        payload["system"] = json!([system_block]);
+        system_blocks.push(system_block);
+    }
+    if !system_blocks.is_empty() {
+        payload["system"] = json!(system_blocks);
     }
 
     // Temperature is incompatible with extended thinking.

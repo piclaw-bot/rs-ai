@@ -1040,6 +1040,22 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_oauth_identity_system_block() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let mut model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        model.api_key = Some("sk-ant-oat01-abc".into());
+        let ctx = Context {
+            system_prompt: Some("be helpful".into()),
+            messages: vec![user_message("hi")],
+            tools: vec![],
+        };
+        let payload = build_anthropic_payload(&model, &ctx, &StreamOptions::default());
+        let system = payload["system"].as_array().unwrap();
+        assert!(system[0]["text"].as_str().unwrap().contains("Claude Code"));
+        assert_eq!(system[1]["text"], "be helpful");
+    }
+
+    #[test]
     fn test_anthropic_merges_consecutive_tool_results() {
         use crate::provider::anthropic::build_anthropic_payload;
         let model = test_model("anthropic-messages", "anthropic", "https://example.com");
