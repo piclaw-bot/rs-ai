@@ -232,6 +232,11 @@ pub fn stream_openai<'a>(
                 if let Some(id) = chunk.get("id").and_then(|v| v.as_str()) {
                     partial.response_id = Some(id.to_string());
                 }
+                if partial.response_model.is_none()
+                    && let Some(m) = chunk.get("model").and_then(|v| v.as_str())
+                    && !m.is_empty() && m != model.id {
+                    partial.response_model = Some(m.to_string());
+                }
 
                 if let Some(choices) = chunk.get("choices").and_then(|v| v.as_array()) {
                     for choice in choices {

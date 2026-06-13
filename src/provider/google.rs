@@ -147,6 +147,10 @@ pub fn stream_google<'a>(
                     return;
                 }
 
+                if partial.response_id.is_none()
+                    && let Some(rid) = chunk.get("responseId").and_then(|v| v.as_str()) {
+                    partial.response_id = Some(rid.to_string());
+                }
                 if let Some(candidates) = chunk.get("candidates").and_then(|v| v.as_array()) {
                     for candidate in candidates {
                         if let Some(parts) = candidate.pointer("/content/parts").and_then(|v| v.as_array()) {
