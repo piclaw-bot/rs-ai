@@ -73,6 +73,16 @@ pub fn stream_bedrock<'a>(
                         ContentBlock::Text { text, .. } => {
                             content.push(BedrockContent::Text(text.clone()));
                         }
+                        ContentBlock::Thinking { thinking, thinking_signature, redacted } if !redacted && !thinking.trim().is_empty() => {
+                            use aws_sdk_bedrockruntime::types::{ReasoningContentBlock, ReasoningTextBlock};
+                            let mut b = ReasoningTextBlock::builder().text(thinking.clone());
+                            if let Some(sig) = thinking_signature {
+                                b = b.signature(sig.clone());
+                            }
+                            if let Ok(rt) = b.build() {
+                                content.push(BedrockContent::ReasoningContent(ReasoningContentBlock::ReasoningText(rt)));
+                            }
+                        }
                         ContentBlock::ToolCall { id, name, arguments, .. } => {
                             let args_value = serde_json::to_value(arguments).unwrap_or_else(|_| serde_json::json!({}));
                             if let Ok(tub) = ToolUseBlock::builder()
