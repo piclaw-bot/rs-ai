@@ -160,7 +160,7 @@ mod tests {
 
     #[test]
     fn test_overflow_detection_length_stop() {
-        let model = faux_model();
+        let model = Model { context_window: 100, ..faux_model() };
         let msg = Message {
             role: Role::Assistant,
             content: vec![],
@@ -168,7 +168,7 @@ mod tests {
             api: None, provider: None, model: None, response_id: None,
             response_model: None,
             diagnostics: Vec::new(),
-            usage: None,
+            usage: Some(Usage { input: 100, output: 0, ..Default::default() }),
             stop_reason: Some(StopReason::Length),
             error_message: None,
             tool_call_id: None, tool_name: None, is_error: false,

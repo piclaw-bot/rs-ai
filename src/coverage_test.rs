@@ -99,9 +99,11 @@ mod tests {
 
     #[test]
     fn test_overflow_stop_reason_length() {
-        let model = test_model_base();
+        let model = Model { context_window: 100, ..test_model_base() };
+        // Length stop with output==0 and input filling the window is overflow.
         let msg = Message {
             stop_reason: Some(StopReason::Length),
+            usage: Some(Usage { input: 100, output: 0, ..Default::default() }),
             ..base_msg()
         };
         assert!(is_context_overflow(&msg, &model));
@@ -111,6 +113,7 @@ mod tests {
     fn test_overflow_error_message() {
         let model = test_model_base();
         let msg = Message {
+            stop_reason: Some(StopReason::Error),
             error_message: Some("context_length_exceeded: reduce your input".into()),
             ..base_msg()
         };
@@ -120,8 +123,10 @@ mod tests {
     #[test]
     fn test_overflow_token_limit() {
         let model = Model { context_window: 100, ..test_model_base() };
+        // Silent overflow: successful stop but input exceeds the context window.
         let msg = Message {
-            usage: Some(Usage { input: 90, output: 15, total_tokens: 105, ..Default::default() }),
+            stop_reason: Some(StopReason::Stop),
+            usage: Some(Usage { input: 110, output: 0, total_tokens: 110, ..Default::default() }),
             ..base_msg()
         };
         assert!(is_context_overflow(&msg, &model));
