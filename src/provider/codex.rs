@@ -70,6 +70,7 @@ async fn try_websocket(
     let request = tungstenite::http::Request::builder()
         .uri(ws_url)
         .header("Authorization", format!("Bearer {}", api_key))
+        .header("originator", "pi")
         .header("Sec-WebSocket-Protocol", "openai-beta.responses")
         .body(())
         .map_err(|e| e.to_string())?;
@@ -379,7 +380,14 @@ pub(crate) fn build_codex_payload(model: &Model, context: &Context, opts: &Strea
     }
     if !context.tools.is_empty()
         && let Some(tools) = base.get("tools") {
-            body["tools"] = tools.clone();
+            // Codex uses strict: null (not false) on tool definitions.
+            let mut tools = tools.clone();
+            if let Some(arr) = tools.as_array_mut() {
+                for t in arr.iter_mut() {
+                    t["strict"] = Value::Null;
+                }
+            }
+            body["tools"] = tools;
     }
     if let Some(level) = opts.reasoning.as_ref().and_then(|l| crate::simple_options::clamp_reasoning_for_model(model, l)) {
         let key = format!("{:?}", level).to_lowercase();

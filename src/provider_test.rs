@@ -669,6 +669,19 @@ mod tests {
     }
 
     #[test]
+    fn test_codex_payload_tool_strict_null() {
+        use crate::provider::codex::build_codex_payload;
+        let model = test_model("openai-codex-responses", "openai", "https://chatgpt.com/backend-api");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![user_message("hi")],
+            tools: vec![Tool { name: "t".into(), description: "d".into(), parameters: serde_json::json!({"type":"object"}) }],
+        };
+        let payload = build_codex_payload(&model, &ctx, &StreamOptions::default());
+        assert!(payload["tools"][0]["strict"].is_null());
+    }
+
+    #[test]
     fn test_codex_ws_error_event() {
         let model = test_model("openai-codex-responses", "openai", "https://example.com");
         let events = vec![
