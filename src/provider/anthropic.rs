@@ -587,15 +587,25 @@ pub(crate) fn build_anthropic_payload(model: &Model, context: &Context, opts: &S
     }
 
     if !context.tools.is_empty() {
+        let compat = anthropic_compat(model);
         let mut tools: Vec<Value> = context.tools.iter().map(|t| {
-            json!({
+            let schema = &t.parameters;
+            let mut tool = json!({
                 "name": t.name,
                 "description": t.description,
-                "input_schema": t.parameters,
-            })
+                "input_schema": {
+                    "type": "object",
+                    "properties": schema.get("properties").cloned().unwrap_or_else(|| json!({})),
+                    "required": schema.get("required").cloned().unwrap_or_else(|| json!([])),
+                },
+            });
+            if compat.supports_eager_tool_input_streaming {
+                tool["eager_input_streaming"] = json!(true);
+            }
+            tool
         }).collect();
         // Cache control on the last tool definition (only when supported).
-        if anthropic_compat(model).supports_cache_control_on_tools
+        if compat.supports_cache_control_on_tools
             && let Some(ref cc) = cache_control
             && let Some(last) = tools.last_mut() {
                 last["cache_control"] = cc.clone();

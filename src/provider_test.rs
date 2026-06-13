@@ -1681,6 +1681,35 @@ mod tests {
     }
 
     #[test]
+    fn test_anthropic_tool_shape_eager_and_input_schema() {
+        use crate::provider::anthropic::build_anthropic_payload;
+        let model = test_model("anthropic-messages", "anthropic", "https://api.anthropic.com");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![user_message("hi")],
+            tools: vec![Tool {
+                name: "search".into(),
+                description: "d".into(),
+                parameters: serde_json::json!({
+                    "type": "object",
+                    "properties": {"q": {"type": "string"}},
+                    "required": ["q"],
+                    "additionalProperties": false
+                }),
+            }],
+        };
+        let payload = build_anthropic_payload(&model, &ctx, &StreamOptions::default());
+        let tool = &payload["tools"][0];
+        // Regular Anthropic model defaults to eager tool-input streaming.
+        assert_eq!(tool["eager_input_streaming"], true);
+        // input_schema is normalized to type/properties/required (extra keys dropped).
+        assert_eq!(tool["input_schema"]["type"], "object");
+        assert_eq!(tool["input_schema"]["properties"]["q"]["type"], "string");
+        assert_eq!(tool["input_schema"]["required"][0], "q");
+        assert!(tool["input_schema"].get("additionalProperties").is_none());
+    }
+
+    #[test]
     fn test_anthropic_tool_result_payload_shape() {
         use crate::provider::anthropic::build_anthropic_payload;
         let model = test_model("anthropic-messages", "anthropic", "https://example.com");
