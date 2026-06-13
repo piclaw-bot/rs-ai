@@ -268,6 +268,53 @@ mod tests {
     }
 
     #[test]
+    fn test_openai_normalizes_responses_tool_call_id() {
+        let model = test_model("openai-completions", "openai", "https://example.com");
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![ContentBlock::ToolCall {
+                    id: "call_abc|fc_verylongidentifierthatissuperlongandexceeds40chars+/=".into(),
+                    name: "search".into(),
+                    arguments: std::collections::HashMap::new(),
+                    thought_signature: None,
+                }],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::ToolUse), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &StreamOptions::default(), &crate::compat::detect_compat(&model));
+        let id = payload["messages"][0]["tool_calls"][0]["id"].as_str().unwrap();
+        assert_eq!(id, "call_abc");
+        assert!(!id.contains('|'));
+    }
+
+    #[test]
+    fn test_openai_deepseek_reasoning_content_on_assistant() {
+        let model = Model { reasoning: true, ..test_model("openai-completions", "deepseek", "https://api.deepseek.com") };
+        let ctx = Context {
+            system_prompt: None,
+            messages: vec![Message {
+                role: Role::Assistant,
+                content: vec![ContentBlock::Text { text: "hi".into(), text_signature: None }],
+                timestamp: 0,
+                api: None, provider: None, model: None, response_id: None,
+                response_model: None, diagnostics: Vec::new(), usage: None,
+                stop_reason: Some(StopReason::Stop), error_message: None,
+                tool_call_id: None, tool_name: None, is_error: false, details: None,
+            }],
+            tools: vec![],
+        };
+        let payload = crate::provider::openai::build_payload(&model, &ctx, &StreamOptions::default(), &crate::compat::detect_compat(&model));
+        assert_eq!(payload["messages"][0]["reasoning_content"], "");
+    }
+
+    #[test]
     fn test_openai_zai_thinking_format() {
         let model = Model { reasoning: true, ..test_model("openai-completions", "zai", "https://z.ai/api") };
         let ctx = test_context();

@@ -392,7 +392,7 @@ pub(crate) fn build_payload(
         }).collect();
         let tool_call_blocks: Vec<Value> = msg.content.iter().filter_map(|b| match b {
             ContentBlock::ToolCall { id, name, arguments, .. } => Some(json!({
-                "id": id,
+                "id": normalize_tool_call_id(id, &model.provider),
                 "type": "function",
                 "function": {
                     "name": name,
@@ -420,12 +420,24 @@ pub(crate) fn build_payload(
         };
 
         let mut m = json!({ "role": role_str, "content": content });
-        if msg.role == Role::Assistant && !tool_call_blocks.is_empty() {
-            m["tool_calls"] = json!(tool_call_blocks);
+        if msg.role == Role::Assistant {
+            if !tool_call_blocks.is_empty() {
+                m["tool_calls"] = json!(tool_call_blocks);
+            }
+            // DeepSeek-style providers require reasoning_content on assistant messages.
+            if compat.requires_reasoning_content_on_assistant_messages == Some(true) && model.reasoning {
+                m["reasoning_content"] = json!("");
+            }
+            // Skip empty assistant messages (no content and no tool calls).
+            let has_content = !matches!(m["content"], Value::Null)
+                && !(m["content"].as_str().map(|s| s.is_empty()).unwrap_or(false));
+            if !has_content && tool_call_blocks.is_empty() {
+                continue;
+            }
         }
         if msg.role == Role::ToolResult {
             if let Some(ref id) = msg.tool_call_id {
-                m["tool_call_id"] = json!(id);
+                m["tool_call_id"] = json!(normalize_tool_call_id(id, &model.provider));
             }
             if compat.requires_tool_result_name == Some(true) {
                 if let Some(ref name) = msg.tool_name {
@@ -573,6 +585,23 @@ pub(crate) fn build_payload(
     }
 
     payload
+}
+
+/// Normalize a tool-call ID for OpenAI-compatible APIs (mirrors upstream `normalizeToolCallId`).
+/// Pipe-separated IDs (from the Responses API) are reduced to the sanitized call_id,
+/// and overly-long OpenAI IDs are truncated to 40 chars.
+fn normalize_tool_call_id(id: &str, provider: &str) -> String {
+    if let Some((call_id, _)) = id.split_once('|') {
+        return call_id
+            .chars()
+            .map(|c| if c.is_ascii_alphanumeric() || c == '_' || c == '-' { c } else { '_' })
+            .take(40)
+            .collect();
+    }
+    if provider == "openai" && id.len() > 40 {
+        return id.chars().take(40).collect();
+    }
+    id.to_string()
 }
 
 fn format_content_blocks(blocks: &[ContentBlock]) -> Vec<Value> {
