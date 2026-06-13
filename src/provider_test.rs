@@ -722,6 +722,21 @@ mod tests {
     }
 
     #[test]
+    fn test_responses_reasoning_effort_maps_thinking_level() {
+        use std::collections::HashMap;
+        let model = Model {
+            reasoning: true,
+            thinking_level_map: Some(HashMap::from([("high".to_string(), Some("xhigh".to_string()))])),
+            ..test_model("openai-responses", "openai", "https://api.openai.com/v1")
+        };
+        let ctx = test_context();
+        let opts = StreamOptions { reasoning: Some(ThinkingLevel::High), ..Default::default() };
+        let payload = crate::provider::responses::build_responses_payload(&model, &ctx, &opts);
+        // The thinkingLevelMap remaps high -> xhigh.
+        assert_eq!(payload["reasoning"]["effort"], "xhigh");
+    }
+
+    #[test]
     fn test_responses_reasoning_model_uses_developer_role() {
         let model = Model { reasoning: true, ..test_model("openai-responses", "openai", "https://api.openai.com/v1") };
         let ctx = Context { system_prompt: Some("sys".into()), messages: vec![user_message("hi")], tools: vec![] };

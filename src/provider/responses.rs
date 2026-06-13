@@ -598,8 +598,13 @@ pub(crate) fn build_responses_payload(model: &Model, context: &Context, opts: &S
     }
 
     if let Some(level) = opts.reasoning.as_ref().and_then(|l| crate::simple_options::clamp_reasoning_for_model(model, l)) {
+        let key = format!("{:?}", level).to_lowercase();
+        let effort = model.thinking_level_map.as_ref()
+            .and_then(|m| m.get(&key))
+            .and_then(|v| v.clone())
+            .unwrap_or(key);
         payload["reasoning"] = json!({
-            "effort": format!("{:?}", level).to_lowercase(),
+            "effort": effort,
             "summary": opts.reasoning_summary.clone().unwrap_or_else(|| "auto".to_string()),
         });
         payload["include"] = json!(["reasoning.encrypted_content"]);
