@@ -286,6 +286,14 @@ fn stream_responses_inner<'a>(
                             yield Event::ThinkingDelta { delta: delta.to_string() };
                         }
                     }
+                    "response.reasoning_summary_part.done" => {
+                        // Separate consecutive summary parts with a blank line (only when a
+                        // summary is in progress), matching upstream.
+                        if !current_thinking.is_empty() {
+                            current_thinking.push_str("\n\n");
+                            yield Event::ThinkingDelta { delta: "\n\n".to_string() };
+                        }
+                    }
                     "response.function_call_arguments.delta" => {
                         if let Some(delta) = data.get("delta").and_then(|v| v.as_str()) {
                             current_tool_args.push_str(delta);
