@@ -445,7 +445,11 @@ pub fn stream_bedrock<'a>(
                                                 yield Event::ThinkingDelta { delta: t.to_string() };
                                             }
                                             ReasoningContentBlockDelta::Signature(s) => {
-                                                current_thinking_signature = Some(s.to_string());
+                                                // Concatenate multi-chunk signatures (mirrors upstream).
+                                                match &mut current_thinking_signature {
+                                                    Some(existing) => existing.push_str(s),
+                                                    None => current_thinking_signature = Some(s.to_string()),
+                                                }
                                             }
                                             _ => {}
                                         }
