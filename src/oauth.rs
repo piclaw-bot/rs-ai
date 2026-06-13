@@ -186,6 +186,107 @@ pub fn copilot_token_url(domain: &str) -> String {
     format!("https://api.{domain}/copilot_internal/v2/token")
 }
 
+/// GitHub Copilot OAuth client id (decoded from the upstream base64 constant).
+pub const COPILOT_CLIENT_ID: &str = "Iv1.b507a08c87ecfe98";
+
+/// A GitHub device-code grant returned by `start_github_device_flow`.
+#[derive(Debug, Clone)]
+pub struct DeviceCode {
+    pub device_code: String,
+    pub user_code: String,
+    pub verification_uri: String,
+    pub interval: Option<u64>,
+    pub expires_in: u64,
+}
+
+/// Start a GitHub device-code flow (mirrors startDeviceFlow).
+pub async fn start_github_device_flow(domain: &str) -> Result<DeviceCode, String> {
+    start_github_device_flow_at(&format!("https://{domain}/login/device/code"), COPILOT_CLIENT_ID).await
+}
+
+/// Start against an explicit device-code endpoint (used for testing).
+pub async fn start_github_device_flow_at(device_code_url: &str, client_id: &str) -> Result<DeviceCode, String> {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post(device_code_url)
+        .header("Accept", "application/json")
+        .header("User-Agent", "GitHubCopilotChat/0.35.0")
+        .form(&[("client_id", client_id), ("scope", "read:user")])
+        .send()
+        .await
+        .map_err(|e| format!("Device code request failed: {e}"))?;
+    let body = resp.text().await.map_err(|e| format!("Device code request failed: {e}"))?;
+    let data: serde_json::Value = serde_json::from_str(&body)
+        .map_err(|_| "Invalid device code response".to_string())?;
+    let device_code = data.get("device_code").and_then(|v| v.as_str())
+        .ok_or_else(|| "Invalid device code response fields".to_string())?.to_string();
+    let user_code = data.get("user_code").and_then(|v| v.as_str())
+        .ok_or_else(|| "Invalid device code response fields".to_string())?.to_string();
+    let verification_uri = data.get("verification_uri").and_then(|v| v.as_str())
+        .ok_or_else(|| "Invalid device code response fields".to_string())?.to_string();
+    let expires_in = data.get("expires_in").and_then(|v| v.as_u64())
+        .ok_or_else(|| "Invalid device code response fields".to_string())?;
+    // Reject non-http(s) verification URIs to avoid opening arbitrary handlers.
+    if !(verification_uri.starts_with("https://") || verification_uri.starts_with("http://")) {
+        return Err("Untrusted verification_uri in device code response".to_string());
+    }
+    let interval = data.get("interval").and_then(|v| v.as_u64());
+    Ok(DeviceCode { device_code, user_code, verification_uri, interval, expires_in })
+}
+
+/// Result of a single device-code token poll (mirrors the poll callback classification).
+#[derive(Debug, Clone, PartialEq)]
+pub enum DevicePollStatus {
+    Complete(String),
+    Pending,
+    SlowDown,
+    Failed(String),
+}
+
+/// Poll once for a GitHub device-code access token (mirrors pollForGitHubAccessToken's poll).
+pub async fn poll_github_device_token(domain: &str, device_code: &str) -> DevicePollStatus {
+    poll_github_device_token_at(&format!("https://{domain}/login/oauth/access_token"), COPILOT_CLIENT_ID, device_code).await
+}
+
+/// Poll against an explicit access-token endpoint (used for testing).
+pub async fn poll_github_device_token_at(access_token_url: &str, client_id: &str, device_code: &str) -> DevicePollStatus {
+    let client = reqwest::Client::new();
+    let resp = client
+        .post(access_token_url)
+        .header("Accept", "application/json")
+        .header("User-Agent", "GitHubCopilotChat/0.35.0")
+        .form(&[
+            ("client_id", client_id),
+            ("device_code", device_code),
+            ("grant_type", "urn:ietf:params:oauth:grant-type:device_code"),
+        ])
+        .send()
+        .await;
+    let body = match resp {
+        Ok(r) => r.text().await.unwrap_or_default(),
+        Err(e) => return DevicePollStatus::Failed(format!("Device flow failed: {e}")),
+    };
+    let data: serde_json::Value = match serde_json::from_str(&body) {
+        Ok(v) => v,
+        Err(_) => return DevicePollStatus::Failed("Invalid device token response".to_string()),
+    };
+    if let Some(token) = data.get("access_token").and_then(|v| v.as_str()) {
+        return DevicePollStatus::Complete(token.to_string());
+    }
+    if let Some(error) = data.get("error").and_then(|v| v.as_str()) {
+        return match error {
+            "authorization_pending" => DevicePollStatus::Pending,
+            "slow_down" => DevicePollStatus::SlowDown,
+            other => {
+                let desc = data.get("error_description").and_then(|v| v.as_str())
+                    .map(|d| format!(": {d}")).unwrap_or_default();
+                DevicePollStatus::Failed(format!("Device flow failed: {other}{desc}"))
+            }
+        };
+    }
+    DevicePollStatus::Failed("Invalid device token response".to_string())
+}
+
 /// Refresh a GitHub Copilot token (mirrors refreshGitHubCopilotToken).
 pub async fn refresh_copilot_token(refresh_token: &str, enterprise_domain: Option<&str>) -> Result<CopilotCredentials, String> {
     let domain = enterprise_domain.unwrap_or("github.com");
@@ -313,5 +414,71 @@ mod tests {
         assert_eq!(creds.refresh, "gho_refresh");
         // expires_at (seconds) * 1000 - 5min margin.
         assert_eq!(creds.expires_at_ms, 1000000 * 1000 - 5 * 60 * 1000);
+    }
+
+    #[tokio::test]
+    async fn test_start_github_device_flow() {
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+        use wiremock::matchers::{method, path};
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/login/device/code"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"device_code":"dc","user_code":"WXYZ-1234","verification_uri":"https://github.com/login/device","interval":5,"expires_in":900}"#,
+            ))
+            .mount(&server)
+            .await;
+        let url = format!("{}/login/device/code", server.uri());
+        let dc = start_github_device_flow_at(&url, COPILOT_CLIENT_ID).await.unwrap();
+        assert_eq!(dc.device_code, "dc");
+        assert_eq!(dc.user_code, "WXYZ-1234");
+        assert_eq!(dc.verification_uri, "https://github.com/login/device");
+        assert_eq!(dc.interval, Some(5));
+        assert_eq!(dc.expires_in, 900);
+    }
+
+    #[tokio::test]
+    async fn test_start_github_device_flow_rejects_untrusted_uri() {
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+        use wiremock::matchers::method;
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(
+                r#"{"device_code":"dc","user_code":"x","verification_uri":"javascript:alert(1)","expires_in":900}"#,
+            ))
+            .mount(&server)
+            .await;
+        let err = start_github_device_flow_at(&server.uri(), COPILOT_CLIENT_ID).await.unwrap_err();
+        assert!(err.contains("Untrusted verification_uri"));
+    }
+
+    #[tokio::test]
+    async fn test_poll_github_device_token_classifies_responses() {
+        use wiremock::{Mock, MockServer, ResponseTemplate};
+        use wiremock::matchers::{method, path};
+        // pending
+        let s1 = MockServer::start().await;
+        Mock::given(method("POST")).and(path("/t"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"error":"authorization_pending"}"#))
+            .mount(&s1).await;
+        assert_eq!(poll_github_device_token_at(&format!("{}/t", s1.uri()), COPILOT_CLIENT_ID, "dc").await, DevicePollStatus::Pending);
+        // slow_down
+        let s2 = MockServer::start().await;
+        Mock::given(method("POST")).and(path("/t"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"error":"slow_down"}"#))
+            .mount(&s2).await;
+        assert_eq!(poll_github_device_token_at(&format!("{}/t", s2.uri()), COPILOT_CLIENT_ID, "dc").await, DevicePollStatus::SlowDown);
+        // complete
+        let s3 = MockServer::start().await;
+        Mock::given(method("POST")).and(path("/t"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"access_token":"gho_tok"}"#))
+            .mount(&s3).await;
+        assert_eq!(poll_github_device_token_at(&format!("{}/t", s3.uri()), COPILOT_CLIENT_ID, "dc").await, DevicePollStatus::Complete("gho_tok".to_string()));
+        // failed with description
+        let s4 = MockServer::start().await;
+        Mock::given(method("POST")).and(path("/t"))
+            .respond_with(ResponseTemplate::new(200).set_body_string(r#"{"error":"access_denied","error_description":"nope"}"#))
+            .mount(&s4).await;
+        assert_eq!(poll_github_device_token_at(&format!("{}/t", s4.uri()), COPILOT_CLIENT_ID, "dc").await, DevicePollStatus::Failed("Device flow failed: access_denied: nope".to_string()));
     }
 }
