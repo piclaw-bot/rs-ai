@@ -101,7 +101,8 @@ pub fn stream_google<'a>(
         let mut text_started = false;
         let mut thinking_started = false;
         let mut current_thinking = String::new();
-        let mut tool_calls: Vec<(String, String, serde_json::Value)> = Vec::new();
+        let mut current_thinking_signature: Option<String> = None;
+        let mut tool_calls: Vec<(String, String, serde_json::Value, Option<String>)> = Vec::new();
 
         while let Some(chunk_result) = byte_stream.next().await {
             let chunk_bytes = match chunk_result {
@@ -156,6 +157,10 @@ pub fn stream_google<'a>(
                         if let Some(parts) = candidate.pointer("/content/parts").and_then(|v| v.as_array()) {
                             for part in parts {
                                 let is_thought = part.get("thought").and_then(|v| v.as_bool()).unwrap_or(false);
+                                if is_thought
+                                    && let Some(sig) = part.get("thoughtSignature").and_then(|v| v.as_str()) {
+                                    current_thinking_signature = Some(sig.to_string());
+                                }
                                 if let Some(text) = part.get("text").and_then(|v| v.as_str())
                                     && !text.is_empty() {
                                         if is_thought {
@@ -178,10 +183,11 @@ pub fn stream_google<'a>(
                                     let name = fc.get("name").and_then(|v| v.as_str()).unwrap_or("").to_string();
                                     let args = fc.get("args").cloned().unwrap_or_else(|| serde_json::json!({}));
                                     let id = format!("call_{}", tool_calls.len());
+                                    let sig = part.get("thoughtSignature").and_then(|v| v.as_str()).map(|s| s.to_string());
                                     yield Event::ToolCallStart { id: id.clone(), name: name.clone() };
                                     yield Event::ToolCallDelta { delta: serde_json::to_string(&args).unwrap_or_default() };
                                     yield Event::ToolCallEnd { id: id.clone(), name: name.clone(), arguments: args.clone() };
-                                    tool_calls.push((id, name, args));
+                                    tool_calls.push((id, name, args, sig));
                                 }
                             }
                         }
@@ -231,7 +237,7 @@ pub fn stream_google<'a>(
         if !current_thinking.is_empty() {
             partial.content.push(ContentBlock::Thinking {
                 thinking: current_thinking,
-                thinking_signature: None,
+                thinking_signature: current_thinking_signature,
                 redacted: false,
             });
         }
@@ -241,7 +247,7 @@ pub fn stream_google<'a>(
                 text_signature: None,
             });
         }
-        for (id, name, args) in tool_calls {
+        for (id, name, args, sig) in tool_calls {
             let arguments = match args {
                 serde_json::Value::Object(map) => map.into_iter().collect(),
                 _ => std::collections::HashMap::new(),
@@ -250,7 +256,7 @@ pub fn stream_google<'a>(
                 id,
                 name,
                 arguments,
-                thought_signature: None,
+                thought_signature: sig,
             });
         }
         if let Some(ref mut u) = partial.usage {
@@ -331,14 +337,24 @@ fn build_google_payload(model: &Model, context: &Context, opts: &StreamOptions) 
             }
             Role::Assistant => {
                 let parts: Vec<Value> = msg.content.iter().filter_map(|b| match b {
-                    ContentBlock::Text { text, .. } if !text.trim().is_empty() => Some(json!({"text": text})),
+                    ContentBlock::Text { text, text_signature } if !text.trim().is_empty() => {
+                        let mut p = json!({"text": text});
+                        if let Some(sig) = text_signature { p["thoughtSignature"] = json!(sig); }
+                        Some(p)
+                    }
                     ContentBlock::Image { data, mime_type } => Some(json!({
                         "inlineData": {"mimeType": mime_type, "data": data}
                     })),
-                    ContentBlock::Thinking { thinking, .. } if !thinking.trim().is_empty() => Some(json!({"text": thinking})),
-                    ContentBlock::ToolCall { name, arguments, .. } => Some(json!({
-                        "functionCall": {"name": name, "args": arguments}
-                    })),
+                    ContentBlock::Thinking { thinking, thinking_signature, .. } if !thinking.trim().is_empty() => {
+                        let mut p = json!({"thought": true, "text": thinking});
+                        if let Some(sig) = thinking_signature { p["thoughtSignature"] = json!(sig); }
+                        Some(p)
+                    }
+                    ContentBlock::ToolCall { name, arguments, thought_signature, .. } => {
+                        let mut p = json!({"functionCall": {"name": name, "args": arguments}});
+                        if let Some(sig) = thought_signature { p["thoughtSignature"] = json!(sig); }
+                        Some(p)
+                    }
                     _ => None,
                 }).collect();
                 if parts.is_empty() { continue; }
